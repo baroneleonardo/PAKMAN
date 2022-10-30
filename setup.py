@@ -10,11 +10,13 @@ import sys
 import warnings
 from collections import namedtuple
 import io
-
-from moe import __version__
+from multiprocessing import cpu_count
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+from setuptools.command.build_ext import build_ext
+
+from moe import __version__
 
 try:
     import sysconfig
@@ -23,8 +25,10 @@ except ImportError:
 
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = io.open(os.path.join(here, 'README.md'), encoding="latin-1").read()
+cpp_location = os.path.join(here, 'moe', 'optimal_learning', 'cpp')
+local_build_dir = os.path.join(here, 'moe', 'build')
 
+README = io.open(os.path.join(here, 'README.md'), encoding="latin-1").read()
 
 VERSION = __version__
 
@@ -90,22 +94,45 @@ def find_path(moe_executable):
     return path
 
 
-class InstallCppComponents(install):
-
-    """Install required C++ components."""
+class BuildAndInstall(install):
 
     def run(self):
-        """Run the install."""
+        package_dir = os.path.join(self.install_lib, 'moe')
+        build_dir = os.path.join(package_dir, 'build')
+
+        # Remove the build directory if it exists
+        if os.path.exists(build_dir):
+            shutil.rmtree(build_dir)
+        os.mkdir(build_dir)
+
+        # Build the extension
+        self.run_command('build_ext')
+
+        # Run default installation
         install.run(self)
+
+        # Copy the compiled C++ files into the installation folder
+        GPP_so = os.path.join(local_build_dir, 'GPP.so')
+        build_init = os.path.join(local_build_dir, '__init__.py')
+
+        shutil.copyfile(GPP_so, os.path.join(build_dir, 'GPP.so'))
+        shutil.copyfile(build_init, os.path.join(build_dir, '__init__.py'))
+
+
+class BuildCppComponents(build_ext):
+
+    """Compile required C++ components."""
+
+    def run(self):
+        """Compile the C++ components."""
+        build_ext.run(self)
+
         # Copy so we do not overwrite the user's environment later.
         env = os.environ.copy()
 
         # Sometimes we want to manually build the C++ (like in Docker)
         if env.get('MOE_NO_BUILD_CPP', 'False') == 'True':
             return
-
-        package_dir = os.path.join(self.install_lib, 'moe')
-        build_dir = os.path.join(package_dir, 'build')
 
         cmake_path = find_path(
             MoeExecutable(
@@ -132,16 +159,9 @@ class InstallCppComponents(install):
         if 'CXX' in env:
             print("Passing CXX={0:s} to cmake.".format(env['CXX']))
 
-        # rm the build directory if it exists
-        if os.path.exists(build_dir):
-            shutil.rmtree(build_dir)
-        os.mkdir(build_dir)
-        local_build_dir = os.path.join(here, 'moe', 'build')
         if os.path.exists(local_build_dir):
             shutil.rmtree(local_build_dir)
         os.mkdir(local_build_dir)
-
-        cpp_location = os.path.join(here, 'moe', 'optimal_learning', 'cpp')
 
         # Reformat options string: options & args that are separated by whitespace on the command line
         # must be passed to subprocess.Popen in separate list elements.
@@ -206,15 +226,10 @@ class InstallCppComponents(install):
             )
         proc.wait()
 
-        # Compile everything
-        proc = subprocess.Popen(["make"], cwd=local_build_dir, env=env)
+        # Compile everything, using all available CPUs on this computer
+        n_cpus = cpu_count()
+        proc = subprocess.Popen(["make", f"-j{n_cpus}"], cwd=local_build_dir, env=env)
         proc.wait()
-
-        GPP_so = os.path.join(local_build_dir, 'GPP.so')
-        build_init = os.path.join(local_build_dir, '__init__.py')
-
-        shutil.copyfile(GPP_so, os.path.join(build_dir, 'GPP.so'))
-        shutil.copyfile(build_init, os.path.join(build_dir, '__init__.py'))
 
 
 setup(name='MOE',
@@ -238,6 +253,7 @@ setup(name='MOE',
       """,
       paster_plugins=['pyramid'],
       cmdclass={
-          'install': InstallCppComponents,
+          'build_ext': BuildCppComponents,
+          'install': BuildAndInstall,
           },
       )
