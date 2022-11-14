@@ -8,10 +8,10 @@ import moe.optimal_learning.python.cpp_wrappers.covariance
 import moe.optimal_learning.python.cpp_wrappers.expected_improvement
 import moe.optimal_learning.python.cpp_wrappers.gaussian_process
 from moe.optimal_learning.python.geometry_utils import ClosedInterval
-import moe.optimal_learning.python.python_version.covariance
+import moe.optimal_learning.python.cpp_wrappers.covariance
 import moe.optimal_learning.python.python_version.domain
-import moe.optimal_learning.python.python_version.expected_improvement
-import moe.optimal_learning.python.python_version.gaussian_process
+import moe.optimal_learning.python.cpp_wrappers.expected_improvement
+import moe.optimal_learning.python.cpp_wrappers.gaussian_process
 from moe.tests.optimal_learning.python.gaussian_process_test_case import GaussianProcessTestCase, GaussianProcessTestEnvironmentInput
 
 
