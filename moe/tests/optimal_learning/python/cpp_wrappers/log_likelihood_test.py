@@ -3,9 +3,9 @@
 import moe.optimal_learning.python.cpp_wrappers.covariance
 import moe.optimal_learning.python.cpp_wrappers.log_likelihood
 from moe.optimal_learning.python.geometry_utils import ClosedInterval
-import moe.optimal_learning.python.python_version.covariance
+import moe.optimal_learning.python.cpp_wrappers.covariance
 import moe.optimal_learning.python.python_version.domain
-import moe.optimal_learning.python.python_version.log_likelihood
+import moe.optimal_learning.python.cpp_wrappers.log_likelihood
 from moe.tests.optimal_learning.python.gaussian_process_test_case import GaussianProcessTestCase, GaussianProcessTestEnvironmentInput
 
 
@@ -27,7 +27,7 @@ class TestLogLikelihood(GaussianProcessTestCase):
         hyperparameter_interval=ClosedInterval(0.2, 1.5),
         lower_bound_interval=ClosedInterval(-2.0, 0.5),
         upper_bound_interval=ClosedInterval(2.0, 3.5),
-        covariance_class=moe.optimal_learning.python.python_version.covariance.SquareExponential,
+        covariance_class=moe.optimal_learning.python.cpp_wrappers.covariance.SquareExponential,
         spatial_domain_class=moe.optimal_learning.python.python_version.domain.TensorProductDomain,
         hyperparameter_domain_class=moe.optimal_learning.python.python_version.domain.TensorProductDomain,
     )

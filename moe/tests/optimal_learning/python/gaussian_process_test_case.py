@@ -7,9 +7,9 @@ import collections
 import numpy
 
 from moe.optimal_learning.python.geometry_utils import ClosedInterval
-from moe.optimal_learning.python.python_version.covariance import SquareExponential
+from moe.optimal_learning.python.cpp_wrappers.covariance import SquareExponential
 from moe.optimal_learning.python.python_version.domain import TensorProductDomain
-from moe.optimal_learning.python.python_version.gaussian_process import GaussianProcess
+from moe.optimal_learning.python.cpp_wrappers.gaussian_process import GaussianProcess
 import moe.tests.optimal_learning.python.gaussian_process_test_utils as gp_utils
 from moe.tests.optimal_learning.python.optimal_learning_test_case import OptimalLearningTestCase
 
