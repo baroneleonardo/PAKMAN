@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from __future__ import division
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import numpy as np
 import os, sys
 import time
@@ -39,7 +38,7 @@ obj_func_name = str(argv[0])
 method = str(argv[1])
 num_to_sample = int(argv[2])
 job_id = int(argv[3])
-if len(argv)>4:
+if len(argv) > 4:
     hesbo = str(argv[4])
 else:
     hesbo = None
@@ -49,7 +48,7 @@ else:
 
 # constants
 num_func_eval = 12
-num_iteration = int(old_div(num_func_eval, num_to_sample)) + 1
+num_iteration = int(num_func_eval // num_to_sample) + 1
 
 obj_func_dict = {'Branin': synthetic_functions.Branin(),
                  'Rosenbrock': synthetic_functions.Rosenbrock(),
