@@ -284,9 +284,13 @@ class GaussianProcessLogLikelihoodMCMC(object):
         # Bound the hyperparameter space to keep things sane. Note all
         # hyperparameters live on a log scale
         if numpy.any((-20 > hyps) + (hyps > 20)):
-          return -numpy.inf
+            return -numpy.inf
         if not self.noisy:
-          hyps[(self.dim+1):] = numpy.log((1+self._num_derivatives)*[1.e-8])
+            # TODO: this is actually overwriting the input array, causing the MC sampler to have just
+            # log(1.e-8) as the 4th (last) column entries of the walkers coordinates, thus breaking the entire thing...
+            # Also, this next line looks VERY weird, considering it is overwriting part of the input
+            # data with some "noise" IF the attribute "noisy" is FALSE...
+            hyps[(self.dim+1):] = numpy.log((1+self._num_derivatives)*[1.e-8])
 
         posterior = 1
         if self.prior is not None:
