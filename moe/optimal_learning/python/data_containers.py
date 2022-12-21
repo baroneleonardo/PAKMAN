@@ -223,9 +223,11 @@ class HistoricalData(object):
 
         offset = self.num_sampled
         num_sampled = self.num_sampled + len(sample_points)
-        self._points_sampled.resize((num_sampled, self.dim))
-        self._points_sampled_value.resize((num_sampled, self.num_derivatives+1))
-        self._points_sampled_noise_variance.resize(num_sampled)
+        # These .resize() calls breaks only when debugging if you set refcheck=True.
+        # See https://stackoverflow.com/questions/24034839/valueerror-resizing-an-ndarray
+        self._points_sampled.resize((num_sampled, self.dim), refcheck=False)
+        self._points_sampled_value.resize((num_sampled, self.num_derivatives+1), refcheck=False)
+        self._points_sampled_noise_variance.resize(num_sampled, refcheck=False)
 
         self._update_historical_data(offset, sample_points)
 
