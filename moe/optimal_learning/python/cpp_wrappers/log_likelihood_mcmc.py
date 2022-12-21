@@ -274,7 +274,7 @@ class GaussianProcessLogLikelihoodMCMC(object):
                                                           self._historical_data, self.derivatives)
 
 
-    def compute_log_likelihood(self, hyps):
+    def compute_log_likelihood(self, hyps0):
         r"""Compute the objective_type measure at the specified hyperparameters.
 
         :return: value of log_likelihood evaluated at hyperparameters (``LL(y | X, \theta)``)
@@ -283,6 +283,7 @@ class GaussianProcessLogLikelihoodMCMC(object):
         """
         # Bound the hyperparameter space to keep things sane. Note all
         # hyperparameters live on a log scale
+        hyps = hyps0.copy()
         if numpy.any((-20 > hyps) + (hyps > 20)):
             return -numpy.inf
         if not self.noisy:
