@@ -104,7 +104,7 @@ init_data.append_sample_points([SamplePoint(pt, [init_pts_value[num, i] for i in
                                             objective_func._sample_var) for num, pt in enumerate(init_pts)])
 
 # initialize the model
-prior = DefaultPrior(1+objective_func._dim+len(observations), len(observations))
+prior = DefaultPrior(1 + objective_func._dim+len(observations), len(observations))
 
 # noisy = False means the underlying function being optimized is noise-free
 cpp_gp_loglikelihood = cppGaussianProcessLogLikelihoodMCMC(historical_data = init_data,
