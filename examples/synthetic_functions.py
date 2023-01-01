@@ -28,6 +28,24 @@ class _GenericProblem:
     def get_initial_points(self):
         return np.zeros((self._num_init_pts, self._dim))
 
+    @property
+    def n_derivatives(self):
+        if self._use_observations:
+            return self._dim
+        return 0
+
+    @property
+    def n_observations(self):
+        return self.n_derivatives + 1
+
+    @property
+    def derivatives(self):  # _GenericProblem.derivatives
+        return np.arange(self.n_derivatives)
+
+    @property
+    def observations(self):
+        return np.arange(self.n_observations)
+
 
 class ParabolicMinAtOrigin(_GenericProblem):
 
@@ -37,11 +55,11 @@ class ParabolicMinAtOrigin(_GenericProblem):
         self._num_init_pts = 3
         self._sample_var = 0.0
         self._min_value = 2.0
-        self._observations = []
+        self._use_observations = False
         self._num_fidelity = 0
 
     def evaluate_true(self, x):
-        return 0.5 * x[0] ** 2 + 0.2 * x[1] ** 2 + self._min_value
+        return np.array([0.5 * x[0] ** 2 + 0.2 * x[1] ** 2 + self._min_value])
 
     def evaluate(self, x):
         return self.evaluate_true(x)
@@ -54,7 +72,7 @@ class ParabolicMinAtTwoAndThree(_GenericProblem):
         self._num_init_pts = 3
         self._sample_var = 0.0
         self._min_value = 2.0
-        self._observations = []
+        self._use_observations = False
         self._num_fidelity = 0
 
     def evaluate(self, x):
@@ -69,7 +87,7 @@ class Branin(_GenericProblem):
         self._num_init_pts = 3
         self._sample_var = 0.0
         self._min_value = 0.397887
-        self._observations = []#np.arange(self._dim)
+        self._use_observations = False
         self._num_fidelity = 0
 
     def evaluate_true(self, x):
@@ -99,7 +117,7 @@ class Rosenbrock(_GenericProblem):
         self._num_init_pts = 3
         self._sample_var = 0.0
         self._min_value = 0.0
-        self._observations = []
+        self._use_observations = False
         self._num_fidelity = 0
 
     def evaluate_true(self, x):
@@ -126,7 +144,7 @@ class Hartmann3(_GenericProblem):
         self._num_init_pts = 3
         self._sample_var = 0.0
         self._min_value = -3.86278
-        self._observations = []#np.arange(self._dim)
+        self._use_observations = False
         self._num_fidelity = 0
 
     def evaluate_true(self, x):
@@ -160,7 +178,7 @@ class Levy4(_GenericProblem):
         self._num_init_pts = 3
         self._sample_var = 0.0
         self._min_value = 0.0
-        self._observations = []#np.arange(self._dim)
+        self._use_observations = False#np.arange(self._dim)
         self._num_fidelity = 0
 
     def evaluate_true(self, x):
@@ -199,7 +217,7 @@ class Hartmann6(_GenericProblem):
         self._num_init_pts = 3
         self._sample_var = 0.0
         self._min_value = -3.32237
-        self._observations = []#np.arange(self._dim)
+        self._use_observations = False#np.arange(self._dim)
         self._num_fidelity = 0
 
     def evaluate_true(self, x):
@@ -235,7 +253,7 @@ class Ackley(_GenericProblem):
         self._num_init_pts = 3
         self._sample_var = 0.0
         self._min_value = 0.0
-        self._observations = []
+        self._use_observations = False
         self._num_fidelity = 0
 
     def evaluate_true(self, x):

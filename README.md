@@ -179,14 +179,14 @@ class KISSGP(object):
         self._num_init_pts = 1
         self._sample_var = 0.0
         self._min_value = 0.0
-        self._observations = numpy.arange(self._dim)
+        self._use_observations = True
         self._num_fidelity = 0
 ```
 which means that we access the first 3 partial derivatives. One can run this benchmark similarly by
 ```
 $ python main.py KISSGP KG(EI) 4 1
 ```
-If one modifies to ```self._observations = []```, and then rerun the command above, it will execute the q-KG algorithm without exploiting gradient
+If one modifies to ```self._use_observations = False```, and then rerun the command above, it will execute the q-KG algorithm without exploiting gradient
 observations. The comparison between q-KG and d-KG on 10 independent runs are as follows,
 <center><img src="https://github.com/wujian16/qKG/blob/jianwu_18_cpp_continuous_fidelity/KISSGP.jpg" height="400" width="450"></center>
 
