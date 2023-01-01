@@ -71,7 +71,7 @@ if use_hesbo:
     objective_func = projection(effect_dim, objective_func)
 
 # FIXED ARGUMENT (TODO: This should be a script argument)
-NUM_FUNC_EVAL = 12  # Total number of function evaluations
+NUM_FUNC_EVAL = 24  # Total number of function evaluations
 
 ######################
 #
@@ -94,28 +94,29 @@ for pt in init_pts:
     pt[objective_func._dim-objective_func._num_fidelity:] = np.ones(objective_func._num_fidelity)
 
 # Observe
-derivatives = objective_func._observations
-observations = [0] + [i+1 for i in derivatives]
-init_pts_value = np.array([objective_func.evaluate(pt) for pt in init_pts])#[:, observations]
-true_value_init = np.array([objective_func.evaluate_true(pt) for pt in init_pts])#[:, observations]
+init_pts_value = np.array([objective_func.evaluate(pt) for pt in init_pts])
+true_value_init = np.array([objective_func.evaluate_true(pt) for pt in init_pts])
 
-init_data = HistoricalData(dim=objective_func._dim, num_derivatives = len(derivatives))
-init_data.append_sample_points([SamplePoint(pt, [init_pts_value[num, i] for i in observations],
-                                            objective_func._sample_var) for num, pt in enumerate(init_pts)])
+init_data = HistoricalData(dim=objective_func._dim, num_derivatives=objective_func.n_derivatives)
+init_data.append_sample_points([SamplePoint(pt,
+                                            [init_pts_value[num, i] for i in objective_func.observations],
+                                            objective_func._sample_var)
+                                for num, pt in enumerate(init_pts)])
 
 # initialize the model
-prior = DefaultPrior(1+objective_func._dim+len(observations), len(observations))
+prior = DefaultPrior(1 + objective_func._dim + objective_func.n_observations, objective_func.n_observations)
 
 # noisy = False means the underlying function being optimized is noise-free
-cpp_gp_loglikelihood = cppGaussianProcessLogLikelihoodMCMC(historical_data = init_data,
-                                                           derivatives = derivatives,
-                                                           prior = prior,
-                                                           chain_length = 1000,
-                                                           burnin_steps = 2000,
-                                                           n_hypers = 2 ** 4,
-                                                           noisy = False)
+cpp_gp_loglikelihood = cppGaussianProcessLogLikelihoodMCMC(historical_data=init_data,
+                                                           derivatives=objective_func.derivatives,
+                                                           prior=prior,
+                                                           chain_length=1000,
+                                                           burnin_steps=2000,
+                                                           n_hypers=2 ** 4,
+                                                           noisy=False)
 cpp_gp_loglikelihood.train()
 
+# Various Gradient Descent parameters
 py_sgd_params_ps = pyGradientDescentParameters(max_num_steps=1000,
                                                max_num_restarts=3,
                                                num_steps_averaged=15,
@@ -161,12 +162,10 @@ report_point = multistart_optimize(ps_mean_opt, report_point, num_multistarts = 
 report_point = report_point.ravel()
 report_point = np.concatenate((report_point, np.ones(objective_func._num_fidelity)))
 
-print("best so far in the initial data {0}".format(true_value_init[np.argmin(true_value_init[:,0])][0]))
+print(f"Best so far in the initial data {true_value_init[np.argmin(true_value_init[:, 0])][0]}")
 capital_so_far = 0.
 for n in range(num_iteration):
-    print(method + ", {0}th job, {1}th iteration, func={2}, q={3}".format(
-            job_id, n, obj_func_name, num_to_sample
-    ))
+    print(f"{method}, {job_id}th job, {n}th iteration, func={obj_func_name}, q={num_to_sample}")
     time1 = time.time()
     if method == 'KG':
         discrete_pts_list = []
@@ -212,23 +211,21 @@ for n in range(num_iteration):
         next_points, voi = bayesian_optimization.gen_sample_from_qei(cpp_gp_loglikelihood.models[0], cpp_search_domain,
                                                            cpp_sgd_params_kg, num_to_sample, num_mc=2 ** 10)
 
-    print(method + " takes "+str((time.time()-time1))+" seconds")
-    #time1 = time.time()
-    print(method + " suggests points:")
+    print(f"{method} takes {(time.time()-time1)} seconds")
+    print("Suggests points:")
     print(next_points)
 
-    sampled_points = [SamplePoint(pt, objective_func.evaluate(pt)[observations], objective_func._sample_var) for pt in next_points]
+    sampled_points = [SamplePoint(pt, objective_func.evaluate(pt)[objective_func.observations], objective_func._sample_var) for pt in next_points]
 
-    #print "evaluating takes "+str((time.time()-time1)/60)+" mins"
     capitals = np.ones(num_to_sample)
     for i in range(num_to_sample):
         if objective_func._num_fidelity > 0:
             value = 1.0
             for j in range(objective_func._num_fidelity):
-                value *= next_points[i, objective_func._dim-1-j]
+                value *= next_points[i, objective_func._dim - 1 - j]
             capitals[i] = value
     capital_so_far += np.amax(capitals)
-    print("evaluating takes capital " + str(capital_so_far) +" so far")
+    print(f"Evaluating takes capital {capital_so_far} so far")
 
     # retrain the model
     time1 = time.time()
@@ -236,7 +233,7 @@ for n in range(num_iteration):
     cpp_gp_loglikelihood.add_sampled_points(sampled_points)
     cpp_gp_loglikelihood.train()
 
-    print("retraining the model takes "+str((time.time()-time1))+" seconds")
+    print(f"Retraining the model takes {time.time() - time1} seconds")
     time1 = time.time()
 
     # report the point
@@ -248,27 +245,26 @@ for n in range(num_iteration):
         ps = PosteriorMeanMCMC(cpp_gp_loglikelihood.models, objective_func._num_fidelity)
         test = np.zeros(eval_pts.shape[0])
         for i, pt in enumerate(eval_pts):
-            ps.set_current_point(pt.reshape((1, cpp_gp_loglikelihood.dim-objective_func._num_fidelity)))
+            ps.set_current_point(pt.reshape((1, cpp_gp_loglikelihood.dim - objective_func._num_fidelity)))
             test[i] = -ps.compute_objective_function()
-        initial_point = eval_pts[np.argmin(test)].reshape((1, cpp_gp_loglikelihood.dim-objective_func._num_fidelity))
+        initial_point = eval_pts[np.argmin(test)].reshape((1, cpp_gp_loglikelihood.dim - objective_func._num_fidelity))
 
         py_repeated_search_domain = RepeatedDomain(num_repeats = 1, domain = inner_search_domain)
         ps_mean_opt = pyGradientDescentOptimizer(py_repeated_search_domain, ps, py_sgd_params_ps)
         report_point = multistart_optimize(ps_mean_opt, initial_point, num_multistarts = 1)[0]
 
-        ps.set_current_point(report_point.reshape((1, cpp_gp_loglikelihood.dim-objective_func._num_fidelity)))
+        ps.set_current_point(report_point.reshape((1, cpp_gp_loglikelihood.dim - objective_func._num_fidelity)))
         if -ps.compute_objective_function() > np.min(test):
             report_point = initial_point
-    else:
+    else:  # method == 'EI':
         cpp_gp = cpp_gp_loglikelihood.models[0]
         report_point = (cpp_gp.get_historical_data_copy()).points_sampled[np.argmin(cpp_gp._points_sampled_value[:, 0])]
 
     report_point = report_point.ravel()
     report_point = np.concatenate((report_point, np.ones(objective_func._num_fidelity)))
 
-    print()
-    print("Optimization finished successfully!")
-    print("The recommended point: ", end=' ')
-    print(report_point)
-    print("recommending the point takes "+str((time.time()-time1))+" seconds")
-    print(method + ", VOI {0}, best so far {1}".format(voi, objective_func.evaluate_true(report_point)[0]))
+    print("\nOptimization finished successfully!")
+    print(f"The recommended point: {report_point}")
+    print(f"The recommended integer point: {np.round(report_point).astype(int)}")
+    print(f"Finding the recommended point takes {time.time()-time1} seconds")
+    print(f" {method}, VOI {voi}, best so far {objective_func.evaluate_true(report_point)[0]}")
