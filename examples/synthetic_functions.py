@@ -1,53 +1,13 @@
 from __future__ import division
 from past.utils import old_div
 import numpy as np
-from numpy import abs, cos, exp, mean, pi, prod, sin, sqrt, sum
+from numpy import cos, pi, sin, sum
 import math
 
-from moe.optimal_learning.python.geometry_utils import ClosedInterval
-from moe.optimal_learning.python.python_version.domain import TensorProductDomain as pyTPD
-from moe.optimal_learning.python.cpp_wrappers.domain import TensorProductDomain as cppTPD
+from .abstract_problem import _AbstractProblem
 
 
-class _GenericProblem:
-
-    def get_inner_search_domain(self):
-        closed_interval_list = [ClosedInterval(self._search_domain[i, 0], self._search_domain[i, 1])
-                                for i in range(self._search_domain.shape[0] - self._num_fidelity)]
-        return pyTPD(closed_interval_list)
-
-    def get_cpp_search_domain(self):
-        closed_interval_list = [ClosedInterval(bound[0], bound[1]) for bound in self._search_domain]
-        return cppTPD(closed_interval_list)
-
-    def get_cpp_inner_search_domain(self):
-        closed_interval_list = [ClosedInterval(self._search_domain[i, 0], self._search_domain[i, 1])
-                                for i in range(self._search_domain.shape[0]-self._num_fidelity)]
-        return cppTPD(closed_interval_list)
-
-    def get_initial_points(self):
-        return np.zeros((self._num_init_pts, self._dim))
-
-    @property
-    def n_derivatives(self):
-        if self._use_observations:
-            return self._dim
-        return 0
-
-    @property
-    def n_observations(self):
-        return self.n_derivatives + 1
-
-    @property
-    def derivatives(self):  # _GenericProblem.derivatives
-        return np.arange(self.n_derivatives)
-
-    @property
-    def observations(self):
-        return np.arange(self.n_observations)
-
-
-class ParabolicMinAtOrigin(_GenericProblem):
+class ParabolicMinAtOrigin(_AbstractProblem):
 
     def __init__(self):
         self._dim = 2
@@ -65,7 +25,7 @@ class ParabolicMinAtOrigin(_GenericProblem):
         return self.evaluate_true(x)
 
 
-class ParabolicMinAtTwoAndThree(_GenericProblem):
+class ParabolicMinAtTwoAndThree(_AbstractProblem):
     def __init__(self):
         self._dim = 2
         self._search_domain = np.array([[-10.0, 10.0], [-10.0, 10.0]])
@@ -79,7 +39,7 @@ class ParabolicMinAtTwoAndThree(_GenericProblem):
         return 0.5 * (x[0] - 2) **2 + 0.2 * (x[1] - 3) **2 + self._min_value
 
 
-class Branin(_GenericProblem):
+class Branin(_AbstractProblem):
 
     def __init__(self):
         self._dim = 2
@@ -110,7 +70,7 @@ class Branin(_GenericProblem):
         return self.evaluate_true(x)
 
 
-class Rosenbrock(_GenericProblem):
+class Rosenbrock(_AbstractProblem):
     def __init__(self):
         self._dim = 2
         self._search_domain = np.repeat([[-2., 2.]], self._dim, axis=0)
@@ -137,7 +97,7 @@ class Rosenbrock(_GenericProblem):
     def evaluate(self, x):
         return self.evaluate_true(x)
 
-class Hartmann3(_GenericProblem):
+class Hartmann3(_AbstractProblem):
     def __init__(self):
         self._dim = 3
         self._search_domain = np.repeat([[0., 1.]], self._dim, axis=0)
@@ -171,7 +131,7 @@ class Hartmann3(_GenericProblem):
         return t
 
 
-class Levy4(_GenericProblem):
+class Levy4(_AbstractProblem):
     def __init__(self):
         self._dim = 4
         self._search_domain = np.repeat([[-5., 5.]], self._dim, axis=0)
@@ -209,7 +169,7 @@ class Levy4(_GenericProblem):
         return t
 
 
-class Hartmann6(_GenericProblem):
+class Hartmann6(_AbstractProblem):
 
     def __init__(self):
         self._dim = 6
@@ -245,7 +205,7 @@ class Hartmann6(_GenericProblem):
         return self.evaluate_true(x)
 
 
-class Ackley(_GenericProblem):
+class Ackley(_AbstractProblem):
 
     def __init__(self):
         self._dim = 5

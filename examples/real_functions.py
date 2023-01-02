@@ -15,6 +15,9 @@ from keras.datasets import cifar10
 from oct2py import octave
 octave.addpath(octave.genpath("gpml-matlab-v4.0-2016-10-19"))
 
+from .abstract_problem import _AbstractProblem
+
+
 def run_in_separate_process(method, args):
     def queue_wrapper(q, params):
         r = method(*params)
@@ -28,7 +31,9 @@ def run_in_separate_process(method, args):
         raise return_val
     return return_val
 
-class CIFAR10(object):
+
+class CIFAR10(_AbstractProblem):
+
     def __init__(self):
         self._dim = 5
         self._search_domain = numpy.array([[-6, 0], [32, 512], [5, 9], [5, 9], [5, 9]])
@@ -158,7 +163,8 @@ class CIFAR10(object):
     def evaluate(self, x):
         return self.evaluate_true(x)
 
-class KISSGP(object):
+
+class KISSGP(_AbstractProblem):
     def __init__(self):
         self._dim = 3
         self._search_domain = numpy.array([[-1, 3], [-1, 3], [-1, 3]])
