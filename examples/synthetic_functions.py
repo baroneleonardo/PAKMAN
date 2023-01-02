@@ -97,6 +97,7 @@ class Rosenbrock(_AbstractProblem):
     def evaluate(self, x):
         return self.evaluate_true(x)
 
+
 class Hartmann3(_AbstractProblem):
     def __init__(self):
         self._dim = 3
@@ -127,8 +128,7 @@ class Hartmann3(_AbstractProblem):
         return np.array(results)
 
     def evaluate(self, x):
-        t = self.evaluate_true(x)
-        return t
+        return self.evaluate_true(x)
 
 
 class Levy4(_AbstractProblem):
@@ -165,8 +165,7 @@ class Levy4(_AbstractProblem):
         return np.array(results)
 
     def evaluate(self, x):
-        t = self.evaluate_true(x)
-        return t
+        return self.evaluate_true(x)
 
 
 class Hartmann6(_AbstractProblem):
