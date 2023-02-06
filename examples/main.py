@@ -83,9 +83,10 @@ num_iteration = NUM_FUNC_EVAL // num_to_sample + 1
 
 # TODO: We have TWO domain object implementations because the CPP wrapper class does not implement all methods
 # TODO: This should be reimplemented in a single object using inheritance
-inner_search_domain = objective_func.get_inner_search_domain()
-cpp_search_domain = objective_func.get_cpp_search_domain()
-cpp_inner_search_domain = objective_func.get_cpp_inner_search_domain()
+# inner_search_domain = objective_func.get_inner_search_domain()
+# cpp_search_domain = objective_func.get_cpp_search_domain()
+# cpp_inner_search_domain = objective_func.get_cpp_inner_search_domain()
+inner_search_domain = cpp_search_domain = cpp_inner_search_domain = objective_func.get_search_domain()
 
 # Get the initial data
 init_pts = objective_func.get_initial_points()

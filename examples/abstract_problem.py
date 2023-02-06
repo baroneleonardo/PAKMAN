@@ -7,6 +7,10 @@ from moe.optimal_learning.python.cpp_wrappers.domain import TensorProductDomain 
 
 class _AbstractProblem:
 
+    def get_search_domain(self):
+        closed_interval_list = [ClosedInterval(bound[0], bound[1]) for bound in self._search_domain]
+        return cppTPD(closed_interval_list)
+
     def get_inner_search_domain(self):
         closed_interval_list = [ClosedInterval(self._search_domain[i, 0], self._search_domain[i, 1])
                                 for i in range(self._search_domain.shape[0] - self._num_fidelity)]
