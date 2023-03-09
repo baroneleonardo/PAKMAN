@@ -81,26 +81,14 @@ NUM_FUNC_EVAL = 24  # Total number of function evaluations
 # We will at most evaluate the function NUM_FUNC_EVAL times
 num_iteration = NUM_FUNC_EVAL // num_to_sample + 1
 
-# TODO: We have TWO domain object implementations because the CPP wrapper class does not implement all methods
-# TODO: This should be reimplemented in a single object using inheritance
-# inner_search_domain = objective_func.get_inner_search_domain()
-# cpp_search_domain = objective_func.get_cpp_search_domain()
-# cpp_inner_search_domain = objective_func.get_cpp_inner_search_domain()
-inner_search_domain = cpp_search_domain = cpp_inner_search_domain = objective_func.get_search_domain()
+search_domain = objective_func.get_search_domain()
 
 # Get the initial data
 # NOTE qKG: 1: Initial Stage: draw I initial samples from a latin hypercube design in A, x(i) for i = 1, . . . , I
-# init_pts = objective_func.get_initial_points()
-# init_pts[:, :objective_func._dim-objective_func._num_fidelity] = inner_search_domain.generate_uniform_random_points_in_domain(objective_func._num_init_pts)
-# for pt in init_pts:
-#     pt[objective_func._dim-objective_func._num_fidelity:] = np.ones(objective_func._num_fidelity)
-init_pts = inner_search_domain.generate_uniform_random_points_in_domain(objective_func._num_init_pts)
+init_pts = search_domain.generate_uniform_random_points_in_domain(objective_func._num_init_pts)
 
-# Observe
+# Evaluate function in initial points
 init_pts_value = np.array([objective_func.evaluate(pt) for pt in init_pts])
-# # TODO: The next array is different from the previous one ONLY if you are using synthetic_functions.Ackle
-# #  and it is only used for logging. We might want to get rid of it...
-# true_value_init = np.array([objective_func.evaluate_true(pt) for pt in init_pts])
 
 init_data = HistoricalData(dim=objective_func._dim, num_derivatives=objective_func.n_derivatives)
 init_data.append_sample_points([SamplePoint(pt,
@@ -139,38 +127,14 @@ cpp_sgd_params_ps = cppGradientDescentParameters(num_multistarts=1,
                                                  max_relative_change=0.1,
                                                  tolerance=1.0e-10)
 
-cpp_sgd_params_kg = cppGradientDescentParameters(num_multistarts=200,
-                                                 max_num_steps=50,
-                                                 max_num_restarts=2,
-                                                 num_steps_averaged=4,
-                                                 gamma=0.7,
-                                                 pre_mult=1.0,
-                                                 max_relative_change=0.5,
-                                                 tolerance=1.0e-10)
-
-# Minimum of the mean surface
-# eval_pts = inner_search_domain.generate_uniform_random_points_in_domain(int(1e3))
-# eval_pts = np.reshape(np.append(eval_pts, cpp_gp_loglikelihood.get_historical_data_copy().points_sampled[:, :(cpp_gp_loglikelihood.dim-objective_func._num_fidelity)]),
-#                       (eval_pts.shape[0] + cpp_gp_loglikelihood._num_sampled,
-#                        cpp_gp_loglikelihood.dim-objective_func._num_fidelity))
-#
-# test = np.zeros(eval_pts.shape[0])
-# post_mean = PosteriorMeanMCMC(cpp_gp_loglikelihood.models, objective_func._num_fidelity)
-# for i, pt in enumerate(eval_pts):
-#     post_mean.set_current_point(pt.reshape((1, cpp_gp_loglikelihood.dim - objective_func._num_fidelity)))
-#     test[i] = -post_mean.compute_objective_function()
-# report_point = eval_pts[np.argmin(test)].reshape((1, cpp_gp_loglikelihood.dim-objective_func._num_fidelity))
-#
-# py_repeated_search_domain = RepeatedDomain(num_repeats=1, domain=inner_search_domain)
-# ps_mean_opt = pyGradientDescentOptimizer(py_repeated_search_domain, post_mean, py_sgd_params_ps)
-# report_point = multistart_optimize(ps_mean_opt, report_point, num_multistarts=1)[0]
-# report_point = report_point.ravel()
-# report_point = np.concatenate((report_point, np.ones(objective_func._num_fidelity)))
-#
-# print(f"Best (minumum) value from the initial function evaluation: "
-#       f"{true_value_init[np.argmin(true_value_init[:, 0])][0]}")
-
-# capital_so_far = 0.0
+KG_gradient_descent_params = cppGradientDescentParameters(num_multistarts=200,
+                                                          max_num_steps=50,
+                                                          max_num_restarts=2,
+                                                          num_steps_averaged=4,
+                                                          gamma=0.7,
+                                                          pre_mult=1.0,
+                                                          max_relative_change=0.5,
+                                                          tolerance=1.0e-10)
 
 for n in range(num_iteration):
     print(f"{method}, {job_id}th job, {n}th iteration, func={obj_func_name}, q={num_to_sample}")
@@ -180,14 +144,14 @@ for n in range(num_iteration):
         discrete_pts_list = []
 
         qEI_next_points, _ = bayesian_optimization.qEI_generate_next_points_using_mcmc(gp_loglikelihood._gaussian_process_mcmc,
-                                                                                       cpp_search_domain,
-                                                                                       cpp_sgd_params_kg,
-                                                                                       10,
+                                                                                       search_domain,
+                                                                                       KG_gradient_descent_params,
+                                                                                       10,  # TODO: Why 10?
                                                                                        mc_iterations=2 ** 10)
 
         for i, cpp_gp in enumerate(gp_loglikelihood.models):
 
-            eval_pts = inner_search_domain.generate_uniform_random_points_in_domain(int(1e3))
+            eval_pts = search_domain.generate_uniform_random_points_in_domain(int(1e3))
             eval_pts = np.reshape(np.append(eval_pts,
                                             (cpp_gp.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim - objective_func._num_fidelity)]),
                                   (eval_pts.shape[0] + cpp_gp.num_sampled, cpp_gp.dim-objective_func._num_fidelity))
@@ -200,7 +164,7 @@ for n in range(num_iteration):
 
             initial_point = eval_pts[np.argmin(test)]
 
-            ps_sgd_optimizer = cppGradientDescentOptimizer(cpp_inner_search_domain, ps_evaluator, cpp_sgd_params_ps)
+            ps_sgd_optimizer = cppGradientDescentOptimizer(search_domain, ps_evaluator, cpp_sgd_params_ps)
             report_point = posterior_mean_optimization(ps_sgd_optimizer, initial_guess = initial_point, max_num_threads = 4)
 
             ps_evaluator.set_current_point(report_point.reshape((1, gp_loglikelihood.dim - objective_func._num_fidelity)))
@@ -212,22 +176,22 @@ for n in range(num_iteration):
             discrete_pts_list.append(discrete_pts_optima)
 
         ps_evaluator = PosteriorMean(gp_loglikelihood.models[0], objective_func._num_fidelity)
-        ps_sgd_optimizer = cppGradientDescentOptimizer(cpp_inner_search_domain, ps_evaluator, cpp_sgd_params_ps)
+        ps_sgd_optimizer = cppGradientDescentOptimizer(search_domain, ps_evaluator, cpp_sgd_params_ps)
         # KG method
         next_points, voi = bayesian_optimization.gen_sample_from_qkg_mcmc(gp_loglikelihood._gaussian_process_mcmc,
                                                                           gp_loglikelihood.models,
                                                                           ps_sgd_optimizer,
-                                                                          cpp_search_domain,
+                                                                          search_domain,
                                                                           objective_func._num_fidelity,
                                                                           discrete_pts_list,
-                                                                          cpp_sgd_params_kg,
+                                                                          KG_gradient_descent_params,
                                                                           num_to_sample,
                                                                           num_mc=2 ** 7)
 
     else:  # method == 'EI':
         next_points, voi = bayesian_optimization.gen_sample_from_qei(gp_loglikelihood.models[0],
-                                                                     cpp_search_domain,
-                                                                     cpp_sgd_params_kg,
+                                                                     search_domain,
+                                                                     KG_gradient_descent_params,
                                                                      num_to_sample,
                                                                      num_mc=2 ** 10)
 
@@ -240,16 +204,6 @@ for n in range(num_iteration):
                                   objective_func._sample_var)
                       for pt in next_points]
 
-    # capitals = np.ones(num_to_sample)
-    # for i in range(num_to_sample):
-    #     if objective_func._num_fidelity > 0:
-    #         value = 1.0
-    #         for j in range(objective_func._num_fidelity):
-    #             value *= next_points[i, objective_func._dim - 1 - j]
-    #         capitals[i] = value
-    # capital_so_far += np.amax(capitals)
-    # print(f"Evaluating takes capital {capital_so_far} so far")
-
     # retrain the model
     time1 = time.time()
 
@@ -261,7 +215,7 @@ for n in range(num_iteration):
 
     # report the point
     if method == 'KG':
-        eval_pts = inner_search_domain.generate_uniform_random_points_in_domain(int(1e4))
+        eval_pts = search_domain.generate_uniform_random_points_in_domain(int(1e4))
         eval_pts = np.reshape(np.append(eval_pts, (gp_loglikelihood.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim - objective_func._num_fidelity)]),
                               (eval_pts.shape[0] + gp_loglikelihood._num_sampled, gp_loglikelihood.dim - objective_func._num_fidelity))
 
@@ -272,7 +226,7 @@ for n in range(num_iteration):
             test[i] = -post_mean.compute_objective_function()
         initial_point = eval_pts[np.argmin(test)].reshape((1, gp_loglikelihood.dim - objective_func._num_fidelity))
 
-        py_repeated_search_domain = RepeatedDomain(num_repeats = 1, domain = inner_search_domain)
+        py_repeated_search_domain = RepeatedDomain(num_repeats=1, domain=search_domain)
         ps_mean_opt = pyGradientDescentOptimizer(py_repeated_search_domain, post_mean, py_sgd_params_ps)
         report_point = multistart_optimize(ps_mean_opt, initial_point, num_multistarts = 1)[0]
 
