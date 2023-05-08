@@ -228,7 +228,10 @@ class BuildCppComponents(build_ext):
 
         # Compile everything, using all available CPUs on this computer
         n_cpus = cpu_count()
-        proc = subprocess.Popen(["make", f"-j{n_cpus}"], cwd=local_build_dir, env=env)
+        proc = subprocess.Popen(["make",
+                                 f"-j{n_cpus}",
+                                 # "-d",
+                                 "-O"], cwd=local_build_dir, env=env)
         proc.wait()
 
 
