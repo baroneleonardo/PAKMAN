@@ -16,7 +16,7 @@
 #define MOE_OPTIMAL_LEARNING_CPP_GPP_FINITE_DOMAIN_HPP_
 
 #include <cmath>
-
+#include <random>
 #include <algorithm>
 #include <limits>
 #include <vector>
@@ -26,12 +26,27 @@
 #include "gpp_geometry.hpp"
 #include "gpp_random.hpp"
 
+using std::vector<int>;
+using std::vector<float>;
+using std::vector<double>;
+using std::vector<int>::iterator ;
+
 namespace optimal_learning {
 
+    typedef std::vector<float> Point ;
+
+    /* class Point {
+    public:
+        Point
+    private:
+        std::vector<float> punto ;
+        size_t length ;
+    }; */
 /*!\rst
   Enumerating domains for convenience. Useful for selecting which tests to run and also
   used by the Python interface to communicate domain type to C++.
 \endrst*/
+
 enum class DomainTypes {
   //! TensorProductDomain
   kTensorProduct = 0,
@@ -62,14 +77,33 @@ class FiniteDomain {
       :domain[dim]: array of ClosedInterval specifying the boundaries of a dim-dimensional tensor-product domain.
       :dim_in: number of spatial dimensions
   \endrst*/
-  FiniteDomain(Point const * restrict points, int n_points, int dim_in);
+
+    // n_points is the number of points in my vector of points  (size of points_)
+    // dim_in is the dimension aka the number of components of each point
+  FiniteDomain(Point const * restrict points, int n_points, int dim_in): dim_(dim_in)
+    {
+      vector<Point>::iterator it = points ;
+        for (size_t i = 0 ; i < n_points ; i++) {
+            points_.push_back(*(it)) ; // I have to dereference it
+            it++ ;                     // it moves to the next cell of "points" given in the constructor
+        }
+    }
+
+
 
   int dim() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
     return dim_;
   }
 
 
-  void SetSeed(int seed);
+  void SetSeed(int S = std::random_device) {
+
+      // parlane con Kant
+      // std::random_device myRandomDevice;
+
+      seed = S ;
+
+  }
 
   /*!\rst
     Explicitly set the domain boundaries. Assumes specified domain is non-empty.
@@ -77,7 +111,18 @@ class FiniteDomain {
     \param
        :domain[dim]: array of ClosedInterval specifying the boundaries of a dim-dimensional tensor-product domain.
   \endrst*/
-  void SetDomain(Point const * restrict points, int n_points) OL_NONNULL_POINTERS;
+  void SetDomain(Point const * restrict points, int n_points) OL_NONNULL_POINTERS
+  // Now we have the points and we just need to
+  {
+      points_.clear() ;    // Now the vector of points is empty
+      vector<Point>::iterator it = points ;
+      for (size_t i = 0 ; i < n_points ; i++) {
+          points_.push_back(*(it)) ;   // fills it with new points
+          it++ ;
+      }
+  }
+
+
 
   /*!\rst
     Maximum number of planes that define the boundary of this domain.
@@ -91,6 +136,7 @@ class FiniteDomain {
   int GetMaxNumberOfBoundaryPlanes() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
     return 2*dim_;
   }
+
 
   /*!\rst
     Fills an input array with all bounding planes of this domain.
@@ -129,7 +175,40 @@ class FiniteDomain {
       true if point generation succeeded
   \endrst*/
 
-  bool SamplePointsInDomain(int num_points, Point * restrict random_points, bool with_replacement = false);
+  bool SamplePointsInDomain(int num_points, Point * restrict random_points, bool with_replacement = false)
+  {
+      std::default_random_engine generator(seed);
+      std::uniform_int_distribution<int> distribution (0,num_points - 1);
+      vector<Point>::iterator it = random_points ;
+
+       if (with_replacement){
+           for (int i = 0 ; i < num_points ; i++)
+           {
+               int position = distribution(generator());
+               random_points->push_back(points_[position]);
+           }
+
+       }
+
+       else {
+           std::vector<Point> P_copy;
+           std::shuffle(P_copy.begin(),P_copy.end(), generator); //shuffles
+
+           std::vector<Point> result(v.begin(), v.begin() num_points);
+           random_points = result ; // copies the values in random_points
+       }
+
+  }
+
+
+
+
+
+
+
+
+
+
 //  bool GeneratePointInDomain(UniformRandomGenerator * uniform_generator,
 //                             double * restrict random_point) const OL_NONNULL_POINTERS;
 
