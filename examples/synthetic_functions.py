@@ -36,7 +36,7 @@ class ParabolicMinAtTwoAndThree(_AbstractProblem):
         self._num_fidelity = 0
 
     def evaluate(self, x):
-        return 0.5 * (x[0] - 2) **2 + 0.2 * (x[1] - 3) **2 + self._min_value
+        return np.array([0.5 * (x[0] - 2) **2 + 0.2 * (x[1] - 3) **2 + self._min_value])
 
 
 class Branin(_AbstractProblem):
