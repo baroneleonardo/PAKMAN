@@ -37,6 +37,10 @@ enum class DomainTypes {
   kTensorProduct = 0,
   //! SimplexIntersectTensorProductDomain
   kSimplex = 1,
+  //! FiniteDomain
+  kFinite = 2,
+  //! PrecomputedDomain
+  kPrecomputed = 3,
 };
 
 /*!\rst
@@ -347,6 +351,99 @@ class SimplexIntersectTensorProductDomain {
   //! the plane defining the simplex
   Plane simplex_plane_;
 };
+
+
+typedef std::vector<float> Point;
+
+/*!\rst
+  This domain is just a container of a finite set of points.
+  It emulates the behaviour of a continuous domain on the given set.
+
+  To be used when the target function has a finite domain by definition, or when we want to
+  restrict it to a finite subset.
+\endrst*/
+class FiniteDomain {
+
+ public:
+  //! string name of this domain for logging
+  constexpr static char const * kName = "finite";
+
+  FiniteDomain() = delete;  // no default ctor; dim = 0 doesn't really make sense as a default
+
+  /*!\rst
+    Constructs a TensorProductDomain.
+
+    \param
+      :points[n_points]: array of Point containing the finite set of points of the domain.
+      :n_points: number of points
+      :dim_in: number of spatial dimensions
+  \endrst*/
+  FiniteDomain(Point const * restrict points, int n_points, int dim_in);
+
+  /*!\rst
+    Seed the internal random engine
+
+    \param
+      :seed: a random seed
+  \endrst*/
+  void SetSeed(unsigned int seed);
+
+  /*!\rst
+    Explicitly set the points in the domain.
+
+    \param
+      :points[n_points]: array of Point containing the finite set of points of the domain.
+      :n_points: number of points
+  \endrst*/
+  void SetDomain(Point const * restrict points, int n_points) OL_NONNULL_POINTERS;
+
+  /*!\rst
+    Maximum number of planes that define the boundary of this domain.
+    Used for testing.
+
+    This result is exact.
+
+    \return
+      max number of planes defining the boundary of this domain
+  \endrst*/
+  int GetMaxNumberOfBoundaryPlanes() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
+    return 2*dim_;
+  }
+  /*!\rst
+    Get a sample of points from the domain.
+
+    A boolean flag allows you to decide whether to keep track of the sample point
+    and never return the same point twice
+
+    \param
+      :sample_size: size of the sample
+      :random_points[]: array where to store the result
+      :allow_multiple_selection: if true, the same point may be returned multiple times even within the same call.
+      If false, a point is returned at most once.
+    \return
+      true if sampling was successful, false otherwise
+  \endrst*/
+  bool SamplePointsInDomain(int sample_size, Point * restrict random_points, bool allow_multiple_selection = false);
+
+ private:
+  //! the list of Point included in the domain
+  std::vector<Point> points_;
+  //! the number of points
+  int n_points_;
+  //! the number of spatial dimensions of this domain
+  int dim_;
+  //! a vector tracking if the same-index point has already been returned
+  std::vector<bool> is_point_selected_;
+  //! a counter tracking
+  int n_available_points_;
+  //! a random engine
+  std::mt19937 random_engine_;  // TODO: error: ‘mt19937’ in namespace ‘std’ does not name a type std::mt19937 random_engine_;
+  //! a uniform distribution
+  std::uniform_int_distribution<int> uniform_distribution_;
+};
+
+// I want to export FiniteDomain to python
+void ExportFiniteDomain();
 
 /*!\rst
   A generic domain type for simultaneously manipulating ``num_repeats`` points in a "regular" domain (the kernel).
