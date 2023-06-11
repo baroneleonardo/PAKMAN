@@ -230,7 +230,7 @@ class BuildCppComponents(build_ext):
         n_cpus = cpu_count()
         proc = subprocess.Popen(["make",
                                  f"-j{n_cpus}",
-                                 # "-d",
+                                 "-d",
                                  "-O"], cwd=local_build_dir, env=env)
         proc.wait()
 
