@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <limits>
 #include <vector>
-
+#include <random>
 #include "gpp_common.hpp"
 #include "gpp_exception.hpp"
 #include "gpp_geometry.hpp"
@@ -424,22 +424,19 @@ class FiniteDomain {
       true if sampling was successful, false otherwise
   \endrst*/
   bool SamplePointsInDomain(int sample_size, Point * restrict random_points, bool allow_multiple_selection = false);
+  void print() const;
 
  private:
-  //! the list of Point included in the domain
-  std::vector<Point> points_;
-  //! the number of points
-  int n_points_;
-  //! the number of spatial dimensions of this domain
-  int dim_;
-  //! a vector tracking if the same-index point has already been returned
-  std::vector<bool> is_point_selected_;
-  //! a counter tracking
-  int n_available_points_;
-  //! a random engine
-  std::mt19937 random_engine_;  // TODO: error: ‘mt19937’ in namespace ‘std’ does not name a type std::mt19937 random_engine_;
-  //! a uniform distribution
+
+  std::vector<Point> points_; //! the list of Point included in the domain
+  int n_points_;  //! the number of points
+  int dim_ ;     //! the number of spatial dimensions of this domain
+  std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
+  int n_available_points_;  //! a counter tracking
+  std::default_random_engine random_engine_; //! a random engine
   std::uniform_int_distribution<int> uniform_distribution_;
+ // std::mt19937 random_engine_;  // TODO: error: ‘mt19937’ in namespace ‘std’ does not name a type std::mt19937 random_engine_;
+
 };
 
 // I want to export FiniteDomain to python

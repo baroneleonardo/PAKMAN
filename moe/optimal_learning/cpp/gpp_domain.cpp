@@ -292,55 +292,78 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
   // if we're already inside the simplex, then nothing to do; we have not modified update_vector
 }
 
+// ===================================== FiniteDomain methods =====================================
 
-    FiniteDomain::FiniteDomain(Point const * restrict points, int n_points, int dim_in):
-         n_points_(n_points), dim_(dim_in), n_available_points_(n_points)
-        {
-            // Store data
-            SetDomain(points, n_points);
-            // Initialize random engine
-            SetSeed(1984);
-            // Initialize random distribution
-            uniform_distribution_(0, n_points - 1)
-        }
+    FiniteDomain::FiniteDomain (const Point* points , int n_points, int dim_in): n_points_(n_points), dim_(dim_in)
+    {
+        SetDomain(points, n_points);
+        SetSeed(1984);
+        uniform_distribution_ = std::uniform_int_distribution<int>(0,n_points - 1);
+    }
+
     void FiniteDomain::SetSeed(unsigned int seed) {
-        random_engine_(seed);
+        random_engine_ = std::default_random_engine(seed);
     }
-    void FiniteDomain::SetDomain(Point const * restrict points, int n_points) OL_NONNULL_POINTERS
-    {
-      points_->clear() ;    // Now the vector of points is empty
-      vector<Point>::iterator it = points ;
-      for (size_t i = 0 ; i < n_points ; i++) {
-          points_.push_back(*(it)) ;   // fills it with new points
-          it++ ;
-      }
-    }
-    bool FiniteDomain::SamplePointsInDomain(int sample_size, Point * restrict random_points, bool allow_multiple_selection = false)
-    {
-      if (sample_size > n_available_points_){
-        // Not enough points to sample
-        return false;
-      }
-      // Ensuring the result vector is empty
-      random_points->clear();
-      while (sample_size > 0)
-      {
-          int random_index = uniform_distribution_(random_engine_());
-          if (allow_multiple_selection){
-              random_points->push_back(points_[random_index]);
-              sample_size--;
-          } else {
-              if (!is_point_selected_[random_index]){
-                  random_points->push_back(points_[random_index]);
-                  sample_size--;
-                  is_point_selected_[random_index] = true;
-                  n_available_points_--;
-              }
-          }
 
-      }
-      return true;
+    void FiniteDomain::print() const {
+        std:: cout << "The domain contains the following points : " << std::endl;
+        for ( size_t i = 0 ; i < points_.size() ; i++) {
+            std::cout  << "(" ;
+            for (size_t j = 0 ; j < dim_ ; j++) {
+
+                std::cout << points_[i][j] << " " ;
+
+            }
+            std::cout  <<")"  << std::endl;
+        }
+        std::cout << "============================================" << std::endl;
     }
+
+
+    void FiniteDomain::SetDomain(const Point* points, int n_points)
+    {
+
+        points_.clear();
+        for (size_t i = 0 ; i < n_points ; i++) {
+            points_.push_back(points[i]) ;
+        }
+        n_available_points_ = n_points ;
+        is_point_selected_ = std::vector<bool> (n_points, false) ;
+    }
+
+
+    bool FiniteDomain::SamplePointsInDomain(int sample_size, Point * random_points, bool allow_multiple_selection)
+    {
+        if (sample_size > n_available_points_){
+            // Not enough points to sample
+            return false;
+        }
+
+        for (size_t i = 0 ; i < sample_size ; i++) {
+            int random_index = uniform_distribution_(random_engine_);
+            if (allow_multiple_selection){
+                random_points[i]= points_[random_index];
+
+            } else {
+
+                if (!(is_point_selected_[random_index])){
+
+                    random_points[i]= points_[random_index];
+                    is_point_selected_[random_index] = true;
+                    n_available_points_--;
+                }
+                else {
+                    i--;
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+
+
     void ExportFiniteDomain() {
         boost::python::class_<FiniteDomain, boost::noncopyable>(
         "FiniteDomain",
