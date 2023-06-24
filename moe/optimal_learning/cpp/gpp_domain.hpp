@@ -380,6 +380,10 @@ class FiniteDomain {
   \endrst*/
   FiniteDomain(Point const * restrict points, int n_points, int dim_in);
 
+  int dim() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
+    return dim_;
+  }
+
   /*!\rst
     Seed the internal random engine
 
