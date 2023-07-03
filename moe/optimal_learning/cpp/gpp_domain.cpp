@@ -3,12 +3,18 @@
   \rst
   This file contains definitions for constructors and member functions of the various domain classes in gpp_domain.hpp.
 \endrst*/
+#include "Python.h"  // NOLINT(build/include)
 
 #include "gpp_domain.hpp"
+#include <boost/python/def.hpp>  // NOLINT(build/include_order)
+#include <boost/python/class.hpp>  // NOLINT(build/include_order)
+#include <boost/python/list.hpp>  // NOLINT(build/include_order)
+#include <boost/python/make_constructor.hpp>  // NOLINT(build/include_order)
 
 #include <algorithm>
 #include <limits>
 #include <vector>
+#include <random>
 
 #include "gpp_common.hpp"
 #include "gpp_exception.hpp"
@@ -286,4 +292,87 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
   // if we're already inside the simplex, then nothing to do; we have not modified update_vector
 }
 
+// ===================================== FiniteDomain methods =====================================
+
+    FiniteDomain::FiniteDomain (const Point* points , int n_points, int dim_in): n_points_(n_points), dim_(dim_in)
+    {
+        SetDomain(points, n_points);
+        SetSeed(1984);
+        uniform_distribution_ = std::uniform_int_distribution<int>(0,n_points - 1);
+    }
+
+    void FiniteDomain::SetSeed(unsigned int seed) {
+        random_engine_ = std::default_random_engine(seed);
+    }
+
+    void FiniteDomain::print() const {
+        std:: cout << "The domain contains the following points : " << std::endl;
+        for ( size_t i = 0 ; i < points_.size() ; i++) {
+            std::cout  << "(" ;
+            for (size_t j = 0 ; j < dim_ ; j++) {
+
+                std::cout << points_[i][j] << " " ;
+
+            }
+            std::cout  <<")"  << std::endl;
+        }
+        std::cout << "============================================" << std::endl;
+    }
+
+
+    void FiniteDomain::SetDomain(const Point* points, int n_points)
+    {
+
+        points_.clear();
+        for (size_t i = 0 ; i < n_points ; i++) {
+            points_.push_back(points[i]) ;
+        }
+        n_available_points_ = n_points ;
+        is_point_selected_ = std::vector<bool> (n_points, false) ;
+    }
+
+
+    bool FiniteDomain::SamplePointsInDomain(int sample_size, Point * random_points, bool allow_multiple_selection)
+    {
+        if (sample_size > n_available_points_){
+            // Not enough points to sample
+            return false;
+        }
+
+        for (size_t i = 0 ; i < sample_size ; i++) {
+            int random_index = uniform_distribution_(random_engine_);
+            if (allow_multiple_selection){
+                random_points[i]= points_[random_index];
+
+            } else {
+
+                if (!(is_point_selected_[random_index])){
+
+                    random_points[i]= points_[random_index];
+                    is_point_selected_[random_index] = true;
+                    n_available_points_--;
+                }
+                else {
+                    i--;
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+
+
+    void ExportFiniteDomain() {
+        boost::python::class_<FiniteDomain>(
+        "FiniteDomain",
+        boost::python::init<Point*, int, int>())
+                .def("dim", &FiniteDomain::dim)
+                .def("SetSeed", &FiniteDomain::SetSeed)
+                .def("SetDomain", &FiniteDomain::SetDomain)
+                .def("GetMaxNumberOfBoundaryPlanes", &FiniteDomain::GetMaxNumberOfBoundaryPlanes)
+                .def("SamplePointsInDomain", &FiniteDomain::SamplePointsInDomain)
+                ;
+    }
 }  // end namespace optimal_learning
