@@ -362,6 +362,8 @@ typedef std::vector<float> Point;
   To be used when the target function has a finite domain by definition, or when we want to
   restrict it to a finite subset.
 \endrst*/
+
+double distance (const Point& P1, const Point& P2);
 class FiniteDomain {
 
  public:
@@ -424,12 +426,21 @@ class FiniteDomain {
       true if sampling was successful, false otherwise
   \endrst*/
   bool SamplePointsInDomain(int sample_size, Point * restrict random_points, bool allow_multiple_selection = false);
+  void ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points, Point* valued_points);
+  double norm (const Point& P)const;
+  Point ClosestPoint(const Point&) const;
+  bool isInDomain (const Point& P) const;
   void print() const;
 
- private:
 
-  std::vector<Point> points_; //! the list of Point included in the domain
-  int n_points_;  //! the number of points
+
+
+
+
+
+ private:
+    std::vector<Point> points_; //! the list of Point included in the domain
+   int n_points_;  //! the number of points
   int dim_ ;     //! the number of spatial dimensions of this domain
   std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
   int n_available_points_;  //! a counter tracking
