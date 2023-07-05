@@ -424,11 +424,9 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
 
 
     void ExportFiniteDomain() {
-        boost::python::class_<FiniteDomain, boost::noncopyable>(
+        boost::python::class_<FiniteDomain>(
         "FiniteDomain",
-        boost::python::init<std::vector<Point>>(),
-        boost::python::init<int>(),
-        boost::python::init<int>())
+        boost::python::init<Point*, int, int>())
                 .def("dim", &FiniteDomain::dim)
                 .def("SetSeed", &FiniteDomain::SetSeed)
                 .def("SetDomain", &FiniteDomain::SetDomain)
