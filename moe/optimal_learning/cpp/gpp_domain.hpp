@@ -16,15 +16,31 @@
 #define MOE_OPTIMAL_LEARNING_CPP_GPP_DOMAIN_HPP_
 
 #include <cmath>
-
+#include <iostream>
 #include <algorithm>
 #include <limits>
 #include <vector>
 #include <random>
+#include <map>
+#include <numeric>
+#include <algorithm>
+
+
 #include "gpp_common.hpp"
 #include "gpp_exception.hpp"
 #include "gpp_geometry.hpp"
 #include "gpp_random.hpp"
+
+
+
+using std::map;
+typedef std::vector<double> Point;
+//typedef map<Point,Point> Table ;
+
+
+
+
+
 
 namespace optimal_learning {
 
@@ -353,7 +369,6 @@ class SimplexIntersectTensorProductDomain {
 };
 
 
-typedef std::vector<float> Point;
 
 /*!\rst
   This domain is just a container of a finite set of points.
@@ -363,7 +378,9 @@ typedef std::vector<float> Point;
   restrict it to a finite subset.
 \endrst*/
 
+typdef std::vector<double> Point;
 double distance (const Point& P1, const Point& P2);
+
 class FiniteDomain {
 
  public:
@@ -429,6 +446,7 @@ class FiniteDomain {
     \return
       true if sampling was successful, false otherwise
   \endrst*/
+
   bool SamplePointsInDomain(int sample_size, Point * restrict random_points, bool allow_multiple_selection = false);
   void ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points, Point* valued_points);
   double norm (const Point& P)const;
@@ -444,7 +462,7 @@ class FiniteDomain {
 
  private:
     std::vector<Point> points_; //! the list of Point included in the domain
-   int n_points_;  //! the number of points
+  int n_points_;  //! the number of points
   int dim_ ;     //! the number of spatial dimensions of this domain
   std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
   int n_available_points_;  //! a counter tracking

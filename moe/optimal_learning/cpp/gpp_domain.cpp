@@ -293,7 +293,7 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
   // if we're already inside the simplex, then nothing to do; we have not modified update_vector
 }
 
-// ===================================== FiniteDomain methods =====================================
+// ===================================== FiniteDomain class methods =====================================
 
     FiniteDomain::FiniteDomain (const Point* points , int n_points, int dim_in): n_points_(n_points), dim_(dim_in)
     {
@@ -365,16 +365,17 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
 
     void FiniteDomain::ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points,
                                    Point* valued_points) {
-        // abscissa and Y are of size L
+        // abscissa and Y are of size L , L = numero di punti  (x, f(x)) nel "file"
         // random points and valued points are of size sample_size
 
         // devo capire in che formato arrivano i dati;
-        map<Point,Point> table;
+        map <Point,Point>table;
         for (size_t i = 0; i < L ; i++) {
             table[abscissa[i]] = Y[i];
         }
         FiniteDomain D_tmp(abscissa,L , dim_); // This temporary domain contains only the point x who's coordinate is known
         D_tmp.SamplePointsInDomain(sample_size, random_points , false);
+        //  []random_points is modified now !
 
         for (size_t i = 0; i < sample_size ; i++) {
             valued_points[i] = table[random_points[i]];
@@ -416,12 +417,6 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
         }
 
     }
-
-
-
-
-
-
 
     void ExportFiniteDomain() {
         boost::python::class_<FiniteDomain>(
