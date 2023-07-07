@@ -16,31 +16,14 @@
 #define MOE_OPTIMAL_LEARNING_CPP_GPP_DOMAIN_HPP_
 
 #include <cmath>
-#include <iostream>
 #include <algorithm>
 #include <limits>
 #include <vector>
 #include <random>
-#include <map>
-#include <numeric>
-#include <algorithm>
-
-
 #include "gpp_common.hpp"
 #include "gpp_exception.hpp"
 #include "gpp_geometry.hpp"
 #include "gpp_random.hpp"
-
-
-
-using std::map;
-typedef std::vector<double> Point;
-//typedef map<Point,Point> Table ;
-
-
-
-
-
 
 namespace optimal_learning {
 
@@ -461,7 +444,7 @@ class FiniteDomain {
 
 
  private:
-    std::vector<Point> points_; //! the list of Point included in the domain
+  std::vector<Point> points_; //! the list of Point included in the domain
   int n_points_;  //! the number of points
   int dim_ ;     //! the number of spatial dimensions of this domain
   std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned

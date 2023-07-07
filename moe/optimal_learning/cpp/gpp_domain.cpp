@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <limits>
 #include <vector>
+#include <map>
+#include <numeric>
 #include <random>
 
 #include "gpp_common.hpp"
@@ -293,6 +295,14 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
   // if we're already inside the simplex, then nothing to do; we have not modified update_vector
 }
 
+    double distance (const Point& P1, const Point& P2) {
+        double result = 0;
+        for (size_t i = 0; i < P1.size(); i++) {
+            result += (P1[i] - P2[i]) * (P1[i] - P2[i]);
+        }
+        return std::sqrt(result);
+    }
+
 // ===================================== FiniteDomain class methods =====================================
 
     FiniteDomain::FiniteDomain (const Point* points , int n_points, int dim_in): n_points_(n_points), dim_(dim_in)
@@ -369,7 +379,7 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
         // random points and valued points are of size sample_size
 
         // devo capire in che formato arrivano i dati;
-        map <Point,Point>table;
+        std::map <Point,Point>table;
         for (size_t i = 0; i < L ; i++) {
             table[abscissa[i]] = Y[i];
         }
@@ -384,7 +394,7 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
     }
 
     double FiniteDomain::norm(const Point& P) const {
-        return(sqrt (std::inner_product(P.begin(), P.end(), P.begin() , 0)));
+        return(std::sqrt(std::inner_product(P.begin(), P.end(), P.begin() , 0)));
         // std::inner_product is from the library <numerics>
     }
 
@@ -427,6 +437,10 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
                 .def("SetDomain", &FiniteDomain::SetDomain)
                 .def("GetMaxNumberOfBoundaryPlanes", &FiniteDomain::GetMaxNumberOfBoundaryPlanes)
                 .def("SamplePointsInDomain", &FiniteDomain::SamplePointsInDomain)
+                .def("ValuedPoint", &FiniteDomain::ValuedPoint)
+                .def("norm", &FiniteDomain::norm)
+                .def("isInDomain", &FiniteDomain::isInDomain)
+                .def("ClosestPoint", &FiniteDomain::ClosestPoint)
                 ;
     }
 }  // end namespace optimal_learning
