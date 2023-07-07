@@ -378,7 +378,7 @@ class SimplexIntersectTensorProductDomain {
   restrict it to a finite subset.
 \endrst*/
 
-typdef std::vector<double> Point;
+typedef std::vector<double> Point;
 double distance (const Point& P1, const Point& P2);
 
 class FiniteDomain {
