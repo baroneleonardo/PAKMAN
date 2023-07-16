@@ -149,7 +149,7 @@ for n in range(num_iteration):
                                                                                        10,  # TODO: Why 10?
                                                                                        mc_iterations=2 ** 10)
 
-        for i, cpp_gp in enumerate(gp_loglikelihood.models):
+        for i, cpp_gp in enumerate(gp_loglikelihood.models):  # What are these models?
 
             eval_pts = search_domain.generate_uniform_random_points_in_domain(int(1e3))
             eval_pts = np.reshape(np.append(eval_pts,
