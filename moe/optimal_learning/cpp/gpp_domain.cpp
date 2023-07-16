@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <limits>
 #include <vector>
+#include <map>
+#include <numeric>
 #include <random>
 
 #include "gpp_common.hpp"
@@ -281,6 +283,7 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
       min_distance = 0.0;  // stop numerical precision issues
     }
 
+
     // adjust step size to only take us *half* the distance to the nearest boundary
     double step_under_relaxation = kInvalidStepScaleFactor * min_distance;
 
@@ -292,7 +295,15 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
   // if we're already inside the simplex, then nothing to do; we have not modified update_vector
 }
 
-// ===================================== FiniteDomain methods =====================================
+    double distance (const Point& P1, const Point& P2) {
+        double result = 0;
+        for (size_t i = 0; i < P1.size(); i++) {
+            result += (P1[i] - P2[i]) * (P1[i] - P2[i]);
+        }
+        return std::sqrt(result);
+    }
+
+// ===================================== FiniteDomain class methods =====================================
 
     FiniteDomain::FiniteDomain (const Point* points , int n_points, int dim_in): n_points_(n_points), dim_(dim_in)
     {
@@ -362,7 +373,60 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
         return true;
     }
 
+    void FiniteDomain::ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points,
+                                   Point* valued_points) {
+        // abscissa and Y are of size L , L = numero di punti  (x, f(x)) nel "file"
+        // random points and valued points are of size sample_size
 
+        // devo capire in che formato arrivano i dati;
+        std::map <Point,Point>table;
+        for (size_t i = 0; i < L ; i++) {
+            table[abscissa[i]] = Y[i];
+        }
+        FiniteDomain D_tmp(abscissa,L , dim_); // This temporary domain contains only the point x who's coordinate is known
+        D_tmp.SamplePointsInDomain(sample_size, random_points , false);
+        //  []random_points is modified now !
+
+        for (size_t i = 0; i < sample_size ; i++) {
+            valued_points[i] = table[random_points[i]];
+        }
+
+    }
+
+    double FiniteDomain::norm(const Point& P) const {
+        return(std::sqrt(std::inner_product(P.begin(), P.end(), P.begin() , 0)));
+        // std::inner_product is from the library <numerics>
+    }
+
+    bool FiniteDomain::isInDomain (const Point& P) const {
+        bool result = false;
+        auto it = find(points_.begin(), points_.end(), P);
+
+        if (it!= points_.end()) { result = true; }
+
+        return result;
+    }
+
+
+    Point FiniteDomain::ClosestPoint(const Point& P) const {
+
+        if (isInDomain(P)) { return  P ; }
+        else {
+            std::vector<double> V;
+            for (size_t i = 0; i < points_.size(); i++)
+            {
+                V.push_back(distance(P, points_[i])); // V stores the distances between P and all the points of the domain
+            }
+            //  returns an iterator to the min element of V
+            auto min_dist = std::min_element( V.begin(), V.begin());
+
+            //  index of the point having the smallest distance from P
+            auto index = find(V.begin(), V.end() , *min_dist);
+
+            return  points_[*index];
+        }
+
+    }
 
     void ExportFiniteDomain() {
         boost::python::class_<FiniteDomain>(
@@ -373,6 +437,10 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
                 .def("SetDomain", &FiniteDomain::SetDomain)
                 .def("GetMaxNumberOfBoundaryPlanes", &FiniteDomain::GetMaxNumberOfBoundaryPlanes)
                 .def("SamplePointsInDomain", &FiniteDomain::SamplePointsInDomain)
+                .def("ValuedPoint", &FiniteDomain::ValuedPoint)
+                .def("norm", &FiniteDomain::norm)
+                .def("isInDomain", &FiniteDomain::isInDomain)
+                .def("ClosestPoint", &FiniteDomain::ClosestPoint)
                 ;
     }
 }  // end namespace optimal_learning

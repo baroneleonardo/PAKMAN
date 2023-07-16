@@ -16,7 +16,6 @@
 #define MOE_OPTIMAL_LEARNING_CPP_GPP_DOMAIN_HPP_
 
 #include <cmath>
-
 #include <algorithm>
 #include <limits>
 #include <vector>
@@ -353,7 +352,6 @@ class SimplexIntersectTensorProductDomain {
 };
 
 
-typedef std::vector<float> Point;
 
 /*!\rst
   This domain is just a container of a finite set of points.
@@ -362,6 +360,10 @@ typedef std::vector<float> Point;
   To be used when the target function has a finite domain by definition, or when we want to
   restrict it to a finite subset.
 \endrst*/
+
+typedef std::vector<double> Point;
+double distance (const Point& P1, const Point& P2);
+
 class FiniteDomain {
 
  public:
@@ -427,11 +429,21 @@ class FiniteDomain {
     \return
       true if sampling was successful, false otherwise
   \endrst*/
+
   bool SamplePointsInDomain(int sample_size, Point * restrict random_points, bool allow_multiple_selection = false);
+  void ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points, Point* valued_points);
+  double norm (const Point& P)const;
+  Point ClosestPoint(const Point&) const;
+  bool isInDomain (const Point& P) const;
   void print() const;
 
- private:
 
+
+
+
+
+
+ private:
   std::vector<Point> points_; //! the list of Point included in the domain
   int n_points_;  //! the number of points
   int dim_ ;     //! the number of spatial dimensions of this domain
