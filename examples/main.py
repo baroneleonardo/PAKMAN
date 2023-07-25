@@ -22,7 +22,6 @@ from moe.optimal_learning.python.python_version.optimization import multistart_o
 
 from examples import bayesian_optimization
 from examples import synthetic_functions
-from hesbo_embed import projection
 
 # arguments for calling this script:
 # python main.py [obj_func_name] [method_name] [num_to_sample] [job_id] [hesbo_flag] [effective_dim]
@@ -52,26 +51,8 @@ num_to_sample = int(argv[3])  # The "q" parameter
 
 job_id = int(argv[4])  # TODO: This parameter seems fairly useless
 
-if len(argv) > 5:
-    if argv[5].upper() == 'HESBO':
-        use_hesbo = True
-    else:
-        print('WARNING: The algorithm is not using HeSBO. If you want to use HeSBO embedding, '
-              'check the spelling of the input argument to be "HeSBO"')
-else:
-    use_hesbo = False
-    
-if len(argv) > 6:  # This parameter is the dimension of the subspace used by HeSBO
-    effect_dim = int(argv[6])
-elif use_hesbo:  # If not defined, but HeSBO is active, use at most dimension 6
-    effect_dim = int(min(6, objective_func._dim / 4))
-
-# Adjusting the test function based on the HeSBO flag (reducing the input dimension)
-if use_hesbo:
-    objective_func = projection(effect_dim, objective_func)
-
 # FIXED ARGUMENT (TODO: This should be a script argument)
-NUM_FUNC_EVAL = 24  # Total number of function evaluations
+NUM_FUNC_EVAL = 12  # Total number of function evaluations
 
 ######################
 #
@@ -97,7 +78,10 @@ init_data.append_sample_points([SamplePoint(pt,
                                 for num, pt in enumerate(init_pts)])
 
 # initialize the model
-prior = DefaultPrior(1 + objective_func._dim + objective_func.n_observations, objective_func.n_observations)
+# (It is completely unclear what these parameters mean)
+n_prior_hyperparameters = 1 + objective_func._dim + objective_func.n_observations
+n_prior_noises = objective_func.n_observations
+prior = DefaultPrior(n_prior_hyperparameters, n_prior_noises)
 
 # noisy = False means the underlying function being optimized is noise-free
 gp_loglikelihood = cppGaussianProcessLogLikelihoodMCMC(historical_data=init_data,
@@ -167,9 +151,6 @@ for n in range(num_iteration):
             ps_sgd_optimizer = cppGradientDescentOptimizer(search_domain, ps_evaluator, cpp_sgd_params_ps)
             report_point = posterior_mean_optimization(ps_sgd_optimizer, initial_guess = initial_point, max_num_threads = 4)
 
-            ps_evaluator.set_current_point(report_point.reshape((1, gp_loglikelihood.dim - objective_func._num_fidelity)))
-            if -ps_evaluator.compute_objective_function() > np.min(test):
-                report_point = initial_point
 
             discrete_pts_optima = np.reshape(np.append(qEI_next_points, report_point),
                                              (qEI_next_points.shape[0] + 1, cpp_gp.dim-objective_func._num_fidelity))
@@ -230,9 +211,6 @@ for n in range(num_iteration):
         ps_mean_opt = pyGradientDescentOptimizer(py_repeated_search_domain, post_mean, py_sgd_params_ps)
         report_point = multistart_optimize(ps_mean_opt, initial_point, num_multistarts = 1)[0]
 
-        post_mean.set_current_point(report_point.reshape((1, gp_loglikelihood.dim - objective_func._num_fidelity)))
-        if -post_mean.compute_objective_function() > np.min(test):
-            report_point = initial_point
     else:  # method == 'EI':
         cpp_gp = gp_loglikelihood.models[0]
         report_point = (cpp_gp.get_historical_data_copy()).points_sampled[np.argmin(cpp_gp._points_sampled_value[:, 0])]

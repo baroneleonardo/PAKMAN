@@ -188,7 +188,6 @@ from builtins import object
 import collections
 
 import moe.build.GPP as C_GP
-from moe.optimal_learning.python.comparison import EqualityComparisonMixin
 from moe.optimal_learning.python.interfaces.optimization_interface import OptimizerInterface
 
 
@@ -200,54 +199,9 @@ class NullParameters(collections.namedtuple('NullParameters', ['num_multistarts'
     __slots__ = ()
 
 
-class NewtonParameters(C_GP.NewtonParameters, EqualityComparisonMixin):
-
-    """Container to hold parameters that specify the behavior of Newton in a C++-readable form.
-
-    See :func:`~moe.optimal_learning.python.cpp_wrappers.optimization.NewtonParameters.__init__` docstring for more information.
-
-    """
-
-    __slots__ = ()
-
-    def __init__(self, *args, **kwargs):
-        r"""Build a NewtonParameters (C++ object) via its ctor; this object specifies multistarted Newton behavior and is required by C++ Newton optimization.
-
-        .. Note:: See gpp_optimizer_parameters.hpp for more details.
-            The following comments are copied from NewtonParameters struct in gpp_optimizer_parameters.hpp.
-
-        **Diagonal dominance control: ``gamma`` and ``time_factor``**
-
-        On i-th newton iteration, we add ``1/(time_factor*gamma^(i+1)) * I`` to the Hessian to improve robustness
-
-        Choosing a small gamma (e.g., ``1.0 < gamma <= 1.01``) and time_factor (e.g., ``0 < time_factor <= 1.0e-3``)
-        leads to more consistent/stable convergence at the cost of slower performance (and in fact
-        for gamma or time_factor too small, gradient descent is preferred).  Conversely, choosing more
-        aggressive values may lead to very fast convergence at the cost of more cases failing to
-        converge.
-
-        ``gamma = 1.01``, ``time_factor = 1.0e-3`` should lead to good robustness at reasonable speed.  This should be a fairly safe default.
-        ``gamma = 1.05, time_factor = 1.0e-1`` will be several times faster but not as robust.
-        for "easy" problems, these can be much more aggressive, e.g., ``gamma = 2.0``, ``time_factor = 1.0e1`` or more
-
-        :param num_multistarts: number of initial guesses to try in multistarted newton (suggest: a few hundred)
-        :type num_multistarts: int > 0
-        :param max_num_steps: maximum number of newton iterations (per initial guess) (suggest: 100)
-        :type max_num_steps: int > 0
-        :param gamma: exponent controlling rate of time_factor growth (see function comments) (suggest: 1.01-1.1)
-        :type gamma: float64 > 1.0
-        :param time_factor: initial amount of additive diagonal dominance (see function comments) (suggest: 1.0e-3-1.0e-1)
-        :type time_factor: float64 > 0.0
-        :param max_relative_change: max change allowed per update (as a relative fraction of current distance to wall) (suggest: 1.0)
-        :type max_relative_change: float64 in [0, 1]
-        :param tolerance: when the magnitude of the gradient falls below this value, stop (suggest: 1.0e-10)
-        :type tolerance: float64 >= 0.0
-
-        """
-        super(NewtonParameters, self).__init__(*args, **kwargs)
-
-
-class GradientDescentParameters(C_GP.GradientDescentParameters, EqualityComparisonMixin):
+class GradientDescentParameters(
+    C_GP.GradientDescentParameters
+):
 
     """Container to hold parameters that specify the behavior of Gradient Descent in a C++-readable form.
 
@@ -368,39 +322,6 @@ class _CppOptimizerParameters(object):
             self.optimizer_parameters = None
 
 
-class NullOptimizer(OptimizerInterface):
-
-    """A "null" or identity optimizer: this does nothing. It is used to perform "dumb" search with MultistartOptimizer."""
-
-    def __init__(self, domain, optimizable, optimizer_parameters, num_random_samples=None):
-        """Construct a NullOptimizer.
-
-        :param domain: the domain that this optimizer operates over
-        :type domain: interfaces.domain_interface.DomainInterface subclass
-        :param optimizable: object representing the objective function being optimized
-        :type optimizable: interfaces.optimization_interface.OptimizableInterface subclass
-        :param optimizer_parameters: None
-        :type optimizer_parameters: None
-        :params num_random_samples: number of random samples to use if performing 'dumb' search
-        :type num_random_sampes: int >= 0
-
-        """
-        self.domain = domain
-        self.objective_function = optimizable
-        self.optimizer_type = C_GP.OptimizerTypes.null
-        self.optimizer_parameters = _CppOptimizerParameters(
-            domain_type=domain._domain_type,
-            objective_type=optimizable.objective_type,
-            optimizer_type=self.optimizer_type,
-            num_random_samples=num_random_samples,
-            optimizer_parameters=None,
-        )
-
-    def optimize(self, *args, **kwargs):
-        """Do nothing; arguments are unused."""
-        pass
-
-
 class GradientDescentOptimizer(OptimizerInterface):
 
     """Simple container for telling C++ to use Gradient Descent for optimization.
@@ -439,39 +360,39 @@ class GradientDescentOptimizer(OptimizerInterface):
         raise NotImplementedError("C++ wrapper currently does not support optimization member functions.")
 
 
-class NewtonOptimizer(OptimizerInterface):
-
-    """Simple container for telling C++ to use Gradient Descent for optimization.
-
-    See this module's docstring for some more information or the comments in gpp_optimization.hpp
-    for full details on Newton.
-
-    """
-
-    def __init__(self, domain, optimizable, optimizer_parameters, num_random_samples=None):
-        """Construct a NewtonOptimizer.
-
-        :param domain: the domain that this optimizer operates over
-        :type domain: interfaces.domain_interface.DomainInterface subclass from cpp_wrappers
-        :param optimizable: object representing the objective function being optimized
-        :type optimizable: interfaces.optimization_interface.OptimizableInterface subclass from cpp_wrappers
-        :param optimizer_parameters: parameters describing how to perform optimization (tolerances, iterations, etc.)
-        :type optimizer_parameters: cpp_wrappers.optimization.NewtonParameters object
-        :params num_random_samples: number of random samples to use if performing 'dumb' search
-        :type num_random_sampes: int >= 0
-
-        """
-        self.domain = domain
-        self.objective_function = optimizable
-        self.optimizer_type = C_GP.OptimizerTypes.newton
-        self.optimizer_parameters = _CppOptimizerParameters(
-            domain_type=domain._domain_type,
-            objective_type=optimizable.objective_type,
-            optimizer_type=self.optimizer_type,
-            num_random_samples=num_random_samples,
-            optimizer_parameters=optimizer_parameters,
-        )
-
-    def optimize(self, **kwargs):
-        """C++ does not expose this endpoint."""
-        raise NotImplementedError("C++ wrapper currently does not support optimization member functions.")
+# class NewtonOptimizer(OptimizerInterface):
+#
+#     """Simple container for telling C++ to use Gradient Descent for optimization.
+#
+#     See this module's docstring for some more information or the comments in gpp_optimization.hpp
+#     for full details on Newton.
+#
+#     """
+#
+#     def __init__(self, domain, optimizable, optimizer_parameters, num_random_samples=None):
+#         """Construct a NewtonOptimizer.
+#
+#         :param domain: the domain that this optimizer operates over
+#         :type domain: interfaces.domain_interface.DomainInterface subclass from cpp_wrappers
+#         :param optimizable: object representing the objective function being optimized
+#         :type optimizable: interfaces.optimization_interface.OptimizableInterface subclass from cpp_wrappers
+#         :param optimizer_parameters: parameters describing how to perform optimization (tolerances, iterations, etc.)
+#         :type optimizer_parameters: cpp_wrappers.optimization.NewtonParameters object
+#         :params num_random_samples: number of random samples to use if performing 'dumb' search
+#         :type num_random_sampes: int >= 0
+#
+#         """
+#         self.domain = domain
+#         self.objective_function = optimizable
+#         self.optimizer_type = C_GP.OptimizerTypes.newton
+#         self.optimizer_parameters = _CppOptimizerParameters(
+#             domain_type=domain._domain_type,
+#             objective_type=optimizable.objective_type,
+#             optimizer_type=self.optimizer_type,
+#             num_random_samples=num_random_samples,
+#             optimizer_parameters=optimizer_parameters,
+#         )
+#
+#     def optimize(self, **kwargs):
+#         """C++ does not expose this endpoint."""
+#         raise NotImplementedError("C++ wrapper currently does not support optimization member functions.")

@@ -105,7 +105,7 @@ class HistoricalData(object):
 
     __slots__ = ('_dim', '_num_derivatives', '_points_sampled', '_points_sampled_value', '_points_sampled_noise_variance')
 
-    def __init__(self, dim, num_derivatives, sample_points=None, validate=False):
+    def __init__(self, dim, num_derivatives=0, sample_points=None, validate=False):
         """Create a HistoricalData object tracking the state of an experiment (already-sampled points, values, and noise).
 
         :param dim: number of spatial dimensions; must line up with len(sample_points[0]) if sample_points is empty
