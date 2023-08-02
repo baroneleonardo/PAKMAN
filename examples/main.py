@@ -52,7 +52,7 @@ num_to_sample = int(argv[3])  # The "q" parameter
 job_id = int(argv[4])  # TODO: This parameter seems fairly useless
 
 # FIXED ARGUMENT (TODO: This should be a script argument)
-NUM_FUNC_EVAL = 12  # Total number of function evaluations
+NUM_FUNC_EVAL = 16  # Total number of function evaluations
 
 ######################
 #

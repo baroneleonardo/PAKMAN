@@ -50,5 +50,6 @@ class FiniteDomainTests(unittest.TestCase):
                                         allow_previously_sampled=False)
         )
 
+
 if __name__ == '__main__':
     unittest.main()

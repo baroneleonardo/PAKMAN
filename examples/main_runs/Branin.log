@@ -1,0 +1,73 @@
+(polimi) kanthavel@kanthavel-Latitude-5501:/media/data/kanthavel/Code/QALIBOO$ date; python examples/main.py Branin KG 4 1000; date
+mer 2 ago 2023, 07:57:49, CEST
+KG, 1000th job, 0th iteration, func=Branin, q=4
+KG takes 17.19145941734314 seconds
+Suggests points:
+[[ 6.19919378  6.00041785]
+ [ 1.93858227  6.39243196]
+ [11.72267019  2.01573464]
+ [10.44931564 -0.75901884]]
+Retraining the model takes 2.187486171722412 seconds
+
+Optimization finished successfully!
+The recommended point: [0.80392384 6.44535095]
+The recommended integer point: [1 6]
+Finding the recommended point takes 0.5643997192382812 seconds
+ KG, VOI 33.57639660110808, best so far 19.35678827552501
+KG, 1000th job, 1th iteration, func=Branin, q=4
+KG takes 25.439044713974 seconds
+Suggests points:
+[[ 0.6076138   2.32151022]
+ [ 9.76240391 13.23303495]
+ [11.68905437 11.11663299]
+ [11.22494952 -1.08881114]]
+Retraining the model takes 2.4313511848449707 seconds
+
+Optimization finished successfully!
+The recommended point: [0.56389743 6.42197498]
+The recommended integer point: [1 6]
+Finding the recommended point takes 0.6421313285827637 seconds
+ KG, VOI 26.17121285350764, best so far 19.74972181688679
+KG, 1000th job, 2th iteration, func=Branin, q=4
+KG takes 32.50072264671326 seconds
+Suggests points:
+[[5.74869985e+00 1.11436985e-02]
+ [1.36053257e+00 5.07381826e+00]
+ [5.06037166e+00 1.30999759e+01]
+ [7.58412273e+00 9.56754544e+00]]
+Retraining the model takes 2.4964616298675537 seconds
+
+Optimization finished successfully!
+The recommended point: [9.25504354 0.55974009]
+The recommended integer point: [9 1]
+Finding the recommended point takes 0.6672523021697998 seconds
+ KG, VOI 7.968731384409032, best so far 3.689363837985157
+KG, 1000th job, 3th iteration, func=Branin, q=4
+KG takes 32.787346839904785 seconds
+Suggests points:
+[[ 1.49873861e+01  1.02041254e+01]
+ [ 5.52918597e+00 -4.27864728e-01]
+ [ 8.72967517e+00  1.41244474e+01]
+ [ 7.78349938e+00  7.47925253e-03]]
+Retraining the model takes 2.5220136642456055 seconds
+
+Optimization finished successfully!
+The recommended point: [15.         10.31621849]
+The recommended integer point: [15 10]
+Finding the recommended point takes 0.6915838718414307 seconds
+ KG, VOI 8.077512863514476, best so far 3.474615869065338
+KG, 1000th job, 4th iteration, func=Branin, q=4
+KG takes 30.262892484664917 seconds
+Suggests points:
+[[10.85423284  6.60776447]
+ [14.62278704  8.56528914]
+ [13.62157748 11.18583928]
+ [11.0251523   8.58358622]]
+Retraining the model takes 2.454926013946533 seconds
+
+Optimization finished successfully!
+The recommended point: [15.         10.50868809]
+The recommended integer point: [15 11]
+Finding the recommended point takes 0.6944646835327148 seconds
+ KG, VOI 8.496649394005566, best so far 3.174047708627959
+mer 2 ago 2023, 08:00:29, CEST
