@@ -50,6 +50,13 @@ class FiniteDomainTests(unittest.TestCase):
                                         allow_previously_sampled=False)
         )
 
+    def test_find_closest_point(self):
+        domain = finite_domain.FiniteDomain.Grid([1, 2, 3], [10, 20])
+        test_point = np.array([2.1, 20.1])
+        expected_point = np.array([2.0, 20.0])
+        closest_point = domain.find_closest_point(test_point)
+        self.assertTrue(np.all(np.equal(expected_point, closest_point)))
+
 
 if __name__ == '__main__':
     unittest.main()

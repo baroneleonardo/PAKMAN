@@ -9,7 +9,7 @@ from examples import finite_domain
 
 def compute_suggested_minimum(domain: finite_domain.FiniteDomain,
                               gp_loglikelihood: log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC,
-                              py_sgd_params_ps: optimization.GradientDescentParameters) -> np.array:
+                              py_sgd_params_ps: optimization.GradientDescentParameters) -> np.ndarray:
     eval_pts = domain.generate_uniform_random_points_in_domain(int(1e4))
     eval_pts = np.reshape(
         np.append(eval_pts, (gp_loglikelihood.get_historical_data_copy()).points_sampled[:, :gp_loglikelihood.dim]),

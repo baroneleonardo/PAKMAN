@@ -102,6 +102,7 @@ class Rosenbrock(_AbstractProblem):
 
 
 class Hartmann3(_AbstractProblem):
+
     def __init__(self):
         self._dim = 3
         self._search_domain = np.repeat([[0., 1.]], self._dim, axis=0)

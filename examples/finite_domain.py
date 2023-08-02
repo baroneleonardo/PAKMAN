@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import spatial
 
 from moe.optimal_learning.python import geometry_utils
 
@@ -13,6 +14,7 @@ class FiniteDomain:
 
     def __init__(self, data: np.ndarray):
         self._data = data
+        self._kdtree = spatial.KDTree(data)
         self._sampled = np.zeros(data.shape[0]).astype(bool)
 
         self._domain_bounds = [geometry_utils.ClosedInterval(np.min(data[:, i]),
@@ -20,7 +22,7 @@ class FiniteDomain:
                                for i in range(data.shape[1])]
 
     @property
-    def dim(self):
+    def dim(self) -> int:
         """Return the number of spatial dimensions."""
         return len(self._domain_bounds)
 
@@ -34,7 +36,7 @@ class FiniteDomain:
         data = np.vstack([g.ravel() for g in grid]).T
         return cls(data)
 
-    def SamplePointsInDomain(self, sample_size, allow_previously_sampled=False):
+    def SamplePointsInDomain(self, sample_size, allow_previously_sampled=False) -> np.ndarray:
         if allow_previously_sampled:
             indexes = np.arange(self._data.shape[0])
         else:
@@ -111,3 +113,7 @@ class FiniteDomain:
             output_update[j] = desired_step
 
         return output_update
+
+    def find_closest_point(self, point: np.ndarray) -> np.ndarray:
+        distance, index = self._kdtree.query(point)
+        return self._data[index]

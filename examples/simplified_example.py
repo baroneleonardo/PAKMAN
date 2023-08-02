@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+import numpy.linalg
 
 from moe.optimal_learning.python import data_containers
 from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimization as cpp_optimization, knowledge_gradient
@@ -12,7 +13,7 @@ from examples import synthetic_functions, bayesian_optimization, finite_domain, 
 ###########################
 # Constants
 ###########################
-N_INITIAL_POINTS = 3
+N_INITIAL_POINTS = 5
 N_ITERATIONS = 5
 N_POINTS_PER_ITERATION = 4  # The q- parameter
 MODE = 'KG'  # 'EI' vs 'KG'
@@ -24,9 +25,11 @@ M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
 ###########################
 objective_func_name = 'Parabolic with minimum at (2, 3)'
 objective_func = synthetic_functions.ParabolicMinAtTwoAndThree()
+known_minimum = np.array([2.0, 3.0])
 
-objective_func_name = 'Hartmann3'
-objective_func = synthetic_functions.Hartmann3()
+# objective_func_name = 'Hartmann3'
+# objective_func = synthetic_functions.Hartmann3()
+# known_minimum = None
 
 ###############################
 # Initializing utility objects
@@ -74,9 +77,10 @@ KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
 domain = finite_domain.FiniteDomain.Grid(np.arange(-5, 5, 0.1),
                                          np.arange(-5, 5, 0.1))
 
-domain = finite_domain.FiniteDomain.Grid(np.arange(0, 1, 0.005),
-                                         np.arange(0, 1, 0.005),
-                                         np.arange(0, 1, 0.005))
+# domain = finite_domain.FiniteDomain.Grid(np.arange(0, 1, 0.005),
+#                                          np.arange(0, 1, 0.005),
+#                                          np.arange(0, 1, 0.005))
+
 ###########################
 # Starting up the MCMC...
 ###########################
@@ -116,6 +120,18 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     noisy=False
 )
 gp_loglikelihood.train()
+
+# If available, find point in domain closest to the minimum
+if known_minimum is not None:
+
+    known_minimum_in_domain = domain.find_closest_point(known_minimum)
+
+    if not np.all(np.equal(known_minimum_in_domain, known_minimum)):
+        print('Known Minimum NOT in domain')
+        known_minimum = known_minimum_in_domain
+
+    known_minimum_value = objective_func.evaluate(known_minimum)
+
 
 ###########################
 # Main cycle
@@ -237,10 +253,16 @@ for s in range(N_ITERATIONS):
     # Suggested Minimum
     ####################
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
+    closest_point_in_domain = domain.find_closest_point(suggested_minimum)
 
-
-    print("\nOptimization finished successfully!")
-    print(f"The recommended point: {suggested_minimum}")
-    print(f"The recommended integer point: {np.round(suggested_minimum).astype(int)}")
+    print(f"The recommended point is:\n {suggested_minimum}")
+    print(f"The closest point in the finite domain is:\n {closest_point_in_domain}")
     print(f"Finding the recommended point takes {time.time() - time1} seconds")
-    print(f" {MODE}, VOI {voi}, best so far {objective_func.evaluate_true(report_point)[0]}")
+
+    if known_minimum is not None:
+        print(f"Distance from closest point in domain to known minimum: {np.linalg.norm(closest_point_in_domain - known_minimum)}")
+        error = np.linalg.norm(known_minimum_value - objective_func.evaluate(closest_point_in_domain))
+        print(f'Error: {error}')
+        print(f'Squared error: {np.square(error)}')
+
+print("\nOptimization finished successfully!")
