@@ -73,8 +73,7 @@ init_pts_value = np.array([objective_func.evaluate(pt) for pt in init_pts])
 
 init_data = HistoricalData(dim=objective_func._dim, num_derivatives=objective_func.n_derivatives)
 init_data.append_sample_points([SamplePoint(pt,
-                                            [init_pts_value[num, i] for i in objective_func.observations],
-                                            objective_func._sample_var)
+                                            [init_pts_value[num, i] for i in objective_func.observations])
                                 for num, pt in enumerate(init_pts)])
 
 # initialize the model
@@ -181,8 +180,7 @@ for n in range(num_iteration):
     print(next_points)
 
     sampled_points = [SamplePoint(pt,
-                                  objective_func.evaluate(pt)[objective_func.observations],
-                                  objective_func._sample_var)
+                                  objective_func.evaluate(pt)[objective_func.observations])
                       for pt in next_points]
 
     # retrain the model

@@ -16,7 +16,7 @@ from examples import synthetic_functions, bayesian_optimization, finite_domain, 
 N_INITIAL_POINTS = 5
 N_ITERATIONS = 5
 N_POINTS_PER_ITERATION = 4  # The q- parameter
-MODE = 'KG'  # 'EI' vs 'KG'
+# MODE = 'KG'  # 'EI' vs 'KG'
 M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
 
 
@@ -94,8 +94,7 @@ initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_p
 # Build points using custom container class
 initial_points = [data_containers.SamplePoint(pt,
                                               [initial_points_value[num, i]
-                                               for i in objective_func.observations],
-                                              objective_func._sample_var)
+                                               for i in objective_func.observations])
                   for num, pt in enumerate(initial_points_array)]
 
 # Build historical data container
@@ -139,8 +138,7 @@ if known_minimum is not None:
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(N_ITERATIONS):
-    print(f"{MODE}, "
-          f"{s}th iteration, "
+    print(f"{s}th iteration, "
           f"func={objective_func_name}, "
           f"q={N_POINTS_PER_ITERATION}")
     time1 = time.time()
@@ -221,15 +219,14 @@ for s in range(N_ITERATIONS):
         num_mc=2 ** 7)
 
 
-    print(f"{MODE} takes {(time.time()-time1)} seconds")
+    print(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
     print("Suggests points:")
     print(next_points)
 
     # > ALgorithm 1.5: 5: Sample these points (z∗1 , z∗2 , · · · , z∗q)
     # > ...
     sampled_points = [data_containers.SamplePoint(pt,
-                                                  objective_func.evaluate(pt)[objective_func.observations],
-                                                  objective_func._sample_var)
+                                                  objective_func.evaluate(pt)[objective_func.observations])
                       for pt in next_points]
 
     time1 = time.time()

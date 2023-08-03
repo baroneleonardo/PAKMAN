@@ -38,7 +38,6 @@ class CIFAR10(_AbstractProblem):
         self._dim = 5
         self._search_domain = numpy.array([[-6, 0], [32, 512], [5, 9], [5, 9], [5, 9]])
         self._num_init_pts = 1
-        self._sample_var = 0.0
         self._min_value = 0.0
         self._observations = []
         self._num_fidelity = 0
@@ -169,7 +168,6 @@ class KISSGP(_AbstractProblem):
         self._dim = 3
         self._search_domain = numpy.array([[-1, 3], [-1, 3], [-1, 3]])
         self._num_init_pts = 1
-        self._sample_var = 0.0
         self._min_value = 0.0
         self._num_observations = numpy.arange(self._dim)
         self._num_fidelity = 0

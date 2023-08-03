@@ -13,7 +13,6 @@ class ParabolicMinAtOrigin(_AbstractProblem):
         self._dim = 2
         self._search_domain = np.array([[-10.0, 10.0], [-10.0, 10.0]])
         self._num_init_pts = 3
-        self._sample_var = 0.0
         self._min_value = 2.0
         self._use_observations = False
         self._num_fidelity = 0
@@ -30,7 +29,6 @@ class ParabolicMinAtTwoAndThree(_AbstractProblem):
         self._dim = 2
         self._search_domain = np.array([[-10.0, 10.0], [-10.0, 10.0]])
         self._num_init_pts = 3
-        self._sample_var = 0.0
         self._min_value = 2.0
         self._use_observations = False
         self._num_fidelity = 0
@@ -48,7 +46,6 @@ class Branin(_AbstractProblem):
         self._dim = 2
         self._search_domain = np.array([[0.0, 15.0], [-5.0, 15.0]])
         self._num_init_pts = 3
-        self._sample_var = 0.0
         self._min_value = 0.397887
         self._use_observations = False
         self._num_fidelity = 0
@@ -78,7 +75,6 @@ class Rosenbrock(_AbstractProblem):
         self._dim = 2
         self._search_domain = np.repeat([[-2., 2.]], self._dim, axis=0)
         self._num_init_pts = 3
-        self._sample_var = 0.0
         self._min_value = 0.0
         self._use_observations = False
         self._num_fidelity = 0
@@ -107,7 +103,6 @@ class Hartmann3(_AbstractProblem):
         self._dim = 3
         self._search_domain = np.repeat([[0., 1.]], self._dim, axis=0)
         self._num_init_pts = 3
-        self._sample_var = 0.0
         self._min_value = -3.86278
         self._use_observations = False
         self._num_fidelity = 0
@@ -140,7 +135,6 @@ class Levy4(_AbstractProblem):
         self._dim = 4
         self._search_domain = np.repeat([[-5., 5.]], self._dim, axis=0)
         self._num_init_pts = 3
-        self._sample_var = 0.0
         self._min_value = 0.0
         self._use_observations = False#np.arange(self._dim)
         self._num_fidelity = 0
@@ -178,7 +172,6 @@ class Hartmann6(_AbstractProblem):
         self._dim = 6
         self._search_domain = np.repeat([[0., 1.]], self._dim, axis=0)
         self._num_init_pts = 3
-        self._sample_var = 0.0
         self._min_value = -3.32237
         self._use_observations = False#np.arange(self._dim)
         self._num_fidelity = 0
@@ -214,7 +207,6 @@ class Ackley(_AbstractProblem):
         self._dim = 5
         self._search_domain = np.repeat([[-1., 1.]], self._dim, axis=0)
         self._num_init_pts = 3
-        self._sample_var = 0.0
         self._min_value = 0.0
         self._use_observations = False
         self._num_fidelity = 0
