@@ -114,6 +114,6 @@ class FiniteDomain:
 
         return output_update
 
-    def find_closest_point(self, point: np.ndarray) -> np.ndarray:
+    def find_distance_index_closest_point(self, point: np.ndarray) -> np.ndarray:
         distance, index = self._kdtree.query(point)
-        return self._data[index]
+        return distance, index, self._data[index]

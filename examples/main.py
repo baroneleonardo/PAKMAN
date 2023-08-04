@@ -66,19 +66,19 @@ search_domain = objective_func.get_search_domain()
 
 # Get the initial data
 # NOTE qKG: 1: Initial Stage: draw I initial samples from a latin hypercube design in A, x(i) for i = 1, . . . , I
-init_pts = search_domain.generate_uniform_random_points_in_domain(objective_func._num_init_pts)
+init_pts = search_domain.generate_uniform_random_points_in_domain(objective_func.num_init_pts)
 
 # Evaluate function in initial points
 init_pts_value = np.array([objective_func.evaluate(pt) for pt in init_pts])
 
-init_data = HistoricalData(dim=objective_func._dim, num_derivatives=objective_func.n_derivatives)
+init_data = HistoricalData(dim=objective_func.dim, num_derivatives=objective_func.n_derivatives)
 init_data.append_sample_points([SamplePoint(pt,
                                             [init_pts_value[num, i] for i in objective_func.observations])
                                 for num, pt in enumerate(init_pts)])
 
 # initialize the model
 # (It is completely unclear what these parameters mean)
-n_prior_hyperparameters = 1 + objective_func._dim + objective_func.n_observations
+n_prior_hyperparameters = 1 + objective_func.dim + objective_func.n_observations
 n_prior_noises = objective_func.n_observations
 prior = DefaultPrior(n_prior_hyperparameters, n_prior_noises)
 
@@ -136,13 +136,13 @@ for n in range(num_iteration):
 
             eval_pts = search_domain.generate_uniform_random_points_in_domain(int(1e3))
             eval_pts = np.reshape(np.append(eval_pts,
-                                            (cpp_gp.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim - objective_func._num_fidelity)]),
-                                  (eval_pts.shape[0] + cpp_gp.num_sampled, cpp_gp.dim-objective_func._num_fidelity))
+                                            (cpp_gp.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
+                                  (eval_pts.shape[0] + cpp_gp.num_sampled, cpp_gp.dim))
 
             test = np.zeros(eval_pts.shape[0])
-            ps_evaluator = PosteriorMean(cpp_gp, objective_func._num_fidelity)
+            ps_evaluator = PosteriorMean(cpp_gp)
             for i, pt in enumerate(eval_pts):
-                ps_evaluator.set_current_point(pt.reshape((1, gp_loglikelihood.dim - objective_func._num_fidelity)))
+                ps_evaluator.set_current_point(pt.reshape((1, gp_loglikelihood.dim)))
                 test[i] = -ps_evaluator.compute_objective_function()
 
             initial_point = eval_pts[np.argmin(test)]
@@ -152,17 +152,17 @@ for n in range(num_iteration):
 
 
             discrete_pts_optima = np.reshape(np.append(qEI_next_points, report_point),
-                                             (qEI_next_points.shape[0] + 1, cpp_gp.dim-objective_func._num_fidelity))
+                                             (qEI_next_points.shape[0] + 1, cpp_gp.dim))
             discrete_pts_list.append(discrete_pts_optima)
 
-        ps_evaluator = PosteriorMean(gp_loglikelihood.models[0], objective_func._num_fidelity)
+        ps_evaluator = PosteriorMean(gp_loglikelihood.models[0])
         ps_sgd_optimizer = cppGradientDescentOptimizer(search_domain, ps_evaluator, cpp_sgd_params_ps)
         # KG method
         next_points, voi = bayesian_optimization.gen_sample_from_qkg_mcmc(gp_loglikelihood._gaussian_process_mcmc,
                                                                           gp_loglikelihood.models,
                                                                           ps_sgd_optimizer,
                                                                           search_domain,
-                                                                          objective_func._num_fidelity,
+                                                                          0,  # num fidelity
                                                                           discrete_pts_list,
                                                                           KG_gradient_descent_params,
                                                                           num_to_sample,
@@ -195,15 +195,15 @@ for n in range(num_iteration):
     # report the point
     if method == 'KG':
         eval_pts = search_domain.generate_uniform_random_points_in_domain(int(1e4))
-        eval_pts = np.reshape(np.append(eval_pts, (gp_loglikelihood.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim - objective_func._num_fidelity)]),
-                              (eval_pts.shape[0] + gp_loglikelihood._num_sampled, gp_loglikelihood.dim - objective_func._num_fidelity))
+        eval_pts = np.reshape(np.append(eval_pts, (gp_loglikelihood.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
+                              (eval_pts.shape[0] + gp_loglikelihood._num_sampled, gp_loglikelihood.dim))
 
-        post_mean = PosteriorMeanMCMC(gp_loglikelihood.models, objective_func._num_fidelity)
+        post_mean = PosteriorMeanMCMC(gp_loglikelihood.models)
         test = np.zeros(eval_pts.shape[0])
         for i, pt in enumerate(eval_pts):
-            post_mean.set_current_point(pt.reshape((1, gp_loglikelihood.dim - objective_func._num_fidelity)))
+            post_mean.set_current_point(pt.reshape((1, gp_loglikelihood.dim)))
             test[i] = -post_mean.compute_objective_function()
-        initial_point = eval_pts[np.argmin(test)].reshape((1, gp_loglikelihood.dim - objective_func._num_fidelity))
+        initial_point = eval_pts[np.argmin(test)].reshape((1, gp_loglikelihood.dim))
 
         py_repeated_search_domain = RepeatedDomain(num_repeats=1, domain=search_domain)
         ps_mean_opt = pyGradientDescentOptimizer(py_repeated_search_domain, post_mean, py_sgd_params_ps)
@@ -214,7 +214,6 @@ for n in range(num_iteration):
         report_point = (cpp_gp.get_historical_data_copy()).points_sampled[np.argmin(cpp_gp._points_sampled_value[:, 0])]
 
     report_point = report_point.ravel()
-    report_point = np.concatenate((report_point, np.ones(objective_func._num_fidelity)))
 
     print("\nOptimization finished successfully!")
     print(f"The recommended point: {report_point}")

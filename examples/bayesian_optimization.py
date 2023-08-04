@@ -56,6 +56,7 @@ def qEI_generate_next_points_using_mcmc(gaussian_process_mcmc, search_domain, gd
     ei_value = ei_evaluator.compute_expected_improvement()
     return points_to_sample_next, ei_value
 
+
 def gen_sample_from_qkg_mcmc(cpp_gp_mcmc, cpp_gp_list, inner_optimizer, cpp_search_domain, num_fidelity,
                              discrete_pts_list, sgd_params, num_to_sample, num_mc=10, lhc_itr=1e3):
     """
