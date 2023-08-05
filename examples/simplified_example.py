@@ -20,11 +20,11 @@ _log = logging.getLogger(__name__)
 ###########################
 # Constants
 ###########################
-N_INITIAL_POINTS = 5
-N_ITERATIONS = 5
-N_POINTS_PER_ITERATION = 5  # The q- parameter
+N_INITIAL_POINTS = 10
+N_ITERATIONS = 20
+N_POINTS_PER_ITERATION = 10  # The q- parameter
 M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
-N_RANDOM_WALKERS = 12 * 4  # Originally fixed at 2 ** 4 = 16
+N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 
 ###########################
 # Target function and domain
@@ -53,10 +53,22 @@ N_RANDOM_WALKERS = 12 * 4  # Originally fixed at 2 ** 4 = 16
 # M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
 # N_RANDOM_WALKERS = 2 ** 4
 
-objective_func_name = 'LiGen'
-objective_func = precomputed_functions.PrecomputedFunction.LiGen()
+# objective_func_name = 'LiGen'
+# objective_func = precomputed_functions.PrecomputedFunction.LiGen()
+# known_minimum = objective_func.minimum
+# domain = objective_func
+## SUGGESTED:
+# N_INITIAL_POINTS = 5
+# N_ITERATIONS = 5
+# N_POINTS_PER_ITERATION = 5  # The q- parameter
+# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 20  # M parameter
+# N_RANDOM_WALKERS = 12 * 4  # Originally fixed at 2 ** 4 = 16
+
+objective_func_name = 'Stereomatch'
+objective_func = precomputed_functions.PrecomputedFunction.Stereomatch()
 known_minimum = objective_func.minimum
 domain = objective_func
+
 
 ###############################
 # Initializing utility objects
@@ -275,6 +287,7 @@ for s in range(N_ITERATIONS):
 
     error = np.linalg.norm(objective_func.min_value - computed_cost)
     _log.info(f'Error: {error}')
+    _log.info(f'Error ratio: {error/objective_func.min_value}')
     _log.info(f'Squared error: {np.square(error)}')
 
     results.append(
@@ -289,7 +302,8 @@ for s in range(N_ITERATIONS):
             closest_point_in_domain=closest_point_in_domain.tolist(),
             computed_cost=float(computed_cost),
             n_evaluations=objective_func.evaluation_count,
-            error=error
+            error=error,
+            error_ratio=error/objective_func.min_value
         )
     )
 

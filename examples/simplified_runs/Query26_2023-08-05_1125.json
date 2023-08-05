@@ -32,5 +32,39 @@
     "computed_cost": 1448941.8,
     "n_evaluations": 9,
     "error": 738532.2000000001
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 3,
+    "q": 3,
+    "target": "Query26",
+    "suggested_minimum": [
+      5.390520675186204,
+      3.707816458153091
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1300404.5,
+    "n_evaluations": 12,
+    "error": 589994.9
+  },
+  {
+    "iteration": 3,
+    "n_initial_points": 3,
+    "q": 3,
+    "target": "Query26",
+    "suggested_minimum": [
+      3.3350235386067,
+      8.528272693107002
+    ],
+    "closest_point_in_domain": [
+      3.0,
+      9.0
+    ],
+    "computed_cost": 710409.6,
+    "n_evaluations": 15,
+    "error": 0.0
   }
 ]
