@@ -20,11 +20,11 @@ _log = logging.getLogger(__name__)
 ###########################
 # Constants
 ###########################
-N_INITIAL_POINTS = 3  # TODO: This is actually not used, but read from obj_function
+N_INITIAL_POINTS = 5
 N_ITERATIONS = 5
-N_POINTS_PER_ITERATION = 3  # The q- parameter
+N_POINTS_PER_ITERATION = 5  # The q- parameter
 M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
-
+N_RANDOM_WALKERS = 12 * 4  # Originally fixed at 2 ** 4 = 16
 
 ###########################
 # Target function and domain
@@ -42,15 +42,21 @@ M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
 #                                          np.arange(0, 1, 0.005),
 #                                          np.arange(0, 1, 0.005))
 
-objective_func_name = 'Query26'
-objective_func = precomputed_functions.PrecomputedFunction.Query26()
-known_minimum = objective_func.minimum
-domain = objective_func
-
-# objective_func_name = 'LiGen'
-# objective_func = precomputed_functions.PrecomputedFunction.LiGen()
+# objective_func_name = 'Query26'
+# objective_func = precomputed_functions.PrecomputedFunction.Query26()
 # known_minimum = objective_func.minimum
 # domain = objective_func
+## SUGGESTED:
+# N_INITIAL_POINTS = 3
+# N_ITERATIONS = 5
+# N_POINTS_PER_ITERATION = 3  # The q- parameter
+# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
+# N_RANDOM_WALKERS = 2 ** 4
+
+objective_func_name = 'LiGen'
+objective_func = precomputed_functions.PrecomputedFunction.LiGen()
+known_minimum = objective_func.minimum
+domain = objective_func
 
 ###############################
 # Initializing utility objects
@@ -120,7 +126,7 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     prior=prior,
     chain_length=1000,
     burnin_steps=2000,
-    n_hypers=2 ** 4,  # 16 random walkers
+    n_hypers=N_RANDOM_WALKERS,
     noisy=False
 )
 gp_loglikelihood.train()
@@ -276,8 +282,10 @@ for s in range(N_ITERATIONS):
             iteration=s,
             n_initial_points=N_INITIAL_POINTS,
             q=N_POINTS_PER_ITERATION,
+            m=M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE,
             target=objective_func_name,
             suggested_minimum=suggested_minimum.tolist(),
+            known_minimum=known_minimum.to_list(),
             closest_point_in_domain=closest_point_in_domain.tolist(),
             computed_cost=float(computed_cost),
             n_evaluations=objective_func.evaluation_count,
@@ -289,7 +297,7 @@ for s in range(N_ITERATIONS):
         json.dump(results, f, indent=2)
 
     if error < 0.000001:
-        _log.info(f'Error is small enough. Exiting cycle at {s} iteration')
+        _log.info(f'Error is small enough. Exiting cycle at iteration {s}')
         break
 
 _log.info("\nOptimization finished successfully!")
