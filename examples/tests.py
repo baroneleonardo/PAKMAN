@@ -1,8 +1,10 @@
 import unittest
 
 import numpy as np
+import pandas as pd
 
 from examples import finite_domain
+import datasets
 
 
 class FiniteDomainTests(unittest.TestCase):
@@ -56,6 +58,26 @@ class FiniteDomainTests(unittest.TestCase):
         expected_point = np.array([2.0, 20.0])
         closest_point = domain.find_closest_point(test_point)
         self.assertTrue(np.all(np.equal(expected_point, closest_point)))
+
+
+class DatasetTests(unittest.TestCase):
+
+    def test_dataset(self):
+        feature_cols = ['#vm', 'ram']
+        target_col = 'cost'
+        df = pd.read_csv('../datasets/query26_vm_ram.csv')
+        df = df[feature_cols + [target_col]].groupby(feature_cols).agg(np.mean).reset_index()
+        n_rows = df.shape[0]
+        n_cols = len(feature_cols)
+
+        ds = datasets.Datasets.Query26()
+        self.assertIsInstance(ds.X, pd.DataFrame)
+        self.assertEqual((n_rows, n_cols), ds.X.shape)
+        self.assertIsInstance(ds.y, pd.Series)
+        self.assertEqual((n_rows,), ds.y.shape)
+
+        self.assertTrue(np.all(ds.X == df[feature_cols]))
+        self.assertTrue(np.all(ds.y == df[target_col]))
 
 
 if __name__ == '__main__':

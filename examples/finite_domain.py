@@ -12,7 +12,8 @@ class FiniteDomain:
     #  of FiniteDomain is not complete
     _domain_type = C_GP.DomainTypes.tensor_product
 
-    def __init__(self, data: np.ndarray):
+    def __init__(self, data: np.ndarray, **kwargs):
+        super().__init__(**kwargs)
         self._data = data
         self._kdtree = spatial.KDTree(data)
         self._sampled = np.zeros(data.shape[0]).astype(bool)
@@ -20,11 +21,6 @@ class FiniteDomain:
         self._domain_bounds = [geometry_utils.ClosedInterval(np.min(data[:, i]),
                                                              np.max(data[:, i]))
                                for i in range(data.shape[1])]
-
-    @property
-    def dim(self) -> int:
-        """Return the number of spatial dimensions."""
-        return len(self._domain_bounds)
 
     @classmethod
     def Grid(cls, *coords):

@@ -1,5 +1,11 @@
+import logging
+
 import pandas as pd
+import numpy as np
 import os
+
+
+_log = logging.getLogger(__name__)
 
 
 class Datasets:
@@ -9,7 +15,16 @@ class Datasets:
         self._param_cols = param_cols
         self._target_col = target_col
         csv_file = os.path.join(os.path.dirname(__file__), csv_file)
-        self._data = pd.read_csv(csv_file)[cols]
+        data = pd.read_csv(csv_file, usecols=cols)
+        n_init_rows = len(data)
+        data = data[param_cols + [target_col]].groupby(param_cols).agg(np.mean).reset_index()
+        n_rows = len(data)
+        if n_init_rows > n_rows:
+            logging.warning(f'Duplicate data in {csv_file}. '
+                            f'{n_init_rows - n_rows} have been dropped '
+                            f'({(n_init_rows - n_rows)/n_init_rows*100:.02f}%). '
+                            f'{n_rows} remaining')
+        self._data = data
 
     @property
     def X(self):
