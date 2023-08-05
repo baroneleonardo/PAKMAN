@@ -71,7 +71,7 @@ init_pts = search_domain.generate_uniform_random_points_in_domain(objective_func
 # Evaluate function in initial points
 init_pts_value = np.array([objective_func.evaluate(pt) for pt in init_pts])
 
-init_data = HistoricalData(dim=objective_func.dim, num_derivatives=objective_func.n_derivatives)
+init_data = HistoricalData(dim=objective_func.dim)
 init_data.append_sample_points([SamplePoint(pt,
                                             [init_pts_value[num, i] for i in objective_func.observations])
                                 for num, pt in enumerate(init_pts)])

@@ -1,0 +1,36 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 3,
+    "q": 3,
+    "target": "Query26",
+    "suggested_minimum": [
+      5.6139593834282815,
+      4.408443545370475
+    ],
+    "closest_point_in_domain": [
+      6.0,
+      4.0
+    ],
+    "computed_cost": 1448941.8,
+    "n_evaluations": 6,
+    "error": 738532.2000000001
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 3,
+    "q": 3,
+    "target": "Query26",
+    "suggested_minimum": [
+      5.541219770792049,
+      3.4424481282028867
+    ],
+    "closest_point_in_domain": [
+      6.0,
+      4.0
+    ],
+    "computed_cost": 1448941.8,
+    "n_evaluations": 9,
+    "error": 738532.2000000001
+  }
+]

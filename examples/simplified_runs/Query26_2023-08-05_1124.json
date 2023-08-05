@@ -1,0 +1,15 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 3,
+    "q": 3,
+    "target": "Query26",
+    "suggested_minimum": [
+      10.244980294907627,
+      6.8965211484455455
+    ],
+    "closest_point_in_domain": [
+      6.0,
+      4.0
+    ],
+    "computed_cost": 

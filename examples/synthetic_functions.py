@@ -4,43 +4,40 @@ import numpy as np
 from numpy import cos, pi, sin, sum
 import math
 
-from .abstract_problem import _AbstractProblem
+from .abstract_problem import AbstractProblem
 
 
-class ParabolicMinAtOrigin(_AbstractProblem):
+class ParabolicMinAtOrigin(AbstractProblem):
 
     def __init__(self):
-        self.dim = 2
-        self.search_domain = np.array([[-10.0, 10.0], [-10.0, 10.0]])
-        self.num_init_pts = 3
-        self.min_value = 2.0
-        self._use_observations = False
-        
+        super().__init__(dim=2,
+                         search_domain=np.array([[-10.0, 10.0], [-10.0, 10.0]]),
+                         min_value=2.0)
+        # self.num_init_pts = 3
+
     def evaluate_true(self, x):
         return np.array([0.5 * x[0] ** 2 + 0.2 * x[1] ** 2 + self.min_value])
 
 
-class ParabolicMinAtTwoAndThree(_AbstractProblem):
+class ParabolicMinAtTwoAndThree(AbstractProblem):
     def __init__(self):
-        self.dim = 2
-        self.search_domain = np.array([[-10.0, 10.0], [-10.0, 10.0]])
-        self.num_init_pts = 3
-        self.min_value = 2.0
-        self._use_observations = False
-        
+        super().__init__(dim=2,
+                         search_domain=np.array([[-10.0, 10.0], [-10.0, 10.0]]),
+                         min_value=2.0)
+        # self.num_init_pts = 3
+
     def evaluate_true(self, x):
         return np.array([0.5 * (x[0] - 2) **2 + 0.2 * (x[1] - 3) **2 + self.min_value])
 
 
-class Branin(_AbstractProblem):
+class Branin(AbstractProblem):
 
     def __init__(self):
-        self.dim = 2
-        self.search_domain = np.array([[0.0, 15.0], [-5.0, 15.0]])
-        self.num_init_pts = 3
-        self.min_value = 0.397887
-        self._use_observations = False
-        
+        super().__init__(dim=2,
+                         search_domain=np.array([[0.0, 15.0], [-5.0, 15.0]]),
+                         min_value=0.397887)
+        # self.num_init_pts = 3
+
     def evaluate_true(self, x):
         """ This function is usually evaluated on the square x_1 \in [0, 15], x_2 \in [-5, 15]. Global minimum
         is at x = [pi, 2.275] and [9.42478, 2.475] with minima f(x*) = 0.397887.
@@ -54,18 +51,19 @@ class Branin(_AbstractProblem):
         s = 10
         t = old_div(1, (8 * np.pi))
         return np.array([(a * pow(x[1] - b * pow(x[0], 2.0) + c * x[0] - r, 2.0) + s * (1 - t) * np.cos(x[0]) + s),
-                (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r) * (-2* b * x[0] + c) + s * (1 - t) * (-np.sin(x[0]))),
-                (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r))])
+                         (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r) * (-2* b * x[0] + c) + s * (1 - t) * (-np.sin(x[0]))),
+                         (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r))])
 
 
-class Rosenbrock(_AbstractProblem):
+class Rosenbrock(AbstractProblem):
+
     def __init__(self):
-        self.dim = 2
-        self.search_domain = np.repeat([[-2., 2.]], self.dim, axis=0)
-        self.num_init_pts = 3
-        self.min_value = 0.0
-        self._use_observations = False
-        
+        dim = 2
+        super().__init__(dim=dim,
+                         search_domain=np.repeat([[-2., 2.]], dim, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
+
     def evaluate_true(self, x):
         """ Global minimum is 0 at (1, 1, 1, 1)
 
@@ -81,15 +79,15 @@ class Rosenbrock(_AbstractProblem):
         return np.array(results)
 
 
-class Hartmann3(_AbstractProblem):
+class Hartmann3(AbstractProblem):
 
     def __init__(self):
-        self.dim = 3
-        self.search_domain = np.repeat([[0., 1.]], self.dim, axis=0)
-        self.num_init_pts = 3
-        self.min_value = -3.86278
-        self._use_observations = False
-        
+        dim = 3
+        super().__init__(dim=3,
+                         search_domain=np.repeat([[0., 1.]], dim, axis=0),
+                         min_value=-3.86278)
+        # self.num_init_pts = 3
+
     def evaluate_true(self, x):
         """ domain is x_i \in (0, 1) for i = 1, ..., 3
             Global minimum is -3.86278 at (0.114614, 0.555649, 0.852547)
@@ -110,14 +108,15 @@ class Hartmann3(_AbstractProblem):
         return np.array(results)
 
 
-class Levy4(_AbstractProblem):
+class Levy4(AbstractProblem):
+
     def __init__(self):
-        self.dim = 4
-        self.search_domain = np.repeat([[-5., 5.]], self.dim, axis=0)
-        self.num_init_pts = 3
-        self.min_value = 0.0
-        self._use_observations = False#np.arange(self.dim)
-        
+        dim = 4
+        super().__init__(dim=dim,
+                         search_domain=np.repeat([[-5., 5.]], dim, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
+
     def evaluate_true(self, x):
         """ Global minimum is 0 at (1, 1, 1, 1)
 
@@ -142,15 +141,15 @@ class Levy4(_AbstractProblem):
         return np.array(results)
 
 
-class Hartmann6(_AbstractProblem):
+class Hartmann6(AbstractProblem):
 
     def __init__(self):
-        self.dim = 6
-        self.search_domain = np.repeat([[0., 1.]], self.dim, axis=0)
-        self.num_init_pts = 3
-        self.min_value = -3.32237
-        self._use_observations = False#np.arange(self.dim)
-        
+        dim = 6
+        super().__init__(dim=dim,
+                         search_domain=np.repeat([[0., 1.]], dim, axis=0),
+                         min_value=-3.32237)
+        # self.num_init_pts = 3
+
     def evaluate_true(self, x):
         """ domain is x_i \in (0, 1) for i = 1, ..., 6
             Global minimum is -3.32237 at (0.20169, 0.150011, 0.476874, 0.275332, 0.311652, 0.6573)
@@ -159,9 +158,9 @@ class Hartmann6(_AbstractProblem):
         """
         alpha = np.array([1.0, 1.2, 3.0, 3.2])
         A = np.array([[10, 3, 17, 3.50, 1.7, 8], [0.05, 10, 17, 0.1, 8, 14], [3, 3.5, 1.7, 10, 17, 8],
-                         [17, 8, 0.05, 10, 0.1, 14]])
+                      [17, 8, 0.05, 10, 0.1, 14]])
         P = 1.0e-4 * np.array([[1312, 1696, 5569, 124, 8283, 5886], [2329, 4135, 8307, 3736, 1004, 9991],
-                                  [2348, 1451, 3522, 2883, 3047, 6650], [4047, 8828, 8732, 5743, 1091, 381]])
+                               [2348, 1451, 3522, 2883, 3047, 6650], [4047, 8828, 8732, 5743, 1091, 381]])
         results = [0.0]*7
         for i in range(4):
             inner_value = 0.0
@@ -173,15 +172,15 @@ class Hartmann6(_AbstractProblem):
         return np.array(results)
 
 
-class Ackley(_AbstractProblem):
+class Ackley(AbstractProblem):
 
     def __init__(self):
-        self.dim = 5
-        self.search_domain = np.repeat([[-1., 1.]], self.dim, axis=0)
-        self.num_init_pts = 3
-        self.min_value = 0.0
-        self._use_observations = False
-        
+        dim = 5
+        super().__init__(dim=dim,
+                         search_domain=np.repeat([[-1., 1.]], dim, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
+
     def evaluate_true(self, x):
         x = 20*x
         firstSum = 0.0

@@ -1,4 +1,7 @@
+import datetime
+import logging
 import time
+import json
 
 import numpy as np
 import numpy.linalg
@@ -10,29 +13,44 @@ from moe.optimal_learning.python import default_priors
 
 from examples import synthetic_functions, precomputed_functions, bayesian_optimization, finite_domain, auxiliary
 
+logging.basicConfig(level=logging.DEBUG)
+_log = logging.getLogger(__name__)
+
+
 ###########################
 # Constants
 ###########################
-# N_INITIAL_POINTS = 5  # TODO: This is actually not used, but read from obj_function
+N_INITIAL_POINTS = 3  # TODO: This is actually not used, but read from obj_function
 N_ITERATIONS = 5
-N_POINTS_PER_ITERATION = 4  # The q- parameter
+N_POINTS_PER_ITERATION = 3  # The q- parameter
 M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
 
 
 ###########################
-# Target function
+# Target function and domain
 ###########################
 # objective_func_name = 'Parabolic with minimum at (2, 3)'
 # objective_func = synthetic_functions.ParabolicMinAtTwoAndThree()
 # known_minimum = np.array([2.0, 3.0])
+# domain = finite_domain.FiniteDomain.Grid(np.arange(-5, 5, 0.1),
+#                                          np.arange(-5, 5, 0.1))
 
 # objective_func_name = 'Hartmann3'
 # objective_func = synthetic_functions.Hartmann3()
 # known_minimum = None
+# domain = finite_domain.FiniteDomain.Grid(np.arange(0, 1, 0.005),
+#                                          np.arange(0, 1, 0.005),
+#                                          np.arange(0, 1, 0.005))
 
 objective_func_name = 'Query26'
 objective_func = precomputed_functions.PrecomputedFunction.Query26()
-known_minimum = None
+known_minimum = objective_func.minimum
+domain = objective_func
+
+# objective_func_name = 'LiGen'
+# objective_func = precomputed_functions.PrecomputedFunction.LiGen()
+# known_minimum = objective_func.minimum
+# domain = objective_func
 
 ###############################
 # Initializing utility objects
@@ -69,31 +87,13 @@ KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
     tolerance=1.0e-10)
 
 ###########################
-# Loading data in domain
-###########################
-
-# precomputed_sample_df = sklearn.datasets.load_diabetes(as_frame=True)['frame']
-#
-# # No need for bounds, BUT you might need to specify column names for first derivative, second derivative, etc.
-# domain = moe_cpp.FiniteDomain(dataset=precomputed_sample_df, target_column=TARGET_COLUMN)
-
-# domain = finite_domain.FiniteDomain.Grid(np.arange(-5, 5, 0.1),
-#                                          np.arange(-5, 5, 0.1))
-
-# domain = finite_domain.FiniteDomain.Grid(np.arange(0, 1, 0.005),
-#                                          np.arange(0, 1, 0.005),
-#                                          np.arange(0, 1, 0.005))
-
-domain = objective_func
-
-###########################
 # Starting up the MCMC...
 ###########################
 
 # > Algorithm 1.1: Initial Stage: draw `I` initial samples from a latin hypercube design in `A` (domain)
 
 # Draw initial points from domain (as np array)
-initial_points_array = domain.SamplePointsInDomain(objective_func.num_init_pts)
+initial_points_array = domain.SamplePointsInDomain(N_INITIAL_POINTS)
 # Evaluate function in initial points
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 # Build points using custom container class
@@ -131,21 +131,21 @@ if known_minimum is not None:
     _, _, known_minimum_in_domain = domain.find_distance_index_closest_point(known_minimum)
 
     if not np.all(np.equal(known_minimum_in_domain, known_minimum)):
-        print('Known Minimum NOT in domain')
+        _log.warning('Known Minimum NOT in domain')
         known_minimum = known_minimum_in_domain
-
-    known_minimum_value = objective_func.evaluate(known_minimum)
-
 
 ###########################
 # Main cycle
 ###########################
 
+results = []
+result_file = f'./simplified_runs/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(N_ITERATIONS):
-    print(f"{s}th iteration, "
-          f"func={objective_func_name}, "
-          f"q={N_POINTS_PER_ITERATION}")
+    _log.info(f"{s}th iteration, "
+              f"func={objective_func_name}, "
+              f"q={N_POINTS_PER_ITERATION}")
     time1 = time.time()
 
     # > The q-KG algorithm will reduce to the parallel EI algorithm
@@ -224,9 +224,9 @@ for s in range(N_ITERATIONS):
         num_mc=2 ** 7)
 
 
-    print(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
-    print("Suggests points:")
-    print(next_points)
+    _log.info(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
+    _log.info("Suggests points:")
+    _log.info(next_points)
 
     # > ALgorithm 1.5: 5: Sample these points (z∗1 , z∗2 , · · · , z∗q)
     # > ...
@@ -241,7 +241,7 @@ for s in range(N_ITERATIONS):
     # > and update the posterior distribution of f
     gp_loglikelihood.add_sampled_points(sampled_points)
     gp_loglikelihood.train()
-    print(f"Retraining the model takes {time.time() - time1} seconds")
+    _log.info(f"Retraining the model takes {time.time() - time1} seconds")
     time1 = time.time()
 
     # > Algorithm 1.7: Return the argmin of the average function `μ` currently estimated in `A`
@@ -249,24 +249,47 @@ for s in range(N_ITERATIONS):
     # In the current implementation, this argmin is found
     # and returned at every interaction (called "suggested_minimum").
 
-    print("\nIteration finished successfully!")
+    _log.info("\nIteration finished successfully!")
 
     ####################
     # Suggested Minimum
     ####################
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
     _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
-    computed_cost = objective_func.evaluate(closest_point_in_domain)
+    computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
 
-    print(f"The recommended point is:\n {suggested_minimum}")
-    print(f"The closest point in the finite domain is:\n {closest_point_in_domain}")
-    print(f"Which has a cost of:\n {computed_cost}")
-    print(f"Finding the recommended point takes {time.time() - time1} seconds")
+    _log.info(f"The suggested minimum is:\n {suggested_minimum}")
+    _log.info(f"The closest point in the finite domain is:\n {closest_point_in_domain}")
+    _log.info(f"Which has a cost of:\n {computed_cost}")
+    _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
+    _log.info(f'The target function was evaluated {objective_func.evaluation_count} times')
 
     if known_minimum is not None:
-        print(f"Distance from closest point in domain to known minimum: {np.linalg.norm(closest_point_in_domain - known_minimum)}")
-        error = np.linalg.norm(known_minimum_value - computed_cost)
-        print(f'Error: {error}')
-        print(f'Squared error: {np.square(error)}')
+        _log.info(f"Distance from closest point in domain to known minimum: {np.linalg.norm(closest_point_in_domain - known_minimum)}")
 
-print("\nOptimization finished successfully!")
+    error = np.linalg.norm(objective_func.min_value - computed_cost)
+    _log.info(f'Error: {error}')
+    _log.info(f'Squared error: {np.square(error)}')
+
+    results.append(
+        dict(
+            iteration=s,
+            n_initial_points=N_INITIAL_POINTS,
+            q=N_POINTS_PER_ITERATION,
+            target=objective_func_name,
+            suggested_minimum=suggested_minimum.tolist(),
+            closest_point_in_domain=closest_point_in_domain.tolist(),
+            computed_cost=float(computed_cost),
+            n_evaluations=objective_func.evaluation_count,
+            error=error
+        )
+    )
+
+    with open(result_file, 'w') as f:
+        json.dump(results, f, indent=2)
+
+    if error < 0.000001:
+        _log.info(f'Error is small enough. Exiting cycle at {s} iteration')
+        break
+
+_log.info("\nOptimization finished successfully!")

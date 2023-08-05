@@ -1,36 +1,35 @@
+import logging
+
 import numpy as np
 
 import datasets
 from examples import finite_domain, abstract_problem
 
+_log = logging.getLogger(__name__)
 
-class PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem._AbstractProblem):
 
-    def __init__(self, dataset: datasets.Datasets, n_init_pts=5):
-        super().__init__(data=dataset.X.values)
+class PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem.AbstractProblem):
+
+    def __init__(self, dataset: datasets.Datasets):
+        m = np.min(dataset.X, axis=0)
+        M = np.max(dataset.X, axis=0)
+        domain_bounds = np.vstack([m, M]).transpose()
+        super().__init__(data=dataset.X.values,
+                         dim=dataset.X.shape[1],
+                         search_domain=domain_bounds,
+                         min_value=np.min(dataset.y))
         self._dataset = dataset
-        self.num_init_pts = n_init_pts
-        self._use_observations = False
 
     @property
-    def dim(self):
-        return self._dataset.X.shape[1]
-
-    @property
-    def search_domain(self):
-        m = np.min(self._data, axis=0)
-        M = np.max(self._data, axis=0)
-        return np.vstack([m, M]).transpose()
-
-    @property
-    def min_value(self):
-        return np.min(self._dataset.y)
+    def minimum(self):
+        ix = np.argmin(self._dataset.y)
+        return self._dataset.X.loc[ix]
 
     def evaluate_true(self, x):
         distance, ix, point = self.find_distance_index_closest_point(x)
         if distance > 0.00001:
-            print(f'POSSIBLE EVALUATION ERROR: The distance between the point in '
-                  f'domain and the evaluated point is {distance}')
+            _log.warning(f'POSSIBLE EVALUATION ERROR: The distance between the point in '
+                         f'domain and the evaluated point is {distance}')
         value = self._dataset.y[ix]
         return np.array([value])
 
