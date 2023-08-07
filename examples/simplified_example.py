@@ -111,7 +111,7 @@ KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
 # > Algorithm 1.1: Initial Stage: draw `I` initial samples from a latin hypercube design in `A` (domain)
 
 # Draw initial points from domain (as np array)
-initial_points_array = domain.SamplePointsInDomain(N_INITIAL_POINTS)
+initial_points_array = domain.sample_points_in_domain(N_INITIAL_POINTS)
 # Evaluate function in initial points
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 # Build points using custom container class
