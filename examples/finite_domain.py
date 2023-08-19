@@ -113,7 +113,7 @@ class FiniteDomain:
         return output_update
 
     def find_distances_indexes_closest_points(self, point: np.ndarray, k: int = 30) -> Tuple[float, int, np.ndarray]:
-        distances, indexes = self._kdtree.query(point, k=k)  # TODO: Decide the number of returned points k
+        distances, indexes = self._kdtree.query(point, k=k, workers=4)  # TODO: Decide the number of returned points k
         return distances, indexes, self._data[indexes]
 
 

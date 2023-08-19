@@ -13,8 +13,9 @@ from moe.optimal_learning.python import default_priors
 
 from examples import synthetic_functions, precomputed_functions, bayesian_optimization, finite_domain, auxiliary
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
+_log.setLevel(logging.DEBUG)
 
 
 ###########################

@@ -9,6 +9,7 @@ import moe.build.GPP as C_GP
 
 
 _log = logging.getLogger(__name__)
+_log.setLevel(level=logging.DEBUG)
 
 
 class _PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem.AbstractProblem):
@@ -34,11 +35,15 @@ class _PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem.Abstract
         #     _log.warning(f'POSSIBLE EVALUATION ERROR: The distance between the point in '
         #                  f'domain and the evaluated point is large')
         mask = distances == 0.0
-        if np.sum(mask) == 0:  # No exact match, return closest point
+        if np.sum(mask) == 0:
+            _log.debug('No exact match, return closest point')
+            _log.debug(distances)
             values = [self._dataset.y[indexes[0]]]
-        elif np.sum(mask) == 1:  # Only one match, return it
+        elif np.sum(mask) == 1:
+            _log.debug('Only one match, return it')
             values = self._dataset.y[indexes[mask]]
-        else:  # Multiple exact matches, random
+        else:
+            _log.debug('Multiple exact matches, random pick...')
             indexes = indexes[mask]
             values = [self._dataset.y[np.random.choice(indexes)]]
         return np.array(values)
