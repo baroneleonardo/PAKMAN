@@ -6,11 +6,12 @@ import datasets
 from examples import finite_domain, abstract_problem
 
 _log = logging.getLogger(__name__)
+_log.setLevel(logging.DEBUG)
 
 
-class PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem.AbstractProblem):
+class _PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem.AbstractProblem):
 
-    def __init__(self, dataset: datasets.Datasets):
+    def __init__(self, dataset: datasets.Dataset):
         m = np.min(dataset.X, axis=0)
         M = np.max(dataset.X, axis=0)
         domain_bounds = np.vstack([m, M]).transpose()
@@ -41,20 +42,14 @@ class PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem.AbstractP
         return np.array(values)
 
 
-    @classmethod
-    def LiGen(cls):
-        return cls(
-            dataset=datasets.Datasets.LiGen()
-        )
+LiGen = _PrecomputedFunction(
+    dataset=datasets.LiGen
+)
 
-    @classmethod
-    def Query26(cls):
-        return cls(
-            dataset=datasets.Datasets.Query26()
-        )
+Query26 = _PrecomputedFunction(
+    dataset=datasets.Query26
+)
 
-    @classmethod
-    def Stereomatch(cls):
-        return cls(
-            dataset=datasets.Datasets.Stereomatch()
-        )
+StereoMatch = _PrecomputedFunction(
+    dataset=datasets.StereoMatch
+)

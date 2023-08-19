@@ -15,6 +15,7 @@ from examples import synthetic_functions, precomputed_functions, bayesian_optimi
 
 logging.basicConfig(level=logging.DEBUG)
 _log = logging.getLogger(__name__)
+_log.setLevel(logging.DEBUG)
 
 
 ###########################
@@ -43,11 +44,11 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 #                                          np.arange(0, 1, 0.005))
 
 objective_func_name = 'Query26'
-objective_func = precomputed_functions.PrecomputedFunction.Query26()
+objective_func = precomputed_functions.Query26
 known_minimum = objective_func.minimum
 domain = objective_func
 # SUGGESTED:
-N_INITIAL_POINTS = 3
+N_INITIAL_POINTS = 5
 N_ITERATIONS = 5
 N_POINTS_PER_ITERATION = 3  # The q- parameter
 M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 8  # M parameter
