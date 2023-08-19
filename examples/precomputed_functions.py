@@ -26,12 +26,20 @@ class PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem.AbstractP
         return self._dataset.X.loc[ix]
 
     def evaluate_true(self, x):
-        distance, ix, point = self.find_distance_index_closest_point(x)
-        if distance > 0.00001:
-            _log.warning(f'POSSIBLE EVALUATION ERROR: The distance between the point in '
-                         f'domain and the evaluated point is {distance}')
-        value = self._dataset.y[ix]
-        return np.array([value])
+        distances, indexes, points = self.find_distances_indexes_closest_points(x)
+        # if any(distances > 0.00001):
+        #     _log.warning(f'POSSIBLE EVALUATION ERROR: The distance between the point in '
+        #                  f'domain and the evaluated point is large')
+        mask = distances == 0.0
+        if np.sum(mask) == 0:  # No exact match, return closest point
+            values = [self._dataset.y[indexes[0]]]
+        elif np.sum(mask) == 1:  # Only one match, return it
+            values = self._dataset.y[indexes[mask]]
+        else:  # Multiple exact matches, random
+            indexes = indexes[mask]
+            values = [self._dataset.y[np.random.choice(indexes)]]
+        return np.array(values)
+
 
     @classmethod
     def LiGen(cls):

@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import spatial
+from typing import Tuple
 
 from moe.optimal_learning.python import geometry_utils
 
@@ -110,6 +111,9 @@ class FiniteDomain:
 
         return output_update
 
+    def find_distances_indexes_closest_points(self, point: np.ndarray, k: int = 30) -> Tuple[float, int, np.ndarray]:
+        distances, indexes = self._kdtree.query(point, k=k, workers=4)  # TODO: Decide the number of returned points k
+        return distances, indexes, self._data[indexes]
+
     def find_distance_index_closest_point(self, point: np.ndarray) -> np.ndarray:
-        distance, index = self._kdtree.query(point)
-        return distance, index, self._data[index]
+        return self.find_distances_indexes_closest_points(point, k=1)

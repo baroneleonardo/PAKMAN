@@ -42,16 +42,16 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 #                                          np.arange(0, 1, 0.005),
 #                                          np.arange(0, 1, 0.005))
 
-# objective_func_name = 'Query26'
-# objective_func = precomputed_functions.PrecomputedFunction.Query26()
-# known_minimum = objective_func.minimum
-# domain = objective_func
-## SUGGESTED:
-# N_INITIAL_POINTS = 3
-# N_ITERATIONS = 5
-# N_POINTS_PER_ITERATION = 3  # The q- parameter
-# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
-# N_RANDOM_WALKERS = 2 ** 4
+objective_func_name = 'Query26'
+objective_func = precomputed_functions.PrecomputedFunction.Query26()
+known_minimum = objective_func.minimum
+domain = objective_func
+# SUGGESTED:
+N_INITIAL_POINTS = 3
+N_ITERATIONS = 5
+N_POINTS_PER_ITERATION = 3  # The q- parameter
+M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 8  # M parameter
+N_RANDOM_WALKERS = 2 ** 4
 
 # objective_func_name = 'LiGen'
 # objective_func = precomputed_functions.PrecomputedFunction.LiGen()
@@ -64,10 +64,10 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 # M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 20  # M parameter
 # N_RANDOM_WALKERS = 12 * 4  # Originally fixed at 2 ** 4 = 16
 
-objective_func_name = 'Stereomatch'
-objective_func = precomputed_functions.PrecomputedFunction.Stereomatch()
-known_minimum = objective_func.minimum
-domain = objective_func
+# objective_func_name = 'Stereomatch'
+# objective_func = precomputed_functions.PrecomputedFunction.Stereomatch()
+# known_minimum = objective_func.minimum
+# domain = objective_func
 
 
 ###############################
