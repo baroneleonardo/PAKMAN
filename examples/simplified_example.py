@@ -42,16 +42,16 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 #                                          np.arange(0, 1, 0.005),
 #                                          np.arange(0, 1, 0.005))
 
-# objective_func_name = 'Query26'
-# objective_func = precomputed_functions.PrecomputedFunction.Query26()
-# known_minimum = objective_func.minimum
-# domain = objective_func
-## SUGGESTED:
-# N_INITIAL_POINTS = 3
-# N_ITERATIONS = 5
-# N_POINTS_PER_ITERATION = 3  # The q- parameter
-# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
-# N_RANDOM_WALKERS = 2 ** 4
+objective_func_name = 'Query26'
+objective_func = precomputed_functions.Query26
+known_minimum = objective_func.minimum
+domain = objective_func
+# SUGGESTED:
+N_INITIAL_POINTS = 3
+N_ITERATIONS = 5
+N_POINTS_PER_ITERATION = 3  # The q- parameter
+M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
+N_RANDOM_WALKERS = 2 ** 4
 
 # objective_func_name = 'LiGen'
 # objective_func = precomputed_functions.PrecomputedFunction.LiGen()
@@ -64,10 +64,10 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 # M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 20  # M parameter
 # N_RANDOM_WALKERS = 12 * 4  # Originally fixed at 2 ** 4 = 16
 
-objective_func_name = 'Stereomatch'
-objective_func = precomputed_functions.PrecomputedFunction.Stereomatch()
-known_minimum = objective_func.minimum
-domain = objective_func
+# objective_func_name = 'Stereomatch'
+# objective_func = precomputed_functions.StereoMatch
+# known_minimum = objective_func.minimum
+# domain = objective_func
 
 
 ###############################
@@ -146,7 +146,7 @@ gp_loglikelihood.train()
 # If available, find point in domain closest to the minimum
 if known_minimum is not None:
 
-    _, _, known_minimum_in_domain = domain.find_distance_index_closest_point(known_minimum)
+    _, _, known_minimum_in_domain = domain.find_distances_indexes_closest_points(known_minimum, k=1)
 
     if not np.all(np.equal(known_minimum_in_domain, known_minimum)):
         _log.warning('Known Minimum NOT in domain')
@@ -273,7 +273,7 @@ for s in range(N_ITERATIONS):
     # Suggested Minimum
     ####################
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
-    _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
+    _, _, closest_point_in_domain = domain.find_distances_indexes_closest_points(suggested_minimum, k=1)
     computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
 
     _log.info(f"The suggested minimum is:\n {suggested_minimum}")

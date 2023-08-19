@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 from scipy import spatial
 
@@ -110,9 +112,9 @@ class FiniteDomain:
 
         return output_update
 
-    def find_distance_index_closest_point(self, point: np.ndarray) -> tuple[float, int, np.ndarray]:
-        distance, index = self._kdtree.query(point)
-        return distance, index, self._data[index]
+    def find_distances_indexes_closest_points(self, point: np.ndarray, k: int = 30) -> Tuple[float, int, np.ndarray]:
+        distances, indexes = self._kdtree.query(point, k=k)  # TODO: Decide the number of returned points k
+        return distances, indexes, self._data[indexes]
 
 
 class CPPFiniteDomain:
@@ -143,7 +145,7 @@ class CPPFiniteDomain:
         return cls(data)
 
     @property
-    def dim(self) -> :
+    def dim(self) -> int:
         return self._cpp_finite_domain.dim()
 
     def sample_points_in_domain(self, sample_size: int, allow_previously_sampled: bool = False) -> np.ndarray:
@@ -214,5 +216,5 @@ class CPPFiniteDomain:
 
         return output_update
 
-    def find_distance_index_closest_point(self, point: np.ndarray) -> tuple[float, int, np.ndarray]:
+    def find_distance_index_closest_point(self, point: np.ndarray) -> Tuple[float, int, np.ndarray]:
         return self._cpp_finite_domain.FindDistanceIndexClosestPoint(point=point)
