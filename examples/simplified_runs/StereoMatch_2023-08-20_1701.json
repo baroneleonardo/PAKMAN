@@ -404,5 +404,34 @@
     "n_evaluations": 60,
     "error": 994.0,
     "error_ratio": 0.02701747710037781
+  },
+  {
+    "iteration": 14,
+    "n_initial_points": 4,
+    "q": 4,
+    "m": 8,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      26.416334024107915,
+      2.974901558534408,
+      1.0,
+      1.0
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      1,
+      1
+    ],
+    "computed_cost": 37785.0,
+    "n_evaluations": 64,
+    "error": 994.0,
+    "error_ratio": 0.02701747710037781
   }
 ]
