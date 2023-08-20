@@ -1,0 +1,31 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 7,
+    "q": 4,
+    "m": 8,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      14.0,
+      3.0,
+      6.952801658508815,
+      7.957773635185404
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      14,
+      3,
+      7,
+      8
+    ],
+    "computed_cost": 67832.0,
+    "n_evaluations": 11,
+    "error": 31041.0,
+    "error_ratio": 0.8437117773368487
+  }
+]

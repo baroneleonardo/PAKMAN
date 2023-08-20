@@ -51,7 +51,8 @@ LiGen = Dataset(
                 'CLIPPING',
                 'SIM_THRESH',
                 'BUFFER_SIZE'],
-    target_col='AVG_RMSD^3_TIME'
+    target_col='AVG_RMSD^3_TIME',
+    reduce_to_unique=False
 )
 
 
@@ -59,12 +60,13 @@ Query26 = Dataset(
     csv_file='query26_vm_ram.csv',
     param_cols=['#vm', 'ram'],
     target_col='cost',
-    reduce_to_unique=True
+    reduce_to_unique=False
 )
 
 
 StereoMatch = Dataset(
     csv_file='stereomatch.csv',
     param_cols=['confidence', 'hypo_step', 'max_arm_length', 'num_threads'],
-    target_col='cost'
+    target_col='cost',
+    reduce_to_unique=False
 )

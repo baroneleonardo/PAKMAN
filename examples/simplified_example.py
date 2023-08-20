@@ -43,33 +43,38 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 #                                          np.arange(0, 1, 0.005),
 #                                          np.arange(0, 1, 0.005))
 
-objective_func_name = 'Query26'
-objective_func = precomputed_functions.Query26
-known_minimum = objective_func.minimum
-domain = objective_func
-# SUGGESTED:
-N_INITIAL_POINTS = 5
-N_ITERATIONS = 5
-N_POINTS_PER_ITERATION = 3  # The q- parameter
-M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 8  # M parameter
-N_RANDOM_WALKERS = 2 ** 4
+# objective_func_name = 'Query26'
+# objective_func = precomputed_functions.Query26
+# known_minimum = objective_func.minimum
+# domain = objective_func
+# # SUGGESTED:
+# N_INITIAL_POINTS = 7
+# N_ITERATIONS = 15
+# N_POINTS_PER_ITERATION = 4  # The q- parameter
+# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 8  # M parameter
+# N_RANDOM_WALKERS = 2 ** 4
 
 # objective_func_name = 'LiGen'
-# objective_func = precomputed_functions.PrecomputedFunction.LiGen()
+# objective_func = precomputed_functions.LiGen
 # known_minimum = objective_func.minimum
 # domain = objective_func
-## SUGGESTED:
-# N_INITIAL_POINTS = 5
-# N_ITERATIONS = 5
-# N_POINTS_PER_ITERATION = 5  # The q- parameter
-# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 20  # M parameter
-# N_RANDOM_WALKERS = 12 * 4  # Originally fixed at 2 ** 4 = 16
+# # SUGGESTED:
+# N_INITIAL_POINTS = 10
+# N_ITERATIONS = 15
+# N_POINTS_PER_ITERATION = 10  # The q- parameter
+# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
+# N_RANDOM_WALKERS = 12 * 4
 
-# objective_func_name = 'Stereomatch'
-# objective_func = precomputed_functions.PrecomputedFunction.Stereomatch()
-# known_minimum = objective_func.minimum
-# domain = objective_func
-
+objective_func_name = 'StereoMatch'
+objective_func = precomputed_functions.StereoMatch
+known_minimum = objective_func.minimum
+domain = objective_func
+# # SUGGESTED:
+N_INITIAL_POINTS = 4
+N_ITERATIONS = 15
+N_POINTS_PER_ITERATION = 4  # The q- parameter
+M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 8  # M parameter
+N_RANDOM_WALKERS = 2 ** 4
 
 ###############################
 # Initializing utility objects
@@ -140,7 +145,7 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     chain_length=1000,
     burnin_steps=2000,
     n_hypers=N_RANDOM_WALKERS,
-    noisy=False
+    noisy=True
 )
 gp_loglikelihood.train()
 

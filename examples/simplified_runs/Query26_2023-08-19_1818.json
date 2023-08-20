@@ -1,0 +1,117 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 5,
+    "q": 3,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      5.202456738696207,
+      2.5690147821772604
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1302830.0,
+    "n_evaluations": 8,
+    "error": 619148.0,
+    "error_ratio": 0.9056081628593411
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 5,
+    "q": 3,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      3.3183236079074687,
+      5.539563605387724
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      3.0,
+      4.0
+    ],
+    "computed_cost": 1206189.0,
+    "n_evaluations": 11,
+    "error": 522507.0,
+    "error_ratio": 0.7642544340790016
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 5,
+    "q": 3,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      3.3226817663990076,
+      5.6442732402521365
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      3.0,
+      4.0
+    ],
+    "computed_cost": 1191393.0,
+    "n_evaluations": 14,
+    "error": 507711.0,
+    "error_ratio": 0.7426127936672312
+  },
+  {
+    "iteration": 3,
+    "n_initial_points": 5,
+    "q": 3,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      3.3281130712892795,
+      5.609761840303106
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      3.0,
+      4.0
+    ],
+    "computed_cost": 1357980.0,
+    "n_evaluations": 17,
+    "error": 674298.0,
+    "error_ratio": 0.9862743205174336
+  },
+  {
+    "iteration": 4,
+    "n_initial_points": 5,
+    "q": 3,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      3.3283845021315215,
+      5.619306315517889
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      3.0,
+      4.0
+    ],
+    "computed_cost": 1357980.0,
+    "n_evaluations": 20,
+    "error": 674298.0,
+    "error_ratio": 0.9862743205174336
+  }
+]

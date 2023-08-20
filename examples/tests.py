@@ -56,7 +56,7 @@ class FiniteDomainTests(unittest.TestCase):
         domain = finite_domain.FiniteDomain.Grid([1, 2, 3], [10, 20])
         test_point = np.array([2.1, 20.1])
         expected_point = np.array([2.0, 20.0])
-        closest_point = domain.find_closest_point(test_point)
+        _, _, closest_point = domain.find_distance_index_closest_point(test_point)
         self.assertTrue(np.all(np.equal(expected_point, closest_point)))
 
 
@@ -66,11 +66,11 @@ class DatasetTests(unittest.TestCase):
         feature_cols = ['#vm', 'ram']
         target_col = 'cost'
         df = pd.read_csv('../datasets/query26_vm_ram.csv')
-        df = df[feature_cols + [target_col]].groupby(feature_cols).agg(np.mean).reset_index()
+        df = df[feature_cols + [target_col]]
         n_rows = df.shape[0]
         n_cols = len(feature_cols)
 
-        ds = datasets.Datasets.Query26()
+        ds = datasets.Query26
         self.assertIsInstance(ds.X, pd.DataFrame)
         self.assertEqual((n_rows, n_cols), ds.X.shape)
         self.assertIsInstance(ds.y, pd.Series)
