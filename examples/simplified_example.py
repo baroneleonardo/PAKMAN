@@ -13,7 +13,7 @@ from moe.optimal_learning.python import default_priors
 
 from examples import synthetic_functions, precomputed_functions, bayesian_optimization, finite_domain, auxiliary
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
 
@@ -58,12 +58,12 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 # objective_func = precomputed_functions.LiGen
 # known_minimum = objective_func.minimum
 # domain = objective_func
-# # SUGGESTED:
-# N_INITIAL_POINTS = 10
-# N_ITERATIONS = 15
-# N_POINTS_PER_ITERATION = 10  # The q- parameter
-# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
-# N_RANDOM_WALKERS = 12 * 4
+## SUGGESTED:
+# N_INITIAL_POINTS = 5
+# N_ITERATIONS = 5
+# N_POINTS_PER_ITERATION = 5  # The q- parameter
+# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 20  # M parameter
+# N_RANDOM_WALKERS = 12 * 4  # Originally fixed at 2 ** 4 = 16
 
 objective_func_name = 'StereoMatch'
 objective_func = precomputed_functions.StereoMatch
@@ -117,7 +117,7 @@ KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
 # > Algorithm 1.1: Initial Stage: draw `I` initial samples from a latin hypercube design in `A` (domain)
 
 # Draw initial points from domain (as np array)
-initial_points_array = domain.SamplePointsInDomain(N_INITIAL_POINTS)
+initial_points_array = domain.sample_points_in_domain(N_INITIAL_POINTS)
 # Evaluate function in initial points
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 # Build points using custom container class
@@ -152,7 +152,7 @@ gp_loglikelihood.train()
 # If available, find point in domain closest to the minimum
 if known_minimum is not None:
 
-    _, _, known_minimum_in_domain = domain.find_distance_index_closest_point(known_minimum)
+    _, _, known_minimum_in_domain = domain.find_distances_indexes_closest_points(known_minimum, k=1)
 
     if not np.all(np.equal(known_minimum_in_domain, known_minimum)):
         _log.warning('Known Minimum NOT in domain')
@@ -279,7 +279,7 @@ for s in range(N_ITERATIONS):
     # Suggested Minimum
     ####################
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
-    _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
+    _, _, closest_point_in_domain = domain.find_distances_indexes_closest_points(suggested_minimum, k=1)
     computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
 
     _log.info(f"The suggested minimum is:\n {suggested_minimum}")

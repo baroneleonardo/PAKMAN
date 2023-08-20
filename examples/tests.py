@@ -30,8 +30,8 @@ class FiniteDomainTests(unittest.TestCase):
         sample_size = 4
 
         for _ in range(100):
-            sample = domain.SamplePointsInDomain(sample_size,
-                                                 allow_previously_sampled=True)
+            sample = domain.sample_points_in_domain(sample_size,
+                                                    allow_previously_sampled=True)
             for point in sample:
                 self.assertTrue(any(np.all(point == row)
                                     for row in points))
@@ -41,15 +41,15 @@ class FiniteDomainTests(unittest.TestCase):
                                                  k_index)
         # If resampling is not allowed, only 4 * 3 samples can be drawn
         for _ in range(3):
-            sample = domain.SamplePointsInDomain(sample_size,
-                                                 allow_previously_sampled=False)
+            sample = domain.sample_points_in_domain(sample_size,
+                                                    allow_previously_sampled=False)
             for point in sample:
                 self.assertTrue(any(np.all(point == row)
                                     for row in points))
         # The next sample will be None
         self.assertIsNone(
-            domain.SamplePointsInDomain(sample_size,
-                                        allow_previously_sampled=False)
+            domain.sample_points_in_domain(sample_size,
+                                           allow_previously_sampled=False)
         )
 
     def test_find_closest_point(self):
