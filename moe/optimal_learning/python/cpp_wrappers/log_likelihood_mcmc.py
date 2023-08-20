@@ -204,7 +204,7 @@ class GaussianProcessLogLikelihoodMCMC(object):
 
           # Start sampling
           pos, _, _ = sampler.run_mcmc(self.p0, self.chain_length,
-                                       rstate0=self.rng)
+                                       rstate0=self.rng, skip_initial_state_check=True)
 
           # Save the current position, it will be the start point in
           # the next iteration

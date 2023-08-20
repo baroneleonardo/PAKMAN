@@ -316,7 +316,7 @@ for s in range(N_ITERATIONS):
     with open(result_file, 'w') as f:
         json.dump(results, f, indent=2)
 
-    if error < 0.000001:
+    if error < 0.0000001:
         _log.info(f'Error is small enough. Exiting cycle at iteration {s}')
         break
 
