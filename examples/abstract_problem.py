@@ -5,43 +5,42 @@ from moe.optimal_learning.python.python_version.domain import TensorProductDomai
 from moe.optimal_learning.python.cpp_wrappers.domain import TensorProductDomain as cppTPD
 
 
-class _AbstractProblem:
+class AbstractProblem:
+
+    def __init__(self, *,
+                 dim,
+                 search_domain,
+                 min_value):
+        self.dim = dim
+        self.search_domain = search_domain
+        self.min_value = min_value
+
+        self._evaluation_count = 0
 
     def get_search_domain(self):
-        closed_interval_list = [ClosedInterval(bound[0], bound[1]) for bound in self._search_domain]
-        return cppTPD(closed_interval_list)
-
-    def get_inner_search_domain(self):
-        closed_interval_list = [ClosedInterval(self._search_domain[i, 0], self._search_domain[i, 1])
-                                for i in range(self._search_domain.shape[0] - self._num_fidelity)]
-        return pyTPD(closed_interval_list)
-
-    def get_cpp_search_domain(self):
-        closed_interval_list = [ClosedInterval(bound[0], bound[1]) for bound in self._search_domain]
-        return cppTPD(closed_interval_list)
-
-    def get_cpp_inner_search_domain(self):
-        closed_interval_list = [ClosedInterval(self._search_domain[i, 0], self._search_domain[i, 1])
-                                for i in range(self._search_domain.shape[0]-self._num_fidelity)]
+        closed_interval_list = [ClosedInterval(bound[0], bound[1]) for bound in self.search_domain]
         return cppTPD(closed_interval_list)
 
     def get_initial_points(self):
-        return np.zeros((self._num_init_pts, self._dim))
+        return np.zeros((self.num_init_pts, self.dim))
 
     @property
-    def n_derivatives(self):
-        if self._use_observations:
-            return self._dim
-        return 0
+    def evaluation_count(self):
+        return self._evaluation_count
 
     @property
     def n_observations(self):
-        return self.n_derivatives + 1
+        return 1
 
     @property
     def derivatives(self):  # _GenericProblem.derivatives
-        return np.arange(self.n_derivatives)
+        return np.arange(0)
 
     @property
     def observations(self):
         return np.arange(self.n_observations)
+
+    def evaluate(self, x, *, do_not_count=False):
+        if not do_not_count:
+            self._evaluation_count += 1
+        return self.evaluate_true(x)

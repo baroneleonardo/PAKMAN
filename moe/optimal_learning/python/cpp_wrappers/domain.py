@@ -95,8 +95,8 @@ class TensorProductDomain(PythonTensorProductDomain):
         We do not currently expose a C++ endpoint for this call; see :mod:`moe.optimal_learning.python.interfaces.domain_interface` for interface specification.
 
         """
-        warning("C++ wrapper currently does not support domain member function "
-                "`generate_uniform_random_points_in_domain`. Falling back to python implementation")
+        # warning("C++ wrapper currently does not support domain member function "
+        #         "`generate_uniform_random_points_in_domain`. Falling back to python implementation")
         return super().generate_uniform_random_points_in_domain(num_points=num_points, random_source=random_source)
 
     def compute_update_restricted_to_domain(self, max_relative_change, current_point, update_vector):
@@ -105,8 +105,8 @@ class TensorProductDomain(PythonTensorProductDomain):
         We do not currently expose a C++ endpoint for this call; see :mod:`moe.optimal_learning.python.interfaces.domain_interface` for interface specification.
 
         """
-        warning("C++ wrapper currently does not support domain member function "
-                "`compute_update_restricted_to_domain`. Falling back to python implementation")
+        # warning("C++ wrapper currently does not support domain member function "
+        #         "`compute_update_restricted_to_domain`. Falling back to python implementation")
         return super().compute_update_restricted_to_domain(max_relative_change=max_relative_change,
                                                            current_point=current_point,
                                                            update_vector=update_vector)

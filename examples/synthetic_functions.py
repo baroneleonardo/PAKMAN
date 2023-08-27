@@ -4,51 +4,39 @@ import numpy as np
 from numpy import cos, pi, sin, sum
 import math
 
-from .abstract_problem import _AbstractProblem
+from .abstract_problem import AbstractProblem
 
 
-class ParabolicMinAtOrigin(_AbstractProblem):
+class ParabolicMinAtOrigin(AbstractProblem):
 
     def __init__(self):
-        self._dim = 2
-        self._search_domain = np.array([[-10.0, 10.0], [-10.0, 10.0]])
-        self._num_init_pts = 3
-        self._sample_var = 0.0
-        self._min_value = 2.0
-        self._use_observations = False
-        self._num_fidelity = 0
+        super().__init__(dim=2,
+                         search_domain=np.array([[-10.0, 10.0], [-10.0, 10.0]]),
+                         min_value=2.0)
+        # self.num_init_pts = 3
 
     def evaluate_true(self, x):
-        return np.array([0.5 * x[0] ** 2 + 0.2 * x[1] ** 2 + self._min_value])
-
-    def evaluate(self, x):
-        return self.evaluate_true(x)
+        return np.array([0.5 * x[0] ** 2 + 0.2 * x[1] ** 2 + self.min_value])
 
 
-class ParabolicMinAtTwoAndThree(_AbstractProblem):
+class ParabolicMinAtTwoAndThree(AbstractProblem):
     def __init__(self):
-        self._dim = 2
-        self._search_domain = np.array([[-10.0, 10.0], [-10.0, 10.0]])
-        self._num_init_pts = 3
-        self._sample_var = 0.0
-        self._min_value = 2.0
-        self._use_observations = False
-        self._num_fidelity = 0
+        super().__init__(dim=2,
+                         search_domain=np.array([[-10.0, 10.0], [-10.0, 10.0]]),
+                         min_value=2.0)
+        # self.num_init_pts = 3
 
-    def evaluate(self, x):
-        return 0.5 * (x[0] - 2) **2 + 0.2 * (x[1] - 3) **2 + self._min_value
+    def evaluate_true(self, x):
+        return np.array([0.5 * (x[0] - 2) **2 + 0.2 * (x[1] - 3) **2 + self.min_value])
 
 
-class Branin(_AbstractProblem):
+class Branin(AbstractProblem):
 
     def __init__(self):
-        self._dim = 2
-        self._search_domain = np.array([[0.0, 15.0], [-5.0, 15.0]])
-        self._num_init_pts = 3
-        self._sample_var = 0.0
-        self._min_value = 0.397887
-        self._use_observations = False
-        self._num_fidelity = 0
+        super().__init__(dim=2,
+                         search_domain=np.array([[0.0, 15.0], [-5.0, 15.0]]),
+                         min_value=0.397887)
+        # self.num_init_pts = 3
 
     def evaluate_true(self, x):
         """ This function is usually evaluated on the square x_1 \in [0, 15], x_2 \in [-5, 15]. Global minimum
@@ -63,22 +51,18 @@ class Branin(_AbstractProblem):
         s = 10
         t = old_div(1, (8 * np.pi))
         return np.array([(a * pow(x[1] - b * pow(x[0], 2.0) + c * x[0] - r, 2.0) + s * (1 - t) * np.cos(x[0]) + s),
-                (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r) * (-2* b * x[0] + c) + s * (1 - t) * (-np.sin(x[0]))),
-                (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r))])
-
-    def evaluate(self, x):
-        return self.evaluate_true(x)
+                         (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r) * (-2* b * x[0] + c) + s * (1 - t) * (-np.sin(x[0]))),
+                         (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r))])
 
 
-class Rosenbrock(_AbstractProblem):
+class Rosenbrock(AbstractProblem):
+
     def __init__(self):
-        self._dim = 2
-        self._search_domain = np.repeat([[-2., 2.]], self._dim, axis=0)
-        self._num_init_pts = 3
-        self._sample_var = 0.0
-        self._min_value = 0.0
-        self._use_observations = False
-        self._num_fidelity = 0
+        dim = 2
+        super().__init__(dim=dim,
+                         search_domain=np.repeat([[-2., 2.]], dim, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
 
     def evaluate_true(self, x):
         """ Global minimum is 0 at (1, 1, 1, 1)
@@ -86,27 +70,23 @@ class Rosenbrock(_AbstractProblem):
             :param x[4]: 4-dimension np array
         """
         value = 0.0
-        for i in range(self._dim-1):
+        for i in range(self.dim-1):
             value += pow(1. - x[i], 2.0) + 100. * pow(x[i+1] - pow(x[i], 2.0), 2.0)
         results = [value]
-        for i in range(self._dim-1):
+        for i in range(self.dim-1):
             results += [(2.*(x[i]-1) - 400.*x[i]*(x[i+1]-pow(x[i], 2.0)))]
-        results += [(200. * (x[self._dim-1]-pow(x[self._dim-2], 2.0)))]
+        results += [(200. * (x[self.dim-1]-pow(x[self.dim-2], 2.0)))]
         return np.array(results)
 
-    def evaluate(self, x):
-        return self.evaluate_true(x)
 
+class Hartmann3(AbstractProblem):
 
-class Hartmann3(_AbstractProblem):
     def __init__(self):
-        self._dim = 3
-        self._search_domain = np.repeat([[0., 1.]], self._dim, axis=0)
-        self._num_init_pts = 3
-        self._sample_var = 0.0
-        self._min_value = -3.86278
-        self._use_observations = False
-        self._num_fidelity = 0
+        dim = 3
+        super().__init__(dim=3,
+                         search_domain=np.repeat([[0., 1.]], dim, axis=0),
+                         min_value=-3.86278)
+        # self.num_init_pts = 3
 
     def evaluate_true(self, x):
         """ domain is x_i \in (0, 1) for i = 1, ..., 3
@@ -120,26 +100,22 @@ class Hartmann3(_AbstractProblem):
         results = [0.0]*4
         for i in range(4):
             inner_value = 0.0
-            for j in range(self._dim):
+            for j in range(self.dim):
                 inner_value -= A[i, j] * pow(x[j] - P[i, j], 2.0)
             results[0] -= alpha[i] * np.exp(inner_value)
-            for j in range(self._dim-self._num_fidelity):
+            for j in range(self.dim-self._num_fidelity):
                 results[j+1] -= (alpha[i] * np.exp(inner_value)) * ((-2) * A[i,j] * (x[j] - P[i, j]))
         return np.array(results)
 
-    def evaluate(self, x):
-        return self.evaluate_true(x)
 
+class Levy4(AbstractProblem):
 
-class Levy4(_AbstractProblem):
     def __init__(self):
-        self._dim = 4
-        self._search_domain = np.repeat([[-5., 5.]], self._dim, axis=0)
-        self._num_init_pts = 3
-        self._sample_var = 0.0
-        self._min_value = 0.0
-        self._use_observations = False#np.arange(self._dim)
-        self._num_fidelity = 0
+        dim = 4
+        super().__init__(dim=dim,
+                         search_domain=np.repeat([[-5., 5.]], dim, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
 
     def evaluate_true(self, x):
         """ Global minimum is 0 at (1, 1, 1, 1)
@@ -164,20 +140,15 @@ class Levy4(_AbstractProblem):
                           + 2 * (z[:-1]-1) * (0.25) * (1 + 10. * sin(pi * z[:-1] + 1)**2 ))
         return np.array(results)
 
-    def evaluate(self, x):
-        return self.evaluate_true(x)
 
-
-class Hartmann6(_AbstractProblem):
+class Hartmann6(AbstractProblem):
 
     def __init__(self):
-        self._dim = 6
-        self._search_domain = np.repeat([[0., 1.]], self._dim, axis=0)
-        self._num_init_pts = 3
-        self._sample_var = 0.0
-        self._min_value = -3.32237
-        self._use_observations = False#np.arange(self._dim)
-        self._num_fidelity = 0
+        dim = 6
+        super().__init__(dim=dim,
+                         search_domain=np.repeat([[0., 1.]], dim, axis=0),
+                         min_value=-3.32237)
+        # self.num_init_pts = 3
 
     def evaluate_true(self, x):
         """ domain is x_i \in (0, 1) for i = 1, ..., 6
@@ -187,33 +158,28 @@ class Hartmann6(_AbstractProblem):
         """
         alpha = np.array([1.0, 1.2, 3.0, 3.2])
         A = np.array([[10, 3, 17, 3.50, 1.7, 8], [0.05, 10, 17, 0.1, 8, 14], [3, 3.5, 1.7, 10, 17, 8],
-                         [17, 8, 0.05, 10, 0.1, 14]])
+                      [17, 8, 0.05, 10, 0.1, 14]])
         P = 1.0e-4 * np.array([[1312, 1696, 5569, 124, 8283, 5886], [2329, 4135, 8307, 3736, 1004, 9991],
-                                  [2348, 1451, 3522, 2883, 3047, 6650], [4047, 8828, 8732, 5743, 1091, 381]])
+                               [2348, 1451, 3522, 2883, 3047, 6650], [4047, 8828, 8732, 5743, 1091, 381]])
         results = [0.0]*7
         for i in range(4):
             inner_value = 0.0
-            for j in range(self._dim-self._num_fidelity):
+            for j in range(self.dim-self._num_fidelity):
                 inner_value -= A[i, j] * pow(x[j] - P[i, j], 2.0)
             results[0] -= alpha[i] * np.exp(inner_value)
-            for j in range(self._dim-self._num_fidelity):
+            for j in range(self.dim-self._num_fidelity):
                 results[j+1] -= (alpha[i] * np.exp(inner_value)) * ((-2) * A[i,j] * (x[j] - P[i, j]))
         return np.array(results)
 
-    def evaluate(self, x):
-        return self.evaluate_true(x)
 
-
-class Ackley(_AbstractProblem):
+class Ackley(AbstractProblem):
 
     def __init__(self):
-        self._dim = 5
-        self._search_domain = np.repeat([[-1., 1.]], self._dim, axis=0)
-        self._num_init_pts = 3
-        self._sample_var = 0.0
-        self._min_value = 0.0
-        self._use_observations = False
-        self._num_fidelity = 0
+        dim = 5
+        super().__init__(dim=dim,
+                         search_domain=np.repeat([[-1., 1.]], dim, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
 
     def evaluate_true(self, x):
         x = 20*x

@@ -1,0 +1,73 @@
+(polimi) kanthavel@kanthavel-Latitude-5501:/media/data/kanthavel/Code/QALIBOO$ date; python examples/main.py ParabolicMinAtOrigin KG 4 1000; date
+mer 2 ago 2023, 08:01:42, CEST
+KG, 1000th job, 0th iteration, func=ParabolicMinAtOrigin, q=4
+KG takes 17.420803785324097 seconds
+Suggests points:
+[[-3.82980657  6.38493791]
+ [-4.75007915  4.7550547 ]
+ [ 7.59500554 -8.36595776]
+ [-5.0371245  -2.73661562]]
+Retraining the model takes 2.2550384998321533 seconds
+
+Optimization finished successfully!
+The recommended point: [-0.87792523  6.51067716]
+The recommended integer point: [-1  7]
+Finding the recommended point takes 0.5705187320709229 seconds
+ KG, VOI 3.285568879667071, best so far 10.863159784384768
+KG, 1000th job, 1th iteration, func=ParabolicMinAtOrigin, q=4
+KG takes 26.241304397583008 seconds
+Suggests points:
+[[ 3.49374406 -0.52624929]
+ [ 8.90573312  2.81933928]
+ [-7.19763553  5.62545174]
+ [ 8.68730768 -4.93558787]]
+Retraining the model takes 2.441666603088379 seconds
+
+Optimization finished successfully!
+The recommended point: [ 1.32691487 -0.4007265 ]
+The recommended integer point: [1 0]
+Finding the recommended point takes 0.6404619216918945 seconds
+ KG, VOI 3.9190972820751826, best so far 2.912467882050198
+KG, 1000th job, 2th iteration, func=ParabolicMinAtOrigin, q=4
+KG takes 23.30590033531189 seconds
+Suggests points:
+[[ 0.79273212 -3.12515887]
+ [ 7.03201161 -4.94770934]
+ [-3.53656731  7.64876047]
+ [-7.95592541  5.75220797]]
+Retraining the model takes 2.6167829036712646 seconds
+
+Optimization finished successfully!
+The recommended point: [-0.09541375  0.10067116]
+The recommended integer point: [0 0]
+Finding the recommended point takes 0.6926367282867432 seconds
+ KG, VOI 1.2041525675194753, best so far 2.006578828734069
+KG, 1000th job, 3th iteration, func=ParabolicMinAtOrigin, q=4
+KG takes 25.892820358276367 seconds
+Suggests points:
+[[-3.1778026  -9.59826379]
+ [ 3.8564567  -0.86296601]
+ [ 6.71706029 -2.54237977]
+ [-6.64056451 -1.0977743 ]]
+Retraining the model takes 2.399780511856079 seconds
+
+Optimization finished successfully!
+The recommended point: [-0.16561278  0.02102589]
+The recommended integer point: [0 0]
+Finding the recommended point takes 0.651545524597168 seconds
+ KG, VOI 0.5615692482792416, best so far 2.0138022144382224
+KG, 1000th job, 4th iteration, func=ParabolicMinAtOrigin, q=4
+KG takes 29.124796628952026 seconds
+Suggests points:
+[[ 0.79028784 -0.60182551]
+ [-1.97447299 -1.75414171]
+ [-8.18807535  4.1626141 ]
+ [-3.02613945  1.82064328]]
+Retraining the model takes 2.8238024711608887 seconds
+
+Optimization finished successfully!
+The recommended point: [ 0.03346466 -0.10969378]
+The recommended integer point: [0 0]
+Finding the recommended point takes 0.7682468891143799 seconds
+ KG, VOI 0.16410532465269295, best so far 2.0029664871027317
+mer 2 ago 2023, 08:04:07, CEST

@@ -1,0 +1,562 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      23.99915036452409,
+      3.0,
+      2.0100985323260745,
+      9.862993035842686
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      2,
+      10
+    ],
+    "computed_cost": 79200.0,
+    "n_evaluations": 20,
+    "error": 42409.0
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      27.487534065743755,
+      2.9303017296437566,
+      4.194691753723713,
+      8.138784514296145
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      4,
+      8
+    ],
+    "computed_cost": 61036.0,
+    "n_evaluations": 30,
+    "error": 24245.0
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      38.482092820264214,
+      2.5076243080688982,
+      5.394607202288256,
+      4.798607070929283
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      34,
+      3,
+      5,
+      5
+    ],
+    "computed_cost": 54180.0,
+    "n_evaluations": 40,
+    "error": 17389.0
+  },
+  {
+    "iteration": 3,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      41.61054883880156,
+      2.701712965680675,
+      6.4031170892956295,
+      3.0626527308021703
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      6,
+      3
+    ],
+    "computed_cost": 53562.0,
+    "n_evaluations": 50,
+    "error": 16771.0
+  },
+  {
+    "iteration": 4,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      37.876202925293654,
+      2.640927898072466,
+      6.057800986193559,
+      3.2706473487224033
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      34,
+      3,
+      6,
+      3
+    ],
+    "computed_cost": 53193.0,
+    "n_evaluations": 60,
+    "error": 16402.0
+  },
+  {
+    "iteration": 5,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      37.27418083053349,
+      2.6324429631613335,
+      5.618484075905494,
+      3.0167136106683548
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      34,
+      3,
+      6,
+      3
+    ],
+    "computed_cost": 53193.0,
+    "n_evaluations": 70,
+    "error": 16402.0
+  },
+  {
+    "iteration": 6,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      39.21773387597679,
+      2.575998469423044,
+      5.899063254304338,
+      3.239412050701034
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      6,
+      3
+    ],
+    "computed_cost": 53562.0,
+    "n_evaluations": 80,
+    "error": 16771.0
+  },
+  {
+    "iteration": 7,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      39.38687677854884,
+      2.5829268818243065,
+      5.916920529624593,
+      3.3356946577597215
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      6,
+      3
+    ],
+    "computed_cost": 53562.0,
+    "n_evaluations": 90,
+    "error": 16771.0
+  },
+  {
+    "iteration": 8,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      38.9047202722918,
+      2.5861816363561263,
+      5.93395758782349,
+      3.4608633753090237
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      34,
+      3,
+      6,
+      3
+    ],
+    "computed_cost": 53193.0,
+    "n_evaluations": 100,
+    "error": 16402.0
+  },
+  {
+    "iteration": 9,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      48.64569201524508,
+      2.8902872846647436,
+      2.6017035904748913,
+      2.3735358492016303
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      3,
+      2
+    ],
+    "computed_cost": 42858.0,
+    "n_evaluations": 110,
+    "error": 6067.0
+  },
+  {
+    "iteration": 10,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      48.57918921209456,
+      2.9253045340998076,
+      1.8365413756958142,
+      1.6163330185624907
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      2,
+      2
+    ],
+    "computed_cost": 41090.0,
+    "n_evaluations": 120,
+    "error": 4299.0
+  },
+  {
+    "iteration": 11,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      46.610889166796795,
+      2.9425143270289427,
+      2.10818770025321,
+      1.7569765986831563
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      2,
+      2
+    ],
+    "computed_cost": 41090.0,
+    "n_evaluations": 130,
+    "error": 4299.0
+  },
+  {
+    "iteration": 12,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      47.144003877522806,
+      2.9473329719026413,
+      2.121547992849942,
+      1.7868037995281416
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      2,
+      2
+    ],
+    "computed_cost": 41090.0,
+    "n_evaluations": 140,
+    "error": 4299.0
+  },
+  {
+    "iteration": 13,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      47.35040036681742,
+      2.94683647112174,
+      2.0731884782547243,
+      1.4522821944626665
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      2,
+      1
+    ],
+    "computed_cost": 41499.0,
+    "n_evaluations": 150,
+    "error": 4708.0
+  },
+  {
+    "iteration": 14,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      47.11556143700393,
+      2.9453104686020994,
+      2.222084127745849,
+      1.497728984593269
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      2,
+      1
+    ],
+    "computed_cost": 41499.0,
+    "n_evaluations": 160,
+    "error": 4708.0
+  },
+  {
+    "iteration": 15,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      46.96989919827972,
+      2.944373880969685,
+      2.2463934830114747,
+      1.565868750412016
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      44,
+      3,
+      2,
+      2
+    ],
+    "computed_cost": 41090.0,
+    "n_evaluations": 170,
+    "error": 4299.0
+  },
+  {
+    "iteration": 16,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      54.76388654520522,
+      2.974019989838295,
+      1.000000000136633,
+      1.199499416928708
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      54,
+      3,
+      1,
+      1
+    ],
+    "computed_cost": 36900.0,
+    "n_evaluations": 180,
+    "error": 109.0
+  },
+  {
+    "iteration": 17,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      54.51500052013699,
+      2.98465087140979,
+      1.0,
+      1.1877970236922526
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      54,
+      3,
+      1,
+      1
+    ],
+    "computed_cost": 36900.0,
+    "n_evaluations": 190,
+    "error": 109.0
+  },
+  {
+    "iteration": 18,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      54.34117596806322,
+      2.981361697874594,
+      1.6598555485061337,
+      1.0000000004676386
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      54,
+      3,
+      2,
+      1
+    ],
+    "computed_cost": 38134.0,
+    "n_evaluations": 200,
+    "error": 1343.0
+  },
+  {
+    "iteration": 19,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      54.362107297663115,
+      2.9810958555951816,
+      1.6417413591350642,
+      1.0000000001635696
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      54,
+      3,
+      2,
+      1
+    ],
+    "computed_cost": 38134.0,
+    "n_evaluations": 210,
+    "error": 1343.0
+  }
+]

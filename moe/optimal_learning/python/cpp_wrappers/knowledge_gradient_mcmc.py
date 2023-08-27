@@ -26,7 +26,7 @@ class PosteriorMeanMCMC(OptimizableInterface):
     def __init__(
             self,
             gaussian_process_list,
-            num_fidelity,
+            num_fidelity=0,
             points_to_sample=None,
             randomness=None,
     ):
