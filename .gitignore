@@ -50,3 +50,5 @@ build
 .coverage
 
 .ipynb_checkpoints
+
+build_log.txt

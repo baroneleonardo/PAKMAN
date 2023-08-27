@@ -598,7 +598,7 @@ BOOST_PYTHON_MODULE(GPP) {
   ExportModelSelectionFunctions();
   ExportOptimizerParameterStructs();
   ExportRandomnessContainer();
-  ExportFiniteDomain();
+//  ExportFiniteDomain();
 }  // end BOOST_PYTHON_MODULE(GPP) definition
 
 }  // end unnamed namespace

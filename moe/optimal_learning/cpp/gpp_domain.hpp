@@ -364,107 +364,107 @@ class SimplexIntersectTensorProductDomain {
   restrict it to a finite subset.
 \endrst*/
 
-typedef std::vector<double> Point;
-double distance (const Point& P1, const Point& P2);
-
-class FiniteDomain {  // IMPORTANT: Check https://cosmiccoding.com.au/tutorials/boost/
-
- public:
-  //! string name of this domain for logging
-  constexpr static char const * kName = "finite";
-
-  FiniteDomain() = delete;  // no default ctor; dim = 0 doesn't really make sense as a default
-
-  /*!\rst
-    Constructs a TensorProductDomain.
-
-    \param
-      :points[n_points]: array of Point containing the finite set of points of the domain.
-      :n_points: number of points
-      :dim_in: number of spatial dimensions
-  \endrst*/
-  FiniteDomain(np::ndarray const & data_array);
-
-  int dim() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
-    return dim_;
-  }
-
-  /*!\rst
-    Seed the internal random engine
-
-    \param
-      :seed: a random seed
-  \endrst*/
-  void SetSeed(unsigned int seed);
-
-  /*!\rst
-    Explicitly set the points in the domain.
-
-    \param
-      :points[n_points]: array of Point containing the finite set of points of the domain.
-      :n_points: number of points
-  \endrst*/
-  void SetData(np::ndarray const & data_array) OL_NONNULL_POINTERS;
-
-  /*!\rst
-    Maximum number of planes that define the boundary of this domain.
-    Used for testing.
-
-    This result is exact.
-
-    \return
-      max number of planes defining the boundary of this domain
-  \endrst*/
-//  int GetMaxNumberOfBoundaryPlanes() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
-//    return 2*dim_;
+//typedef std::vector<double> Point;
+//double distance (const Point& P1, const Point& P2);
+//
+//class FiniteDomain {  // IMPORTANT: Check https://cosmiccoding.com.au/tutorials/boost/
+//
+// public:
+//  //! string name of this domain for logging
+//  constexpr static char const * kName = "finite";
+//
+//  FiniteDomain() = delete;  // no default ctor; dim = 0 doesn't really make sense as a default
+//
+//  /*!\rst
+//    Constructs a TensorProductDomain.
+//
+//    \param
+//      :points[n_points]: array of Point containing the finite set of points of the domain.
+//      :n_points: number of points
+//      :dim_in: number of spatial dimensions
+//  \endrst*/
+//  FiniteDomain(np::ndarray const & data_array);
+//
+//  int dim() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
+//    return dim_;
 //  }
-  /*!\rst
-    Get a sample of points from the domain.
-
-    A boolean flag allows you to decide whether to keep track of the sample point
-    and never return the same point twice
-
-    \param
-      :sample_size: size of the sample
-      :random_points[]: array where to store the result
-      :allow_multiple_selection: if true, the same point may be returned multiple times even within the same call.
-      If false, a point is returned at most once.
-    \return
-      true if sampling was successful, false otherwise
-  \endrst*/
-  bool GenerateLatinHypercubePoints(int sample_size, np::ndarray * output)
-  bool SamplePointsInDomain(int sample_size, np::ndarray * output, bool allow_multiple_selection = false);
-  bool FindDistancesAndIndexesFromPoint(np::ndarray const & point, np::ndarray * output)
-  void ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points, Point* valued_points);
-  double norm (const Point& P)const;
-  Point ClosestPoint(const Point&) const;
-  bool isInDomain (const Point& P) const;
-  void print() const;
-
- private:
-  std::vector<Point> points_; //! the list of Point included in the domain
-  int n_points_;  //! the number of points
-  int dim_ ;     //! the number of spatial dimensions of this domain
-  std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
-  int n_available_points_;  //! a counter tracking
-  std::default_random_engine random_engine_; //! a random engine
-  std::uniform_int_distribution<int> uniform_distribution_;
- // std::mt19937 random_engine_;  // TODO: error: ‘mt19937’ in namespace ‘std’ does not name a type std::mt19937 random_engine_;
-
-};
+//
+//  /*!\rst
+//    Seed the internal random engine
+//
+//    \param
+//      :seed: a random seed
+//  \endrst*/
+//  void SetSeed(unsigned int seed);
+//
+//  /*!\rst
+//    Explicitly set the points in the domain.
+//
+//    \param
+//      :points[n_points]: array of Point containing the finite set of points of the domain.
+//      :n_points: number of points
+//  \endrst*/
+//  void SetData(np::ndarray const & data_array) OL_NONNULL_POINTERS;
+//
+//  /*!\rst
+//    Maximum number of planes that define the boundary of this domain.
+//    Used for testing.
+//
+//    This result is exact.
+//
+//    \return
+//      max number of planes defining the boundary of this domain
+//  \endrst*/
+////  int GetMaxNumberOfBoundaryPlanes() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
+////    return 2*dim_;
+////  }
+//  /*!\rst
+//    Get a sample of points from the domain.
+//
+//    A boolean flag allows you to decide whether to keep track of the sample point
+//    and never return the same point twice
+//
+//    \param
+//      :sample_size: size of the sample
+//      :random_points[]: array where to store the result
+//      :allow_multiple_selection: if true, the same point may be returned multiple times even within the same call.
+//      If false, a point is returned at most once.
+//    \return
+//      true if sampling was successful, false otherwise
+//  \endrst*/
+//  bool GenerateLatinHypercubePoints(int sample_size, np::ndarray * output)
+//  bool SamplePointsInDomain(int sample_size, np::ndarray * output, bool allow_multiple_selection = false);
+//  bool FindDistancesAndIndexesFromPoint(np::ndarray const & point, np::ndarray * output)
+//  void ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points, Point* valued_points);
+//  double norm (const Point& P)const;
+//  Point ClosestPoint(const Point&) const;
+//  bool isInDomain (const Point& P) const;
+//  void print() const;
+//
+// private:
+//  std::vector<Point> points_; //! the list of Point included in the domain
+//  int n_points_;  //! the number of points
+//  int dim_ ;     //! the number of spatial dimensions of this domain
+//  std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
+//  int n_available_points_;  //! a counter tracking
+//  std::default_random_engine random_engine_; //! a random engine
+//  std::uniform_int_distribution<int> uniform_distribution_;
+// // std::mt19937 random_engine_;  // TODO: error: ‘mt19937’ in namespace ‘std’ does not name a type std::mt19937 random_engine_;
+//
+//};
 
 // I want to export FiniteDomain to python
-void ExportFiniteDomain();
+//void ExportFiniteDomain();
 
-class PrecomputedFunction {
-    public:
-        double minimum;
-        double Evaluate(np::ndarray const & x);
-
-        PrecomputedFunction(np::ndarray const & data_array, np::ndarray const & value_array)
-}
-
-void ExportPrecomputedFunction();
+//class PrecomputedFunction {
+//    public:
+//        double minimum;
+//        double Evaluate(np::ndarray const & x);
+//
+//        PrecomputedFunction(np::ndarray const & data_array, np::ndarray const & value_array)
+//}
+//
+//void ExportPrecomputedFunction();
 
 /*!\rst
   A generic domain type for simultaneously manipulating ``num_repeats`` points in a "regular" domain (the kernel).
