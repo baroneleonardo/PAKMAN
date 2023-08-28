@@ -9,11 +9,13 @@
 #include <boost/python/def.hpp>  // NOLINT(build/include_order)
 #include <boost/python/class.hpp>  // NOLINT(build/include_order)
 #include <boost/python/list.hpp>  // NOLINT(build/include_order)
+#include <boost/python/extract.hpp>  // NOLINT(build/include_order)
 #include <boost/python/make_constructor.hpp>  // NOLINT(build/include_order)
 
 #include <algorithm>
 #include <limits>
 #include <vector>
+#include <algorithm>    // std::sort
 #include <map>
 #include <numeric>
 #include <random>
@@ -295,54 +297,98 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
   // if we're already inside the simplex, then nothing to do; we have not modified update_vector
 }
 
-//    double distance (const Point& P1, const Point& P2) {
-//        double result = 0;
-//        for (size_t i = 0; i < P1.size(); i++) {
-//            result += (P1[i] - P2[i]) * (P1[i] - P2[i]);
-//        }
-//        return std::sqrt(result);
-//    }
+double ComputeDistance (const Point& p1, const Point& p2) {
+    double result = 0;
+    for (size_t i = 0; i < p1.size(); i++) {
+        result += (p1[i] - p2[i]) * (p1[i] - p2[i]);
+    }
+    return std::sqrt(result);
+}
 
 // ===================================== FiniteDomain class methods =====================================
 
-//    FiniteDomain::FiniteDomain (const Point* points , int n_points, int dim_in): n_points_(n_points), dim_(dim_in)
-//    {
-//        SetDomain(points, n_points);
-//        SetSeed(1984);
-//        uniform_distribution_ = std::uniform_int_distribution<int>(0,n_points - 1);
-//    }
-//
-//    void FiniteDomain::SetSeed(unsigned int seed) {
-//        random_engine_ = std::default_random_engine(seed);
-//    }
-//
-//    void FiniteDomain::print() const {
-//        std:: cout << "The domain contains the following points : " << std::endl;
-//        for ( size_t i = 0 ; i < points_.size() ; i++) {
-//            std::cout  << "(" ;
-//            for (size_t j = 0 ; j < dim_ ; j++) {
-//
-//                std::cout << points_[i][j] << " " ;
-//
-//            }
-//            std::cout  <<")"  << std::endl;
-//        }
-//        std::cout << "============================================" << std::endl;
-//    }
-//
-//
-//    void FiniteDomain::SetDomain(const Point* points, int n_points)
-//    {
-//
-//        points_.clear();
-//        for (size_t i = 0 ; i < n_points ; i++) {
-//            points_.push_back(points[i]) ;
-//        }
-//        n_available_points_ = n_points ;
-//        is_point_selected_ = std::vector<bool> (n_points, false) ;
-//    }
-//
-//
+FiniteDomain::FiniteDomain (const boost::python::list& points, int dim_in)
+: dim_(dim_in)
+{
+    n_points_ = boost::python::len(points);
+    SetData(points);
+    SetSeed(1984);
+    uniform_distribution_ = std::uniform_int_distribution<int>(0, n_points_ - 1);
+}
+
+void FiniteDomain::SetSeed(unsigned int seed) {
+    random_engine_ = std::default_random_engine(seed);
+}
+
+void FiniteDomain::Print() const {
+    std:: cout << "The domain contains the following points : " << std::endl;
+    for ( size_t i = 0 ; i < points_.size() ; i++) {
+        std::cout  << "(" ;
+        for (size_t j = 0 ; j < dim_ ; j++) {
+
+            std::cout << points_[i][j] << " " ;
+
+        }
+        std::cout  <<")"  << std::endl;
+    }
+    std::cout << "============================================" << std::endl;
+}
+
+
+void FiniteDomain::SetData(const boost::python::list& points)
+{
+    points_.clear();
+    points_.reserve(n_points_);
+    for (size_t i = 0 ; i < n_points_ ; i++) {
+        const boost::python::list current_row = boost::python::extract<boost::python::list>(points[i]);
+        Point p;
+        p.reserve(dim_);
+        for (size_t j = 0; j < dim_; j++) {
+            p.push_back(boost::python::extract<double>(current_row[j]));
+        }
+        points_.push_back(p);
+    }
+    n_available_points_ = n_points_;
+    is_point_selected_ = std::vector<bool>(n_points_, false);
+}
+
+boost::python::list FiniteDomain::GetData() const
+{
+    boost::python::list output;
+        for (size_t i = 0 ; i < n_points_ ; i++) {
+            boost::python::list current_row;
+            for (size_t j = 0; j < dim_; j++) {
+                current_row.append(points_[i][j]);
+            }
+        output.append(current_row);
+    }
+    return output;
+}
+
+boost::python::list FiniteDomain::FindDistancesAndIndexesFromPoint(const boost::python::list& py_point) const
+{
+    Point point;
+    for (size_t i = 0; i < dim_; i++) {
+        point.push_back(boost::python::extract<double>(py_point[i]));
+    }
+    std::vector<std::pair<double, int>> distances_indexes;
+    for (size_t i = 0; i < n_points_; i++) {
+        distances_indexes.push_back(std::make_pair(ComputeDistance(points_[i], point), i));
+    }
+    std::sort(distances_indexes.begin(), distances_indexes.end());
+    boost::python::list py_distances, py_indexes;
+    std::pair<double, int> current_pair;
+    for (size_t i = 0; i < n_points_; i++) {
+        current_pair = distances_indexes[i];
+        py_distances.append(current_pair.first);
+        py_indexes.append(current_pair.second);
+    }
+    boost::python::list output;
+    output.append(py_distances);
+    output.append(py_indexes);
+    return output;
+}
+
 //    bool FiniteDomain::SamplePointsInDomain(int sample_size, Point * random_points, bool allow_multiple_selection)
 //    {
 //        if (sample_size > n_available_points_){
@@ -428,19 +474,22 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
 //
 //    }
 //
-//    void ExportFiniteDomain() {
-//        boost::python::class_<FiniteDomain>(
-//        "FiniteDomain",
-//        boost::python::init<Point*, int, int>())
-//                .def("dim", &FiniteDomain::dim)
-//                .def("SetSeed", &FiniteDomain::SetSeed)
-//                .def("SetDomain", &FiniteDomain::SetDomain)
+void ExportFiniteDomain() {
+    boost::python::class_<FiniteDomain>(
+    "FiniteDomain",
+    boost::python::init<boost::python::list&, int>())
+            .def("dim", &FiniteDomain::dim)
+            .def("set_seed", &FiniteDomain::SetSeed)
+            .def("set_data", &FiniteDomain::SetData)
+            .def("get_data", &FiniteDomain::GetData)
+            .def("find_distances_and_indexes_from_point", &FiniteDomain::FindDistancesAndIndexesFromPoint)
 //                .def("GetMaxNumberOfBoundaryPlanes", &FiniteDomain::GetMaxNumberOfBoundaryPlanes)
 //                .def("SamplePointsInDomain", &FiniteDomain::SamplePointsInDomain)
 //                .def("ValuedPoint", &FiniteDomain::ValuedPoint)
 //                .def("norm", &FiniteDomain::norm)
 //                .def("isInDomain", &FiniteDomain::isInDomain)
 //                .def("ClosestPoint", &FiniteDomain::ClosestPoint)
-//                ;
-//    }
+            .def("print", &FiniteDomain::Print)
+            ;
+}
 }  // end namespace optimal_learning

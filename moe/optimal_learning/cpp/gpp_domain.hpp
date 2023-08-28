@@ -15,6 +15,8 @@
 #ifndef MOE_OPTIMAL_LEARNING_CPP_GPP_DOMAIN_HPP_
 #define MOE_OPTIMAL_LEARNING_CPP_GPP_DOMAIN_HPP_
 
+
+#include <boost/python/list.hpp>  // NOLINT(build/include_order)
 #include <cmath>
 #include <algorithm>
 #include <limits>
@@ -24,9 +26,6 @@
 #include "gpp_exception.hpp"
 #include "gpp_geometry.hpp"
 #include "gpp_random.hpp"
-#include <boost/python/numpy.hpp>
-
-namespace np = boost::python::numpy;
 
 namespace optimal_learning {
 
@@ -364,30 +363,38 @@ class SimplexIntersectTensorProductDomain {
   restrict it to a finite subset.
 \endrst*/
 
-//typedef std::vector<double> Point;
-//double distance (const Point& P1, const Point& P2);
+typedef std::vector<double> Point;
+double ComputeDistance (const Point& P1, const Point& P2);
+//bool ComparePairs (const std::pair<double, int>& l, const std::pair<double, int>& r)
+//   { return l.first < r.first; }
 //
-//class FiniteDomain {  // IMPORTANT: Check https://cosmiccoding.com.au/tutorials/boost/
-//
-// public:
-//  //! string name of this domain for logging
-//  constexpr static char const * kName = "finite";
-//
-//  FiniteDomain() = delete;  // no default ctor; dim = 0 doesn't really make sense as a default
-//
-//  /*!\rst
-//    Constructs a TensorProductDomain.
-//
-//    \param
-//      :points[n_points]: array of Point containing the finite set of points of the domain.
-//      :n_points: number of points
-//      :dim_in: number of spatial dimensions
-//  \endrst*/
-//  FiniteDomain(np::ndarray const & data_array);
-//
-//  int dim() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
-//    return dim_;
+//void CopyPylistToVector(const boost::python::list& input, int size, std::vector<double>& output) {
+//  output.resize(size);
+//  for (int i = 0; i < size; ++i) {
+//    output[i] = boost::python::extract<double>(input[i]);
 //  }
+//}
+class FiniteDomain {  // IMPORTANT: Check https://cosmiccoding.com.au/tutorials/boost/
+
+ public:
+  //! string name of this domain for logging
+  constexpr static char const * kName = "finite";
+
+  FiniteDomain() = delete;  // no default ctor; dim = 0 doesn't really make sense as a default
+
+  /*!\rst
+    Constructs a TensorProductDomain.
+
+    \param
+      :points[n_points]: array of Point containing the finite set of points of the domain.
+      :n_points: number of points
+      :dim_in: number of spatial dimensions
+  \endrst*/
+  FiniteDomain (const boost::python::list& points, int dim_in);
+//
+  int dim() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
+    return dim_;
+  }
 //
 //  /*!\rst
 //    Seed the internal random engine
@@ -395,7 +402,7 @@ class SimplexIntersectTensorProductDomain {
 //    \param
 //      :seed: a random seed
 //  \endrst*/
-//  void SetSeed(unsigned int seed);
+  void SetSeed(unsigned int seed);
 //
 //  /*!\rst
 //    Explicitly set the points in the domain.
@@ -404,7 +411,7 @@ class SimplexIntersectTensorProductDomain {
 //      :points[n_points]: array of Point containing the finite set of points of the domain.
 //      :n_points: number of points
 //  \endrst*/
-//  void SetData(np::ndarray const & data_array) OL_NONNULL_POINTERS;
+  void SetData(const boost::python::list& points) OL_NONNULL_POINTERS;
 //
 //  /*!\rst
 //    Maximum number of planes that define the boundary of this domain.
@@ -439,22 +446,23 @@ class SimplexIntersectTensorProductDomain {
 //  double norm (const Point& P)const;
 //  Point ClosestPoint(const Point&) const;
 //  bool isInDomain (const Point& P) const;
-//  void print() const;
-//
-// private:
-//  std::vector<Point> points_; //! the list of Point included in the domain
-//  int n_points_;  //! the number of points
-//  int dim_ ;     //! the number of spatial dimensions of this domain
-//  std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
-//  int n_available_points_;  //! a counter tracking
-//  std::default_random_engine random_engine_; //! a random engine
-//  std::uniform_int_distribution<int> uniform_distribution_;
-// // std::mt19937 random_engine_;  // TODO: error: ‘mt19937’ in namespace ‘std’ does not name a type std::mt19937 random_engine_;
-//
-//};
+    void Print() const;
+    boost::python::list GetData() const;
+    boost::python::list FindDistancesAndIndexesFromPoint(const boost::python::list& py_point) const;
+ private:
+  std::vector<Point> points_; //! the list of Point included in the domain
+  int n_points_;  //! the number of points
+  int dim_ ;     //! the number of spatial dimensions of this domain
+  std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
+  int n_available_points_;  //! a counter tracking
+  std::default_random_engine random_engine_; //! a random engine
+  std::uniform_int_distribution<int> uniform_distribution_;
+//  std::mt19937 random_engine_;  // TODO: error: ‘mt19937’ in namespace ‘std’ does not name a type std::mt19937 random_engine_;
+
+};
 
 // I want to export FiniteDomain to python
-//void ExportFiniteDomain();
+void ExportFiniteDomain();
 
 //class PrecomputedFunction {
 //    public:
