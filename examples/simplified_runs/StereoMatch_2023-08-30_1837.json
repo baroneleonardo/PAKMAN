@@ -317,5 +317,121 @@
     "n_evaluations": 60,
     "error": 4481.0,
     "error_ratio": 0.1217960914354054
+  },
+  {
+    "iteration": 11,
+    "n_initial_points": 5,
+    "q": 5,
+    "m": 10,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      28.044772063037875,
+      2.7763039612616236,
+      1.8412430078116726,
+      2.1957728872940474
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      2,
+      2
+    ],
+    "computed_cost": 41272.0,
+    "n_evaluations": 65,
+    "error": 4481.0,
+    "error_ratio": 0.1217960914354054
+  },
+  {
+    "iteration": 12,
+    "n_initial_points": 5,
+    "q": 5,
+    "m": 10,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      27.6096050722637,
+      2.777126643889616,
+      1.4954223151238009,
+      2.068706225069264
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      1,
+      2
+    ],
+    "computed_cost": 38078.0,
+    "n_evaluations": 70,
+    "error": 1287.0,
+    "error_ratio": 0.034981381316082735
+  },
+  {
+    "iteration": 13,
+    "n_initial_points": 5,
+    "q": 5,
+    "m": 10,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      27.715903874912804,
+      2.787993065089074,
+      1.8567243634236166,
+      2.356297232342517
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      2,
+      2
+    ],
+    "computed_cost": 41272.0,
+    "n_evaluations": 75,
+    "error": 4481.0,
+    "error_ratio": 0.1217960914354054
+  },
+  {
+    "iteration": 14,
+    "n_initial_points": 5,
+    "q": 5,
+    "m": 10,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      26.830386342008957,
+      2.7736349116512296,
+      1.3439450872323606,
+      2.3655096416010943
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      1,
+      2
+    ],
+    "computed_cost": 38078.0,
+    "n_evaluations": 80,
+    "error": 1287.0,
+    "error_ratio": 0.034981381316082735
   }
 ]
