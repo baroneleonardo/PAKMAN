@@ -351,7 +351,7 @@ class SimplexIntersectTensorProductDomain {
   Plane simplex_plane_;
 };
 
-// ---------------- FINITE DOMAIN DEFINITION -----------------
+// ======================== FINITE DOMAIN DEFINITION ========================
 // For simplicity, we define a type to represent a point
 typedef std::vector<double> Point;
 
@@ -473,6 +473,8 @@ class FiniteDomain {
   Boilerplate code. This function is needed to expose the FiniteDomain class to Python
 \endrst*/
 void ExportFiniteDomain();
+// ======================== ***** ========================
+
 /*!\rst
   A generic domain type for simultaneously manipulating ``num_repeats`` points in a "regular" domain (the kernel).
 

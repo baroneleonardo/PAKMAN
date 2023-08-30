@@ -24,7 +24,7 @@
 #include "gpp_exception.hpp"
 #include "gpp_geometry.hpp"
 #include "gpp_logging.hpp"
-#include "gpp_python_common.hpp"
+#include "gpp_python_common.hpp"  // PyList to/from C++ vector
 
 namespace optimal_learning {
 
@@ -286,7 +286,6 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
       min_distance = 0.0;  // stop numerical precision issues
     }
 
-
     // adjust step size to only take us *half* the distance to the nearest boundary
     double step_under_relaxation = kInvalidStepScaleFactor * min_distance;
 
@@ -298,199 +297,136 @@ void SimplexIntersectTensorProductDomain::LimitUpdate(double max_relative_change
   // if we're already inside the simplex, then nothing to do; we have not modified update_vector
 }
 
+// ======================== FINITE DOMAIN IMPLEMENTATION ========================
 double ComputeDistance (const Point& p1, const Point& p2) {
-    double result = 0;
-    for (size_t i = 0; i < p1.size(); i++) {
-        result += (p1[i] - p2[i]) * (p1[i] - p2[i]);
-    }
-    return std::sqrt(result);
+  double result = 0;
+  for (size_t i = 0; i < p1.size(); i++) {
+    result += (p1[i] - p2[i]) * (p1[i] - p2[i]);
+  }
+  return std::sqrt(result);
 }
 
-// ===================================== FiniteDomain class methods =====================================
+// ======================== FiniteDomain class methods ========================
 
-FiniteDomain::FiniteDomain (const boost::python::list& points, int dim_in)
-: dim_(dim_in)
-{
-    SetData(points);
-    SetSeed(1984);
+FiniteDomain::FiniteDomain (const boost::python::list& points,
+              int dim_in): dim_(dim_in) {
+  SetData(points);
+  SetSeed(1984);
 }
 
 void FiniteDomain::SetSeed(unsigned int seed) {
-    random_engine_ = std::default_random_engine(seed);
+  random_engine_ = std::default_random_engine(seed);
 }
 
 void FiniteDomain::Print() const {
-    std:: cout << "The domain contains the following points : " << std::endl;
-    for ( size_t i = 0 ; i < points_.size() ; i++) {
-        std::cout  << "(" ;
-        for (size_t j = 0 ; j < dim_ ; j++) {
+  std:: cout << "The domain contains the following points : " << std::endl;
+  for ( size_t i = 0 ; i < points_.size() ; i++) {
+    std::cout  << "(" ;
+    for (size_t j = 0 ; j < dim_ ; j++) {
 
-            std::cout << points_[i][j] << " " ;
+      std::cout << points_[i][j] << " " ;
 
-        }
-        std::cout  <<")"  << std::endl;
     }
-    std::cout << "============================================" << std::endl;
+    std::cout  <<")"  << std::endl;
+  }
+  std::cout << "============================================" << std::endl;
 }
 
-
-void FiniteDomain::SetData(const boost::python::list& points)
-{
-    n_points_ = boost::python::len(points);
-    points_.clear();
-    points_.reserve(n_points_);
-    for (size_t i = 0 ; i < n_points_ ; i++) {
-        const boost::python::list current_row = boost::python::extract<boost::python::list>(points[i]);
-        Point point;
-        CopyPylistToVector(current_row, dim_, point);
-//        point.reserve(dim_);
-//        for (size_t j = 0; j < dim_; j++) {
-//            point.push_back(boost::python::extract<double>(current_row[j]));
-//        }
-        points_.push_back(point);
-    }
-    n_available_points_ = n_points_;
-    is_point_selected_ = std::vector<bool>(n_points_, false);
-    uniform_distribution_ = std::uniform_int_distribution<int>(0, n_points_ - 1);
+void FiniteDomain::SetData(const boost::python::list& points) {
+  n_points_ = boost::python::len(points);
+  points_.clear();
+  points_.reserve(n_points_);
+  for (size_t i = 0 ; i < n_points_ ; i++) {
+    const boost::python::list current_row = boost::python::extract<boost::python::list>(points[i]);
+    Point point;
+    CopyPylistToVector(current_row, dim_, point);
+    points_.push_back(point);
+  }
+  n_available_points_ = n_points_;
+  is_point_selected_ = std::vector<bool>(n_points_, false);
+  uniform_distribution_ = std::uniform_int_distribution<int>(0, n_points_ - 1);
 }
 
 boost::python::list FiniteDomain::GetData() const
 {
-    boost::python::list output;
-    for (size_t i = 0 ; i < n_points_ ; i++) {
-        boost::python::list current_row = VectorToPylist(points_[i]);
-        output.append(current_row);
-    }
-    return output;
+  boost::python::list output;
+  for (size_t i = 0 ; i < n_points_ ; i++) {
+    boost::python::list current_row = VectorToPylist(points_[i]);
+    output.append(current_row);
+  }
+  return output;
 }
 
 boost::python::list FiniteDomain::FindDistancesAndIndexesFromPoint(const boost::python::list& py_point) const
 {
-    Point point;
-    CopyPylistToVector(py_point, boost::python::len(py_point), point);
-    std::vector<std::pair<double, int>> distances_indexes;
-    for (size_t i = 0; i < n_points_; i++) {
-        distances_indexes.push_back(std::make_pair(ComputeDistance(points_[i], point), i));
-    }
-    std::sort(distances_indexes.begin(), distances_indexes.end());  // Pairs have lexicographic order
-    boost::python::list py_distances, py_indexes;
-    std::pair<double, int> current_pair;
-    for (size_t i = 0; i < n_points_; i++) {
-        current_pair = distances_indexes[i];
-        py_distances.append(current_pair.first);
-        py_indexes.append(current_pair.second);
-    }
-    boost::python::list output;
-    output.append(py_distances);
-    output.append(py_indexes);
-    return output;
+  Point point;
+  CopyPylistToVector(py_point, boost::python::len(py_point), point);
+  std::vector<std::pair<double, int>> distances_indexes;
+  for (size_t i = 0; i < n_points_; i++) {
+    distances_indexes.push_back(std::make_pair(ComputeDistance(points_[i], point), i));
+  }
+  std::sort(distances_indexes.begin(), distances_indexes.end());  // Pairs have lexicographic order
+  boost::python::list py_distances, py_indexes;
+  std::pair<double, int> current_pair;
+  for (size_t i = 0; i < n_points_; i++) {
+    current_pair = distances_indexes[i];
+    py_distances.append(current_pair.first);
+    py_indexes.append(current_pair.second);
+  }
+  boost::python::list output;
+  output.append(py_distances);
+  output.append(py_indexes);
+  return output;
 }
 
-boost::python::list FiniteDomain::SamplePointsInDomain(int sample_size, bool allow_multiple_selection)
-{
-    boost::python::list output;
-    if (sample_size > n_points_){
-        // Not enough points to sample
-        return output;
-    }
-
-    if (!(allow_multiple_selection) && (sample_size > n_available_points_)){
-        // Not enough *unique* points to sample
-        return output;
-    }
-
-    for (size_t i = 0 ; i < sample_size ; i++) {
-        int random_index = uniform_distribution_(random_engine_);
-        boost::python::list py_selected_point;
-        if (allow_multiple_selection){
-            py_selected_point = VectorToPylist(points_[random_index]);
-        } else {
-            if (!(is_point_selected_[random_index])){
-                py_selected_point = VectorToPylist(points_[random_index]);
-                is_point_selected_[random_index] = true;
-                n_available_points_--;
-            }
-            else {
-                i--;
-            }
-        }
-        output.append(py_selected_point);
-    }
-
+boost::python::list FiniteDomain::SamplePointsInDomain(int sample_size,
+                                                       bool allow_multiple_selection) {
+  boost::python::list output;
+  if (sample_size > n_points_) {
+    // Not enough points to sample
     return output;
+  }
+
+  if (!(allow_multiple_selection) && (sample_size > n_available_points_)) {
+    // Not enough *unique* points to sample
+    return output;
+  }
+
+  for (size_t i = 0 ; i < sample_size ; i++) {
+    int random_index = uniform_distribution_(random_engine_);
+    boost::python::list py_selected_point;
+    if (allow_multiple_selection){
+      // Just get the indexed point
+      py_selected_point = VectorToPylist(points_[random_index]);
+    } else {
+      if (!(is_point_selected_[random_index])) {  // The point was never selected
+        py_selected_point = VectorToPylist(points_[random_index]);
+        is_point_selected_[random_index] = true;
+        n_available_points_--;
+      }
+      else {
+        // Try again!
+        i--;
+      }
+    }
+    output.append(py_selected_point);
+  }
+
+  return output;
 }
-//
-//    void FiniteDomain::ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points,
-//                                   Point* valued_points) {
-//        // abscissa and Y are of size L , L = numero di punti  (x, f(x)) nel "file"
-//        // random points and valued points are of size sample_size
-//
-//        // devo capire in che formato arrivano i dati;
-//        std::map <Point,Point>table;
-//        for (size_t i = 0; i < L ; i++) {
-//            table[abscissa[i]] = Y[i];
-//        }
-//        FiniteDomain D_tmp(abscissa,L , dim_); // This temporary domain contains only the point x who's coordinate is known
-//        D_tmp.SamplePointsInDomain(sample_size, random_points , false);
-//        //  []random_points is modified now !
-//
-//        for (size_t i = 0; i < sample_size ; i++) {
-//            valued_points[i] = table[random_points[i]];
-//        }
-//
-//    }
-//
-//    double FiniteDomain::norm(const Point& P) const {
-//        return(std::sqrt(std::inner_product(P.begin(), P.end(), P.begin() , 0)));
-//        // std::inner_product is from the library <numerics>
-//    }
-//
-//    bool FiniteDomain::isInDomain (const Point& P) const {
-//        bool result = false;
-//        auto it = find(points_.begin(), points_.end(), P);
-//
-//        if (it!= points_.end()) { result = true; }
-//
-//        return result;
-//    }
-//
-//
-//    Point FiniteDomain::ClosestPoint(const Point& P) const {
-//
-//        if (isInDomain(P)) { return  P ; }
-//        else {
-//            std::vector<double> V;
-//            for (size_t i = 0; i < points_.size(); i++)
-//            {
-//                V.push_back(distance(P, points_[i])); // V stores the distances between P and all the points of the domain
-//            }
-//            //  returns an iterator to the min element of V
-//            auto min_dist = std::min_element( V.begin(), V.begin());
-//
-//            //  index of the point having the smallest distance from P
-//            auto index = find(V.begin(), V.end() , *min_dist);
-//
-//            return  points_[*index];
-//        }
-//
-//    }
-//
+
+// ======================== Python/Boost binding boilerplate ========================
 void ExportFiniteDomain() {
-    boost::python::class_<FiniteDomain>(
+  boost::python::class_<FiniteDomain>(
     "FiniteDomain",
     boost::python::init<boost::python::list&, int>())
-            .def("dim", &FiniteDomain::dim)
-            .def("set_seed", &FiniteDomain::SetSeed)
-            .def("set_data", &FiniteDomain::SetData)
-            .def("get_data", &FiniteDomain::GetData)
-            .def("find_distances_and_indexes_from_point", &FiniteDomain::FindDistancesAndIndexesFromPoint)
-//                .def("GetMaxNumberOfBoundaryPlanes", &FiniteDomain::GetMaxNumberOfBoundaryPlanes)
-                .def("sample_points_in_domain", &FiniteDomain::SamplePointsInDomain)
-//                .def("ValuedPoint", &FiniteDomain::ValuedPoint)
-//                .def("norm", &FiniteDomain::norm)
-//                .def("isInDomain", &FiniteDomain::isInDomain)
-//                .def("ClosestPoint", &FiniteDomain::ClosestPoint)
-            .def("print", &FiniteDomain::Print)
-            ;
+      .def("dim", &FiniteDomain::dim)
+      .def("set_seed", &FiniteDomain::SetSeed)
+      .def("set_data", &FiniteDomain::SetData)
+      .def("get_data", &FiniteDomain::GetData)
+      .def("find_distances_and_indexes_from_point", &FiniteDomain::FindDistancesAndIndexesFromPoint)
+      .def("sample_points_in_domain", &FiniteDomain::SamplePointsInDomain)
+      .def("print", &FiniteDomain::Print)
+      ;
 }
 }  // end namespace optimal_learning
