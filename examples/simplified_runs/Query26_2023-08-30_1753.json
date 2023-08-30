@@ -1,0 +1,117 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 4,
+    "q": 4,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      4.984267219502928,
+      3.970107717055586
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1315795.0,
+    "n_evaluations": 8,
+    "error": 632113.0,
+    "error_ratio": 0.9245716575834965
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 4,
+    "q": 4,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      4.984267219502928,
+      3.980244970136693
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1315795.0,
+    "n_evaluations": 12,
+    "error": 632113.0,
+    "error_ratio": 0.9245716575834965
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 4,
+    "q": 4,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      4.984267219502928,
+      3.970107717055586
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1313630.0,
+    "n_evaluations": 16,
+    "error": 629948.0,
+    "error_ratio": 0.9214049806781516
+  },
+  {
+    "iteration": 3,
+    "n_initial_points": 4,
+    "q": 4,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      4.984267219502928,
+      3.9701077170555887
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1308195.0,
+    "n_evaluations": 20,
+    "error": 624513.0,
+    "error_ratio": 0.9134553783776668
+  },
+  {
+    "iteration": 4,
+    "n_initial_points": 4,
+    "q": 4,
+    "m": 8,
+    "target": "Query26",
+    "suggested_minimum": [
+      4.457836789613902,
+      8.212631357673216
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      3.0,
+      9.0
+    ],
+    "computed_cost": 711864.0,
+    "n_evaluations": 24,
+    "error": 28182.0,
+    "error_ratio": 0.041220918497196064
+  }
+]

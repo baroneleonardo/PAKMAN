@@ -6,7 +6,7 @@ from typing import Tuple
 
 from moe.optimal_learning.python import geometry_utils
 
-import moe.build.GPP as C_GP
+from moe.build import GPP as C_GP
 
 
 class FiniteDomain:
@@ -127,34 +127,23 @@ class CPPFiniteDomain:
     #  of FiniteDomain is not complete
     _domain_type = C_GP.DomainTypes.tensor_product
 
-    def __init__(self, data: np.ndarray):
-        self._cpp_finite_domain = C_GP.FiniteDomain(data)
-
-        # self._data = data
-        # self._kdtree = spatial.KDTree(data)
-        # self._sampled = np.zeros(data.shape[0]).astype(bool)
+    def __init__(self, data: np.ndarray, **kwargs):
+        super().__init__(**kwargs)  # Just used for multi-class inheritance
+        self._data = data
+        self._cpp_finite_domain = C_GP.FiniteDomain(data.tolist(), data.shape[1])
 
         self._domain_bounds = [geometry_utils.ClosedInterval(np.min(data[:, i]),
                                                              np.max(data[:, i]))
                                for i in range(data.shape[1])]
 
-    @classmethod
-    def Grid(cls, *coords):
-        """Build a new finite domain given the coordinates for each dimension
-
-        Ex Grid([0, 0.5, 1], [-1, 0]) builds a 3 x 2 domain
-        """
-        grid = np.meshgrid(*coords, indexing='ij')
-        data = np.vstack([g.ravel() for g in grid]).T
-        return cls(data)
-
-    @property
-    def dim(self) -> int:
-        return self._cpp_finite_domain.dim()
-
     def sample_points_in_domain(self, sample_size: int, allow_previously_sampled: bool = False) -> np.ndarray:
-        return self._cpp_finite_domain.SamplePointsInDomain(sample_size=sample_size,
-                                                            allow_previously_sampled=allow_previously_sampled)
+        points_as_list = self._cpp_finite_domain.sample_points_in_domain(
+            sample_size,
+            allow_previously_sampled
+        )
+        if points_as_list:
+            # Return something only if the list is not empty
+            return np.array(points_as_list)
 
     @property
     def domain_bounds(self):
@@ -172,7 +161,12 @@ class CPPFiniteDomain:
 
         """
         # TODO(GH-56): Allow users to pass in a random source.
-        return self._cpp_finite_domain.GenerateLatinHypercubePoints(num_points=num_points)
+        return geometry_utils.generate_latin_hypercube_points(
+            num_points,
+            self._domain_bounds
+        )
+        return self.sample_points_in_domain(num_points, True)
+        # return self._cpp_finite_domain.GenerateLatinHypercubePoints(num_points=num_points)
 
     def compute_update_restricted_to_domain(self, max_relative_change, current_point, update_vector):
         r"""Compute a new update so that CheckPointInside(``current_point`` + ``new_update``) is true.
@@ -220,5 +214,12 @@ class CPPFiniteDomain:
 
         return output_update
 
-    def find_distance_index_closest_point(self, point: np.ndarray) -> Tuple[float, int, np.ndarray]:
-        return self._cpp_finite_domain.FindDistanceIndexClosestPoint(point=point)
+    def find_distances_indexes_closest_points(self, point: np.ndarray, k=30) -> Tuple[float, int, np.ndarray]:
+        point_as_list = np.array(point).flatten().tolist()  # TODO: Multiple opposed cast, use something smarter
+        distances, indexes = self._cpp_finite_domain.find_distances_and_indexes_from_point(point_as_list)
+        distances, indexes = np.array(distances), np.array(indexes)
+        return distances[:k], indexes[:k], self._data[indexes][:k]
+
+    def find_distance_index_closest_point(self, point: np.ndarray) -> np.ndarray:
+        distances, indexes, closest_point = self.find_distances_indexes_closest_points(point, 1)
+        return distances, indexes, closest_point.flatten()

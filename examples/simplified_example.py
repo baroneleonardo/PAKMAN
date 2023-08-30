@@ -48,8 +48,8 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 # known_minimum = objective_func.minimum
 # domain = objective_func
 # # SUGGESTED:
-# N_INITIAL_POINTS = 7
-# N_ITERATIONS = 15
+# N_INITIAL_POINTS = 4
+# N_ITERATIONS = 5
 # N_POINTS_PER_ITERATION = 4  # The q- parameter
 # M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 8  # M parameter
 # N_RANDOM_WALKERS = 2 ** 4
@@ -59,10 +59,10 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 # known_minimum = objective_func.minimum
 # domain = objective_func
 # # SUGGESTED:
-# N_INITIAL_POINTS = 8
+# N_INITIAL_POINTS = 5
 # N_ITERATIONS = 15
-# N_POINTS_PER_ITERATION = 8  # The q- parameter
-# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 16  # M parameter
+# N_POINTS_PER_ITERATION = 5  # The q- parameter
+# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
 # N_RANDOM_WALKERS = 2 ** 4  # Originally fixed at 2 ** 4 = 16
 
 objective_func_name = 'StereoMatch'
@@ -70,11 +70,11 @@ objective_func = precomputed_functions.StereoMatch
 known_minimum = objective_func.minimum
 domain = objective_func
 # # SUGGESTED:
-N_INITIAL_POINTS = 4
+N_INITIAL_POINTS = 5
 N_ITERATIONS = 15
-N_POINTS_PER_ITERATION = 4  # The q- parameter
-M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 12  # M parameter
-N_RANDOM_WALKERS = 2 ** 4
+N_POINTS_PER_ITERATION = 5  # The q- parameter
+M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
+N_RANDOM_WALKERS = 2 ** 4  # Originally fixed at 2 ** 4 = 16
 
 ###############################
 # Initializing utility objects
@@ -152,7 +152,7 @@ gp_loglikelihood.train()
 # If available, find point in domain closest to the minimum
 if known_minimum is not None:
 
-    _, _, known_minimum_in_domain = domain.find_distances_indexes_closest_points(known_minimum, k=1)
+    _, _, known_minimum_in_domain = domain.find_distance_index_closest_point(known_minimum)
 
     if not np.all(np.equal(known_minimum_in_domain, known_minimum)):
         _log.warning('Known Minimum NOT in domain')
@@ -200,7 +200,7 @@ for s in range(N_ITERATIONS):
 
     for i, cpp_gaussian_process in enumerate(gp_loglikelihood.models):  # What are these models?
 
-        eval_pts = domain.generate_uniform_random_points_in_domain(int(1e3))
+        eval_pts = domain.generate_uniform_random_points_in_domain(int(1e2))
         eval_pts = np.reshape(np.append(eval_pts,
                                         (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
                               (eval_pts.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
@@ -279,7 +279,7 @@ for s in range(N_ITERATIONS):
     # Suggested Minimum
     ####################
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
-    _, _, closest_point_in_domain = domain.find_distances_indexes_closest_points(suggested_minimum, k=1)
+    _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
     computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
 
     _log.info(f"The suggested minimum is:\n {suggested_minimum}")

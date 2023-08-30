@@ -12,7 +12,7 @@ _log = logging.getLogger(__name__)
 _log.setLevel(level=logging.DEBUG)
 
 
-class _PrecomputedFunction(finite_domain.FiniteDomain, abstract_problem.AbstractProblem):
+class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.AbstractProblem):
 
     def __init__(self, dataset: datasets.Dataset):
         m = np.min(dataset.X, axis=0)

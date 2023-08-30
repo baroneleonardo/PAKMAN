@@ -26,7 +26,7 @@ class FiniteDomainTests(unittest.TestCase):
         domain = finite_domain.FiniteDomain.Grid(i_index,
                                                  j_index,
                                                  k_index)
-        points = np.array(np.meshgrid(i_index, j_index, k_index)).T.reshape(-1,3)
+        points = np.array(np.meshgrid(i_index, j_index, k_index)).T.reshape(-1, 3)
         sample_size = 4
 
         for _ in range(100):
