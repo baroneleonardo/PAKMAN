@@ -310,7 +310,7 @@ double ComputeDistance (const Point& p1, const Point& p2) {
 // ===================================== FiniteDomain class methods =====================================
 
 FiniteDomain::FiniteDomain (const boost::python::list& points, int dim_in)
-: dim_(dim_in)
+: dim_(dim_in), finite_latin_hypercube_(dim_in)
 {
     SetData(points);
     SetSeed(1984);
@@ -340,10 +340,6 @@ void FiniteDomain::SetData(const boost::python::list& points)
     n_points_ = boost::python::len(points);
     points_.clear();
     points_.reserve(n_points_);
-    finite_latin_hypercube_.reserve(dim_);
-//    for (size_t j = 0; j < dim_; j++) {
-//        finite_latin_hypercube_[j];
-//    }
     for (size_t i = 0 ; i < n_points_ ; i++) {
         const boost::python::list current_row = boost::python::extract<boost::python::list>(points[i]);
         Point point;
@@ -352,7 +348,7 @@ void FiniteDomain::SetData(const boost::python::list& points)
         // Populating latin hypercube (vector<map<double,set<int>>>)
         for (size_t j = 0; j < dim_; j++) {
             // The j set at value points_[i][j] will contain the index i
-            finite_latin_hypercube_[j][points_[i][j]];//.insert(i);
+            finite_latin_hypercube_[j][points_[i][j]].insert(i);
         }
 
     }
