@@ -17,6 +17,7 @@
 #include <vector>
 #include <algorithm>    // std::sort
 #include <map>
+#include <set>
 #include <numeric>
 #include <random>
 
@@ -307,11 +308,11 @@ double ComputeDistance (const Point& p1, const Point& p2) {
 }
 
 // ======================== FiniteDomain class methods ========================
-
 FiniteDomain::FiniteDomain (const boost::python::list& points,
-                            int dim_in): dim_(dim_in) {
-  SetData(points);
-  SetSeed(1984);
+                            int dim_in)
+                            : dim_(dim_in), finite_latin_hypercube_(dim_in) {
+    SetData(points);
+    SetSeed(1984);
 }
 
 void FiniteDomain::SetSeed(unsigned int seed) {
@@ -341,6 +342,11 @@ void FiniteDomain::SetData(const boost::python::list& points) {
     Point point;
     CopyPylistToVector(current_row, dim_, point);
     points_.push_back(point);
+    // Populating latin hypercube (vector<map<double,set<int>>>)
+    for (size_t j = 0; j < dim_; j++) {
+        // The j set at value points_[i][j] will contain the index i
+        finite_latin_hypercube_[j][points_[i][j]].insert(i);
+    }
   }
   n_available_points_ = n_points_;
   is_point_selected_ = std::vector<bool>(n_points_, false);
