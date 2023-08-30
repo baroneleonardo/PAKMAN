@@ -17,6 +17,7 @@
 #include <vector>
 #include <algorithm>    // std::sort
 #include <map>
+#include <set>
 #include <numeric>
 #include <random>
 
@@ -339,15 +340,21 @@ void FiniteDomain::SetData(const boost::python::list& points)
     n_points_ = boost::python::len(points);
     points_.clear();
     points_.reserve(n_points_);
+    finite_latin_hypercube_.reserve(dim_);
+//    for (size_t j = 0; j < dim_; j++) {
+//        finite_latin_hypercube_[j];
+//    }
     for (size_t i = 0 ; i < n_points_ ; i++) {
         const boost::python::list current_row = boost::python::extract<boost::python::list>(points[i]);
         Point point;
         CopyPylistToVector(current_row, dim_, point);
-//        point.reserve(dim_);
-//        for (size_t j = 0; j < dim_; j++) {
-//            point.push_back(boost::python::extract<double>(current_row[j]));
-//        }
         points_.push_back(point);
+        // Populating latin hypercube (vector<map<double,set<int>>>)
+        for (size_t j = 0; j < dim_; j++) {
+            // The j set at value points_[i][j] will contain the index i
+            finite_latin_hypercube_[j][points_[i][j]];//.insert(i);
+        }
+
     }
     n_available_points_ = n_points_;
     is_point_selected_ = std::vector<bool>(n_points_, false);

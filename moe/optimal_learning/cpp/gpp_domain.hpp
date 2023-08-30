@@ -22,6 +22,8 @@
 #include <limits>
 #include <vector>
 #include <random>
+#include <map>
+#include <set>
 #include "gpp_common.hpp"
 #include "gpp_exception.hpp"
 #include "gpp_geometry.hpp"
@@ -455,6 +457,7 @@ class FiniteDomain {  // IMPORTANT: Check https://cosmiccoding.com.au/tutorials/
   int dim_ ;     //! the number of spatial dimensions of this domain
   std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
   int n_available_points_;  //! a counter tracking
+  std::vector<std::map<double,std::set<int>>> finite_latin_hypercube_;
   std::default_random_engine random_engine_; //! a random engine
   std::uniform_int_distribution<int> uniform_distribution_;
 };
