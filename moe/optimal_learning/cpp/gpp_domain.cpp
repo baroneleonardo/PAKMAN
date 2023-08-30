@@ -309,7 +309,7 @@ double ComputeDistance (const Point& p1, const Point& p2) {
 // ======================== FiniteDomain class methods ========================
 
 FiniteDomain::FiniteDomain (const boost::python::list& points,
-              int dim_in): dim_(dim_in) {
+                            int dim_in): dim_(dim_in) {
   SetData(points);
   SetSeed(1984);
 }
