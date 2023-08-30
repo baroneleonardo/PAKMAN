@@ -440,7 +440,7 @@ class FiniteDomain {  // IMPORTANT: Check https://cosmiccoding.com.au/tutorials/
 //      true if sampling was successful, false otherwise
 //  \endrst*/
 //  bool GenerateLatinHypercubePoints(int sample_size, np::ndarray * output)
-//  bool SamplePointsInDomain(int sample_size, np::ndarray * output, bool allow_multiple_selection = false);
+    boost::python::list SamplePointsInDomain(int sample_size, bool allow_multiple_selection = false);
 //  bool FindDistancesAndIndexesFromPoint(np::ndarray const & point, np::ndarray * output)
 //  void ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points, Point* valued_points);
 //  double norm (const Point& P)const;
@@ -457,8 +457,6 @@ class FiniteDomain {  // IMPORTANT: Check https://cosmiccoding.com.au/tutorials/
   int n_available_points_;  //! a counter tracking
   std::default_random_engine random_engine_; //! a random engine
   std::uniform_int_distribution<int> uniform_distribution_;
-//  std::mt19937 random_engine_;  // TODO: error: ‘mt19937’ in namespace ‘std’ does not name a type std::mt19937 random_engine_;
-
 };
 
 // I want to export FiniteDomain to python
