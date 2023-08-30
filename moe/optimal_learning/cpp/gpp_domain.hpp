@@ -40,8 +40,6 @@ enum class DomainTypes {
   kSimplex = 1,
   //! FiniteDomain
   kFinite = 2,
-  //! PrecomputedDomain
-  kPrecomputed = 3,
 };
 
 /*!\rst
@@ -353,125 +351,128 @@ class SimplexIntersectTensorProductDomain {
   Plane simplex_plane_;
 };
 
+// ---------------- FINITE DOMAIN DEFINITION -----------------
+// For simplicity, we define a type to represent a point
+typedef std::vector<double> Point;
 
+/*!\rst
+  Auxiliary function that computes the euclidean distance
+  between two points
+\endrst*/
+double ComputeDistance (const Point& P1, const Point& P2);
 
 /*!\rst
   This domain is just a container of a finite set of points.
   It emulates the behaviour of a continuous domain on the given set.
 
-  To be used when the target function has a finite domain by definition, or when we want to
-  restrict it to a finite subset.
+  To be used when the target function has a finite domain
+  by definition, or when we want to restrict it to a finite subset.
 \endrst*/
-
-typedef std::vector<double> Point;
-double ComputeDistance (const Point& P1, const Point& P2);
-//bool ComparePairs (const std::pair<double, int>& l, const std::pair<double, int>& r)
-//   { return l.first < r.first; }
-//
-//void CopyPylistToVector(const boost::python::list& input, int size, std::vector<double>& output) {
-//  output.resize(size);
-//  for (int i = 0; i < size; ++i) {
-//    output[i] = boost::python::extract<double>(input[i]);
-//  }
-//}
-class FiniteDomain {  // IMPORTANT: Check https://cosmiccoding.com.au/tutorials/boost/
+class FiniteDomain {
 
  public:
   //! string name of this domain for logging
   constexpr static char const * kName = "finite";
 
-  FiniteDomain() = delete;  // no default ctor; dim = 0 doesn't really make sense as a default
+  FiniteDomain() = delete;  // no default constructor; dim = 0 doesn't really make sense as a default
 
   /*!\rst
-    Constructs a TensorProductDomain.
+    Constructs a FiniteDomain.
 
     \param
-      :points[n_points]: array of Point containing the finite set of points of the domain.
-      :n_points: number of points
+      :list[n_points]: python list of lists of float (double)
+        containing the finite set of points of the domain
       :dim_in: number of spatial dimensions
   \endrst*/
   FiniteDomain (const boost::python::list& points, int dim_in);
-//
+  //! Number of dimensions of the domain.
   int dim() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
     return dim_;
   }
-//
-//  /*!\rst
-//    Seed the internal random engine
-//
-//    \param
-//      :seed: a random seed
-//  \endrst*/
+
+  /*!\rst
+    Seed the internal random engine
+
+    \param
+      :seed: a random seed (integer)
+  \endrst*/
   void SetSeed(unsigned int seed);
-//
-//  /*!\rst
-//    Explicitly set the points in the domain.
-//
-//    \param
-//      :points[n_points]: array of Point containing the finite set of points of the domain.
-//      :n_points: number of points
-//  \endrst*/
+
+  /*!\rst
+    Explicitly set the points in the domain.
+
+    It cannot change the dimensionality of the domain
+
+    \param
+      :list[n_points]: python list of lists of float (double)
+        containing the finite set of points of the domain
+  \endrst*/
   void SetData(const boost::python::list& points) OL_NONNULL_POINTERS;
-//
-//  /*!\rst
-//    Maximum number of planes that define the boundary of this domain.
-//    Used for testing.
-//
-//    This result is exact.
-//
-//    \return
-//      max number of planes defining the boundary of this domain
-//  \endrst*/
-////  int GetMaxNumberOfBoundaryPlanes() const OL_PURE_FUNCTION OL_WARN_UNUSED_RESULT {
-////    return 2*dim_;
-////  }
-//  /*!\rst
-//    Get a sample of points from the domain.
-//
-//    A boolean flag allows you to decide whether to keep track of the sample point
-//    and never return the same point twice
-//
-//    \param
-//      :sample_size: size of the sample
-//      :random_points[]: array where to store the result
-//      :allow_multiple_selection: if true, the same point may be returned multiple times even within the same call.
-//      If false, a point is returned at most once.
-//    \return
-//      true if sampling was successful, false otherwise
-//  \endrst*/
+
+  /*!\rst
+    Get the domain data
+
+    \output
+      :list[n_points]: python list of lists of float (double)
+        containing the finite set of points of the domain
+  \endrst*/
+  boost::python::list GetData() const;
+
+  /*!\rst
+    Get a sample of points from the domain.
+
+    A boolean flag allows you to decide whether to keep track
+    of the sampled point and never return the same point twice
+
+    \param
+      :sample_size: size of the sample
+      :allow_multiple_selection: if true, the same point may be
+      returned multiple times, even within the same method call.
+      If false, a point is returned at most once.
+    \return
+      true if sampling was successful, false otherwise
+  \endrst*/
+  boost::python::list SamplePointsInDomain(int sample_size, bool allow_multiple_selection = false);
+
+  /*!\rst
+
+    Return the distances and ordered indexes from the given point
+    to the points in the domain.
+
+    \param
+      :sample_size: size of the sample
+      :allow_multiple_selection: if true, the same point may be
+      returned multiple times, even within the same method call.
+      If false, a point is returned at most once.
+    \return
+      :list: a python list of two lists, the first one containing the distances,
+      the second one containing the index of the points, both ordered
+       from closest to furthest
+
+  \endrst*/
+  boost::python::list FindDistancesAndIndexesFromPoint(const boost::python::list& py_point) const;
+
+// WIP
 //  bool GenerateLatinHypercubePoints(int sample_size, np::ndarray * output)
-    boost::python::list SamplePointsInDomain(int sample_size, bool allow_multiple_selection = false);
-//  bool FindDistancesAndIndexesFromPoint(np::ndarray const & point, np::ndarray * output)
-//  void ValuedPoint(int sample_size, size_t L, Point* abscissa, Point* Y, Point* random_points, Point* valued_points);
-//  double norm (const Point& P)const;
-//  Point ClosestPoint(const Point&) const;
-//  bool isInDomain (const Point& P) const;
-    void Print() const;
-    boost::python::list GetData() const;
-    boost::python::list FindDistancesAndIndexesFromPoint(const boost::python::list& py_point) const;
+
+  /*!\rst
+    Print the domain data in a table
+  \endrst*/
+  void Print() const;
  private:
-  std::vector<Point> points_; //! the list of Point included in the domain
+  std::vector<Point> points_; //! the list of Points included in the domain
   int n_points_;  //! the number of points
-  int dim_ ;     //! the number of spatial dimensions of this domain
+  int dim_ ;     //! the number of spatial dimensions of the domain
   std::vector<bool> is_point_selected_; //! a vector tracking if the same-index point has already been returned
-  int n_available_points_;  //! a counter tracking
+  int n_available_points_;  //! a counter tracking the number of points never sampled
   std::default_random_engine random_engine_; //! a random engine
-  std::uniform_int_distribution<int> uniform_distribution_;
+  std::uniform_int_distribution<int> uniform_distribution_; //! a uniform distribution
 };
 
-// I want to export FiniteDomain to python
+/*!\rst
+  Boilerplate code. This function is needed to expose the FiniteDomain class to Python
+\endrst*/
 void ExportFiniteDomain();
-
-//class PrecomputedFunction {
-//    public:
-//        double minimum;
-//        double Evaluate(np::ndarray const & x);
-//
-//        PrecomputedFunction(np::ndarray const & data_array, np::ndarray const & value_array)
-//}
-//
-//void ExportPrecomputedFunction();
-
 /*!\rst
   A generic domain type for simultaneously manipulating ``num_repeats`` points in a "regular" domain (the kernel).
 
