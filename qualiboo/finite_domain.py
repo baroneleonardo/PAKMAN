@@ -9,7 +9,20 @@ from moe.optimal_learning.python import geometry_utils
 from moe.build import GPP as C_GP
 
 
-class FiniteDomain:
+class _BaseFiniteDomain:
+
+    @classmethod
+    def Grid(cls, *coords):
+        """Build a new finite domain given the coordinates for each dimension
+
+        Ex Grid([0, 0.5, 1], [-1, 0]) builds a 3 x 2 domain
+        """
+        grid = np.meshgrid(*coords, indexing='ij')
+        data = np.vstack([g.ravel() for g in grid]).T
+        return cls(data)
+
+
+class FiniteDomain(_BaseFiniteDomain):
 
     # TODO: Using this type of domain since C++ implementation
     #  of FiniteDomain is not complete
@@ -25,15 +38,6 @@ class FiniteDomain:
                                                              np.max(data[:, i]))
                                for i in range(data.shape[1])]
 
-    @classmethod
-    def Grid(cls, *coords):
-        """Build a new finite domain given the coordinates for each dimension
-
-        Ex Grid([0, 0.5, 1], [-1, 0]) builds a 3 x 2 domain
-        """
-        grid = np.meshgrid(*coords, indexing='ij')
-        data = np.vstack([g.ravel() for g in grid]).T
-        return cls(data)
 
     def sample_points_in_domain(self, sample_size: int, allow_previously_sampled: bool = False) -> np.ndarray:
         if allow_previously_sampled:
@@ -121,7 +125,7 @@ class FiniteDomain:
         return self.find_distances_indexes_closest_points(point, k=1)
 
 
-class CPPFiniteDomain:
+class CPPFiniteDomain(_BaseFiniteDomain):
 
     # TODO: Using this type of domain since C++ implementation
     #  of FiniteDomain is not complete

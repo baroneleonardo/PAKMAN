@@ -8,7 +8,7 @@ class CPPFiniteDomainTests(unittest.TestCase):
     def test_constructor(self):
         np.random.seed(1984)
         data = np.random.randint(-10, 10, (7, 5)).astype(float)
-        domain = cpp_moe.FiniteDomain(data.data.tolist(),
+        domain = cpp_moe.FiniteDomain(data.tolist(),
                                       data.shape[1])
 
     def test_dim(self):
@@ -24,6 +24,7 @@ class CPPFiniteDomainTests(unittest.TestCase):
         domain = cpp_moe.FiniteDomain(data.data.tolist(),
                                       data.shape[1])
         domain.print()
+        # stdout is discarded in success
         raise ValueError()
 
     def test_get_data(self):

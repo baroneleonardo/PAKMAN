@@ -2,8 +2,8 @@ import logging
 
 import numpy as np
 
-import datasets
-from examples import finite_domain, abstract_problem
+from examples import abstract_problem
+from qualiboo import finite_domain, datasets
 
 import moe.build.GPP as C_GP
 

@@ -11,7 +11,8 @@ from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimi
 from moe.optimal_learning.python.python_version import optimization as py_optimization
 from moe.optimal_learning.python import default_priors
 
-from examples import synthetic_functions, precomputed_functions, bayesian_optimization, finite_domain, auxiliary
+from examples import bayesian_optimization, auxiliary
+from qualiboo import precomputed_functions
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
@@ -163,7 +164,7 @@ if known_minimum is not None:
 ###########################
 
 results = []
-result_file = f'./simplified_runs/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'../results/simplified_runs/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(N_ITERATIONS):
