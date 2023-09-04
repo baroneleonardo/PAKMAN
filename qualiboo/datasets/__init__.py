@@ -1,3 +1,8 @@
+"""Datasets
+
+The module contains three data sets and some auxiliary classes
+to load and read them.
+"""
 import logging
 
 import pandas as pd

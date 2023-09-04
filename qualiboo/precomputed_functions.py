@@ -1,11 +1,14 @@
+"""Precomputed functions
+
+The instances exposed here are utilities to manage
+ the sample datasets as domains and target functions
+"""
 import logging
 
 import numpy as np
 
 from examples import abstract_problem
 from qualiboo import finite_domain, datasets
-
-import moe.build.GPP as C_GP
 
 
 _log = logging.getLogger(__name__)
@@ -59,18 +62,3 @@ Query26 = _PrecomputedFunction(
 StereoMatch = _PrecomputedFunction(
     dataset=datasets.StereoMatch
 )
-
-
-class CPPPrecomputedFunction(finite_domain.CPPFiniteDomain):
-
-    def __init__(self, dataset: datasets.Dataset):
-        super().__init__(data=dataset.X.values)
-        self._cpp_precomputed_function = C_GP.PrecomputedFunction(...)
-        self._dataset = dataset
-
-    @property
-    def minimum(self) -> float:
-        return self._cpp_precomputed_function.minimum
-
-    def evaluate_true(self, x: np.ndarray) -> np.ndarray:
-        return self._cpp_precomputed_function.Evaluate(x)

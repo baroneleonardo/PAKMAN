@@ -2,6 +2,7 @@ import datetime
 import logging
 import time
 import json
+import argparse
 
 import numpy as np
 import numpy.linalg
@@ -18,19 +19,32 @@ logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
 
+###########################
+# Script parameters
+###########################
+parser = argparse.ArgumentParser(prog='Simplified finite domain q-KG',
+                                 usage='Specify the selected problem and the other parameters.'
+                                       ' Results are saved in the results/simplified_runs folder')
+parser.add_argument('--problem', '-p', help='Selected dataset', choices=['Query26', 'LiGen', 'StereoMatch'], required=True)
+parser.add_argument('--init', '-i', help='Number of initial points', type=int, default=7)
+parser.add_argument('--iter', '-n', help='Number of iterations', type=int, default=10)
+parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
+parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=12)
+
+params = parser.parse_args()
 
 ###########################
 # Constants
 ###########################
-N_INITIAL_POINTS = 10
-N_ITERATIONS = 20
-N_POINTS_PER_ITERATION = 10  # The q- parameter
-M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
-N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
+# N_INITIAL_POINTS = 10
+# N_ITERATIONS = 20
+# N_POINTS_PER_ITERATION = 10  # The q- parameter
+# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
+N_RANDOM_WALKERS = 2 ** 4
 
-###########################
-# Target function and domain
-###########################
+#############################################
+# Collection of target functions and domains
+#############################################
 # objective_func_name = 'Parabolic with minimum at (2, 3)'
 # objective_func = synthetic_functions.ParabolicMinAtTwoAndThree()
 # known_minimum = np.array([2.0, 3.0])
@@ -48,34 +62,40 @@ N_RANDOM_WALKERS = 12 * 2  # Originally fixed at 2 ** 4 = 16
 # objective_func = precomputed_functions.Query26
 # known_minimum = objective_func.minimum
 # domain = objective_func
-# # SUGGESTED:
+# # SUGGESTED FOR Query26:
 # N_INITIAL_POINTS = 4
 # N_ITERATIONS = 5
 # N_POINTS_PER_ITERATION = 4  # The q- parameter
 # M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 8  # M parameter
 # N_RANDOM_WALKERS = 2 ** 4
 
-# objective_func_name = 'LiGen'
-# objective_func = precomputed_functions.LiGen
-# known_minimum = objective_func.minimum
-# domain = objective_func
-# # SUGGESTED:
+# # SUGGESTED FOR LiGen:
+# N_INITIAL_POINTS = 7
+# N_ITERATIONS = 10
+# N_POINTS_PER_ITERATION = 7  # The q- parameter
+# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 14  # M parameter
+# N_RANDOM_WALKERS = 2 ** 4  # Originally fixed at 2 ** 4 = 16
+
+# # SUGGESTED FOR StereoMatch:
 # N_INITIAL_POINTS = 5
 # N_ITERATIONS = 15
 # N_POINTS_PER_ITERATION = 5  # The q- parameter
 # M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
 # N_RANDOM_WALKERS = 2 ** 4  # Originally fixed at 2 ** 4 = 16
 
-objective_func_name = 'StereoMatch'
-objective_func = precomputed_functions.StereoMatch
+
+#########################################
+# Initializing variables from parameters
+#########################################
+objective_func_name = params.problem
+objective_func = getattr(precomputed_functions, params.problem)
 known_minimum = objective_func.minimum
 domain = objective_func
-# # SUGGESTED:
-N_INITIAL_POINTS = 5
-N_ITERATIONS = 15
-N_POINTS_PER_ITERATION = 5  # The q- parameter
-M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
-N_RANDOM_WALKERS = 2 ** 4  # Originally fixed at 2 ** 4 = 16
+n_initial_points = params.init
+n_iterations = params.iter
+n_points_per_iteration = params.points
+m_domain_discretization_sample_size = params.sample_size
+
 
 ###############################
 # Initializing utility objects
@@ -118,7 +138,7 @@ KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
 # > Algorithm 1.1: Initial Stage: draw `I` initial samples from a latin hypercube design in `A` (domain)
 
 # Draw initial points from domain (as np array)
-initial_points_array = domain.sample_points_in_domain(N_INITIAL_POINTS)
+initial_points_array = domain.sample_points_in_domain(n_initial_points)
 # Evaluate function in initial points
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 # Build points using custom container class
@@ -164,13 +184,13 @@ if known_minimum is not None:
 ###########################
 
 results = []
-result_file = f'../results/simplified_runs/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/simplified_runs/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
-for s in range(N_ITERATIONS):
+for s in range(n_iterations):
     _log.info(f"{s}th iteration, "
               f"func={objective_func_name}, "
-              f"q={N_POINTS_PER_ITERATION}")
+              f"q={n_points_per_iteration}")
     time1 = time.time()
 
     # > The q-KG algorithm will reduce to the parallel EI algorithm
@@ -196,7 +216,7 @@ for s in range(N_ITERATIONS):
         gaussian_process_mcmc=gp_loglikelihood._gaussian_process_mcmc,
         search_domain=domain,
         gd_params=KG_gradient_descent_params,
-        q=M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE,
+        q=m_domain_discretization_sample_size,
         mc_iterations=2 ** 10)
 
     for i, cpp_gaussian_process in enumerate(gp_loglikelihood.models):  # What are these models?
@@ -245,7 +265,7 @@ for s in range(N_ITERATIONS):
         0,
         discrete_pts_list,
         KG_gradient_descent_params,
-        N_POINTS_PER_ITERATION,
+        n_points_per_iteration,
         num_mc=2 ** 7)
 
 
@@ -300,9 +320,9 @@ for s in range(N_ITERATIONS):
     results.append(
         dict(
             iteration=s,
-            n_initial_points=N_INITIAL_POINTS,
-            q=N_POINTS_PER_ITERATION,
-            m=M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE,
+            n_initial_points=n_initial_points,
+            q=n_points_per_iteration,
+            m=m_domain_discretization_sample_size,
             target=objective_func_name,
             suggested_minimum=suggested_minimum.tolist(),
             known_minimum=known_minimum.to_list(),

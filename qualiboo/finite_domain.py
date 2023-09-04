@@ -1,5 +1,9 @@
-from typing import Tuple
+"""Finite Domain
 
+This module implements two classes that share the same interface.
+One is implemented in pure python, the other one is a wrapper
+araound a C++ implementation.
+"""
 import numpy as np
 from scipy import spatial
 from typing import Tuple
@@ -37,7 +41,6 @@ class FiniteDomain(_BaseFiniteDomain):
         self._domain_bounds = [geometry_utils.ClosedInterval(np.min(data[:, i]),
                                                              np.max(data[:, i]))
                                for i in range(data.shape[1])]
-
 
     def sample_points_in_domain(self, sample_size: int, allow_previously_sampled: bool = False) -> np.ndarray:
         if allow_previously_sampled:

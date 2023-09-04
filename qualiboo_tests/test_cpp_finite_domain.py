@@ -1,3 +1,7 @@
+"""CPP finite domain tests
+
+Tests on the internal CPP class implementing FiniteDomain
+"""
 import unittest
 import numpy as np
 from moe.build import GPP as cpp_moe
@@ -71,6 +75,21 @@ class CPPFiniteDomainTests(unittest.TestCase):
         # Asking too many unique points
         domain.sample_points_in_domain(len(data_list), False)
         self.assertFalse(domain.sample_points_in_domain(1, False))
+
+    def test_sample_points_bug(self):
+        np.random.seed(1984)
+        data = np.random.randint(-10, 10, (7, 5)).astype(float)
+        data_list = data.tolist()
+        domain = cpp_moe.FiniteDomain(data_list,
+                                      data.shape[1])
+        for i in range(7):
+            points = domain.sample_points_in_domain(1, False)
+            self.assertEqual(1, len(points))
+            for point in points:
+                self.assertIn(point, points)
+                self.assertEqual(5, len(point))
+        points = domain.sample_points_in_domain(1, False)
+        self.assertEqual([], points)
 
 
 if __name__ == '__main__':

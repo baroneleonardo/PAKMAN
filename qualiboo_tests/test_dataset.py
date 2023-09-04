@@ -1,3 +1,7 @@
+"""Test Dataset
+
+Test on the Dataset class
+"""
 import unittest
 import pandas as pd
 import numpy as np

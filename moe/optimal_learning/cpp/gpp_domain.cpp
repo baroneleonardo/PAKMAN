@@ -413,6 +413,7 @@ boost::python::list FiniteDomain::SamplePointsInDomain(int sample_size,
       else {
         // Try again!
         i--;
+        continue;
       }
     }
     output.append(py_selected_point);

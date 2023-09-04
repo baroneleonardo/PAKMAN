@@ -1,3 +1,9 @@
+"""Finite domain tests
+
+Tests on the FiniteDomain API.
+Both Python and CPP implementations are tested to confirm
+that they can be swapped.
+"""
 import unittest
 
 import numpy as np
@@ -45,7 +51,7 @@ class PyFiniteDomainTests(unittest.TestCase):
                                                     allow_previously_sampled=False)
             for point in sample:
                 self.assertTrue(any(np.all(point == row)
-                                    for row in points))
+                                    for row in points), str(point))
         # The next sample will be None
         self.assertIsNone(
             domain.sample_points_in_domain(sample_size,
