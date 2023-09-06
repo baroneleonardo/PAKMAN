@@ -22,7 +22,8 @@ _log.setLevel(logging.DEBUG)
 ###########################
 # Script parameters
 ###########################
-parser = argparse.ArgumentParser(prog='Simplified finite domain q-KG',
+parser = argparse.ArgumentParser(prog='QALIBOO: Simplified finite domain q-KG',
+                                 description='QALIBOO: Simplified finite domain q-KG',
                                  usage='Specify the selected problem and the other parameters.'
                                        ' Results are saved in the results/simplified_runs folder')
 parser.add_argument('--problem', '-p', help='Selected dataset', choices=['Query26', 'LiGen', 'StereoMatch'], required=True)

@@ -27,12 +27,12 @@ class Dataset:
         unique_data = data[param_cols + [target_col]].groupby(param_cols).agg(np.mean).reset_index()
         n_rows = len(unique_data)
         if n_init_rows > n_rows:
-            logging.warning(f'Duplicate data in {csv_file}. '
+            logging.info(f'Duplicate data in {csv_file}. '
                             f'{n_init_rows - n_rows} rows could be dropped '
                             f'({(n_init_rows - n_rows)/n_init_rows*100:.02f}%). '
                             f'leaving {n_rows} rows')
         if reduce_to_unique:
-            logging.warning(f'Dropping {n_init_rows - n_rows} rows')
+            logging.info(f'Dropping {n_init_rows - n_rows} rows')
             self._data = unique_data
         else:
             self._data = data

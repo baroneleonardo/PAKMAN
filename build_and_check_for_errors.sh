@@ -1,9 +1,8 @@
 #!/bin/bash
-conda activate polimi
-while read -p 'Retry build?' -r RESPONSE
+while read -p 'Retry build [y/N]?' -r RESPONSE
 do
   echo "Response: '$RESPONSE'"
-  if [ "$RESPONSE" == "" ]; then
+  if [ "${RESPONSE^}" == "" ] || [ "${RESPONSE^}" == "N" ]; then
     echo 'Exiting'
     break
   fi
