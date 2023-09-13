@@ -1,0 +1,412 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      15.94273954729128,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      50.08247568122639,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 14,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      16.03935234328263,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      49.67345908122199,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 21,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      15.955187956071477,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      50.11352079529003,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 28,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 3,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      16.0,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      50.0,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 35,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 4,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      16.0,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      50.0,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 42,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 5,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      15.965539454623178,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      49.791552334691666,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 49,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 6,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      15.981378400214433,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      49.73335595220739,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 56,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 7,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      16.0,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      50.0,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 63,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 8,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      16.04543613784334,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      50.247370303181064,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 70,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  },
+  {
+    "iteration": 9,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 14,
+    "target": "LiGen",
+    "suggested_minimum": [
+      15.931734686557176,
+      8.0,
+      1.0,
+      32.0,
+      256.0,
+      49.652788769957176,
+      3.0,
+      1048576.0
+    ],
+    "known_minimum": [
+      8,
+      8,
+      1,
+      96,
+      256,
+      256,
+      2,
+      5242880
+    ],
+    "closest_point_in_domain": [
+      16,
+      8,
+      1,
+      32,
+      256,
+      50,
+      3,
+      1048576
+    ],
+    "computed_cost": 826.223434,
+    "n_evaluations": 77,
+    "error": 158.67901800000004,
+    "error_ratio": 0.2377055581571969
+  }
+]
