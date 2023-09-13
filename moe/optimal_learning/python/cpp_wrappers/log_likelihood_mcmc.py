@@ -204,7 +204,7 @@ class GaussianProcessLogLikelihoodMCMC(object):
 
           # Start sampling
           pos, _, _ = sampler.run_mcmc(self.p0, self.chain_length,
-                                       rstate0=self.rng)
+                                       rstate0=self.rng, skip_initial_state_check=True)
 
           # Save the current position, it will be the start point in
           # the next iteration
@@ -274,7 +274,7 @@ class GaussianProcessLogLikelihoodMCMC(object):
                                                           self._historical_data, self.derivatives)
 
 
-    def compute_log_likelihood(self, hyps):
+    def compute_log_likelihood(self, hyps0):
         r"""Compute the objective_type measure at the specified hyperparameters.
 
         :return: value of log_likelihood evaluated at hyperparameters (``LL(y | X, \theta)``)
@@ -283,10 +283,15 @@ class GaussianProcessLogLikelihoodMCMC(object):
         """
         # Bound the hyperparameter space to keep things sane. Note all
         # hyperparameters live on a log scale
+        hyps = hyps0.copy()
         if numpy.any((-20 > hyps) + (hyps > 20)):
-          return -numpy.inf
+            return -numpy.inf
         if not self.noisy:
-          hyps[(self.dim+1):] = numpy.log((1+self._num_derivatives)*[1.e-8])
+            # TODO: this is actually overwriting the input array, causing the MC sampler to have just
+            # log(1.e-8) as the 4th (last) column entries of the walkers coordinates, thus breaking the entire thing...
+            # Also, this next line looks VERY weird, considering it is overwriting part of the input
+            # data with some "noise" IF the attribute "noisy" is FALSE...
+            hyps[(self.dim+1):] = numpy.log((1+self._num_derivatives)*[1.e-8])
 
         posterior = 1
         if self.prior is not None:

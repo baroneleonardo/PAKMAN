@@ -7,10 +7,10 @@ import pytest
 import moe
 from moe.optimal_learning.python.data_containers import HistoricalData, SamplePoint
 from moe.optimal_learning.python.geometry_utils import ClosedInterval
-from moe.optimal_learning.python.python_version.covariance import SquareExponential
+from moe.optimal_learning.python.cpp_wrappers.covariance import SquareExponential
 from moe.optimal_learning.python.python_version.domain import TensorProductDomain
-from moe.optimal_learning.python.python_version.expected_improvement import multistart_expected_improvement_optimization, ExpectedImprovement
-from moe.optimal_learning.python.python_version.gaussian_process import GaussianProcess
+from moe.optimal_learning.python.cpp_wrappers.expected_improvement import multistart_expected_improvement_optimization, ExpectedImprovement
+from moe.optimal_learning.python.cpp_wrappers.gaussian_process import GaussianProcess
 from moe.optimal_learning.python.python_version.optimization import GradientDescentParameters, GradientDescentOptimizer, LBFGSBParameters, LBFGSBOptimizer
 from moe.optimal_learning.python.repeated_domain import RepeatedDomain
 from moe.tests.optimal_learning.python.gaussian_process_test_case import GaussianProcessTestCase, GaussianProcessTestEnvironmentInput
@@ -446,7 +446,7 @@ class TestExpectedImprovement(GaussianProcessTestCase):
             points_to_sample = domain.generate_random_point_in_domain()
             python_ei_eval = moe.optimal_learning.python.python_version.expected_improvement.ExpectedImprovement(python_gp, points_to_sample)
 
-            for _ in xrange(num_tests_per_case):
+            for _ in range(num_tests_per_case):
                 points_to_sample = domain.generate_random_point_in_domain()
                 python_ei_eval.current_point = points_to_sample
 

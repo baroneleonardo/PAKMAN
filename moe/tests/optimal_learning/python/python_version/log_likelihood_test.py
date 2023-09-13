@@ -9,10 +9,10 @@ comparison with C++ for verification of the Python code.
 import numpy
 
 from moe.optimal_learning.python.geometry_utils import ClosedInterval
-from moe.optimal_learning.python.python_version.covariance import SquareExponential
+from moe.optimal_learning.python.cpp_wrappers.covariance import SquareExponential
 from moe.optimal_learning.python.python_version.domain import TensorProductDomain
-from moe.optimal_learning.python.python_version.gaussian_process import GaussianProcess
-from moe.optimal_learning.python.python_version.log_likelihood import multistart_hyperparameter_optimization, evaluate_log_likelihood_at_hyperparameter_list, GaussianProcessLogMarginalLikelihood
+from moe.optimal_learning.python.cpp_wrappers.gaussian_process import GaussianProcess
+from moe.optimal_learning.python.cpp_wrappers.log_likelihood import multistart_hyperparameter_optimization, evaluate_log_likelihood_at_hyperparameter_list, GaussianProcessLogMarginalLikelihood
 from moe.optimal_learning.python.python_version.optimization import GradientDescentParameters, GradientDescentOptimizer
 from moe.tests.optimal_learning.python.gaussian_process_test_case import GaussianProcessTestCase, GaussianProcessTestEnvironmentInput
 
@@ -61,7 +61,7 @@ class TestGaussianProcessLogMarginalLikelihood(GaussianProcessTestCase):
             lml = GaussianProcessLogMarginalLikelihood(python_cov, historical_data)
 
             analytic_grad = lml.compute_grad_log_likelihood()
-            for k in xrange(lml.num_hyperparameters):
+            for k in range(lml.num_hyperparameters):
                 hyperparameters_old = lml.hyperparameters
 
                 # hyperparamter + h

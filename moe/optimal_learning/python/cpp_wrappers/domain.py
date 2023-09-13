@@ -6,13 +6,15 @@ for C++ calls to construct the matching C++ domain object.
 
 """
 import copy
+from logging import warning
 
 import moe.build.GPP as C_GP
 from moe.optimal_learning.python.constant import TENSOR_PRODUCT_DOMAIN_TYPE, SIMPLEX_INTERSECT_TENSOR_PRODUCT_DOMAIN_TYPE
 from moe.optimal_learning.python.interfaces.domain_interface import DomainInterface
+from moe.optimal_learning.python.python_version.domain import TensorProductDomain as PythonTensorProductDomain
 
 
-class TensorProductDomain(DomainInterface):
+class TensorProductDomain(PythonTensorProductDomain):
 
     r"""Domain type for a tensor product domain.
 
@@ -93,7 +95,9 @@ class TensorProductDomain(DomainInterface):
         We do not currently expose a C++ endpoint for this call; see :mod:`moe.optimal_learning.python.interfaces.domain_interface` for interface specification.
 
         """
-        raise NotImplementedError("C++ wrapper currently does not support domain member functions.")
+        # warning("C++ wrapper currently does not support domain member function "
+        #         "`generate_uniform_random_points_in_domain`. Falling back to python implementation")
+        return super().generate_uniform_random_points_in_domain(num_points=num_points, random_source=random_source)
 
     def compute_update_restricted_to_domain(self, max_relative_change, current_point, update_vector):
         r"""Compute a new update so that CheckPointInside(``current_point`` + ``new_update``) is true.
@@ -101,7 +105,11 @@ class TensorProductDomain(DomainInterface):
         We do not currently expose a C++ endpoint for this call; see :mod:`moe.optimal_learning.python.interfaces.domain_interface` for interface specification.
 
         """
-        raise NotImplementedError("C++ wrapper currently does not support domain member functions.")
+        # warning("C++ wrapper currently does not support domain member function "
+        #         "`compute_update_restricted_to_domain`. Falling back to python implementation")
+        return super().compute_update_restricted_to_domain(max_relative_change=max_relative_change,
+                                                           current_point=current_point,
+                                                           update_vector=update_vector)
 
 
 class SimplexIntersectTensorProductDomain(DomainInterface):

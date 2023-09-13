@@ -1,0 +1,60 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      24.383321011322018,
+      3.0,
+      10.682264046238402,
+      8.164549141594831
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      11,
+      8
+    ],
+    "computed_cost": 78136.0,
+    "n_evaluations": 20,
+    "error": 41345.0,
+    "error_ratio": 1.1237802723492158
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 10,
+    "q": 10,
+    "m": 10,
+    "target": "Stereomatch",
+    "suggested_minimum": [
+      34.54092457889467,
+      2.8335804031526317,
+      8.952025403416604,
+      3.370899444044641
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      34,
+      3,
+      9,
+      3
+    ],
+    "computed_cost": 61953.0,
+    "n_evaluations": 30,
+    "error": 25162.0,
+    "error_ratio": 0.6839172623739501
+  }
+]

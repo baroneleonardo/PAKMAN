@@ -14,7 +14,7 @@ import numpy
 import pytest
 
 from moe.optimal_learning.python.geometry_utils import ClosedInterval
-from moe.optimal_learning.python.python_version.covariance import SquareExponential
+from moe.optimal_learning.python.cpp_wrappers.covariance import SquareExponential
 from moe.optimal_learning.python.python_version.domain import TensorProductDomain
 import moe.tests.optimal_learning.python.gaussian_process_test_utils as gp_utils
 from moe.tests.optimal_learning.python.optimal_learning_test_case import OptimalLearningTestCase
@@ -180,7 +180,7 @@ class TestSquareExponential(OptimalLearningTestCase):
         points1 = domain.generate_uniform_random_points_in_domain(num_tests)
         points2 = domain.generate_uniform_random_points_in_domain(num_tests)
 
-        for i in xrange(num_tests):
+        for i in range(num_tests):
             point_one = points1[i, ...]
             point_two = points2[i, ...]
 
@@ -191,7 +191,7 @@ class TestSquareExponential(OptimalLearningTestCase):
             )
 
             analytic_grad = covariance.hyperparameter_grad_covariance(point_one, point_two)
-            for k in xrange(covariance.num_hyperparameters):
+            for k in range(covariance.num_hyperparameters):
                 hyperparameters_old = covariance.hyperparameters
 
                 # hyperparamter + h

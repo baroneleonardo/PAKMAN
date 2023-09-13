@@ -89,5 +89,5 @@ hyper_params = multistart_hyperparameter_optimization(log_likelihood_optimizer=s
 discrete_pts_optima = python_search_domain.generate_uniform_random_points_in_domain(1000)
 
 points = sample_from_global_optima(cpp_gp, 1000, objective_func._search_domain, discrete_pts_optima, 200)
-print points
-print cpp_gp.compute_mean_of_points(points)
+print(points)
+print(cpp_gp.compute_mean_of_points(points))

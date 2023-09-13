@@ -9,8 +9,8 @@ import numpy
 
 from moe.optimal_learning.python.data_containers import HistoricalData, SamplePoint
 from moe.optimal_learning.python.geometry_utils import ClosedInterval
-from moe.optimal_learning.python.python_version.covariance import SquareExponential
-from moe.optimal_learning.python.python_version.gaussian_process import GaussianProcess
+from moe.optimal_learning.python.cpp_wrappers.covariance import SquareExponential
+from moe.optimal_learning.python.cpp_wrappers.gaussian_process import GaussianProcess
 
 
 def fill_random_covariance_hyperparameters(hyperparameter_interval, num_hyperparameters, covariance_type=SquareExponential):
@@ -29,7 +29,7 @@ def fill_random_covariance_hyperparameters(hyperparameter_interval, num_hyperpar
 
     """
     hyper = [numpy.random.uniform(hyperparameter_interval.min, hyperparameter_interval.max)
-             for _ in xrange(num_hyperparameters)]
+             for _ in range(num_hyperparameters)]
     return covariance_type(hyper)
 
 

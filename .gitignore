@@ -47,3 +47,8 @@ docs/cpp_tree.rst
 
 # built binaries
 build
+.coverage
+
+.ipynb_checkpoints
+
+build_log.txt
