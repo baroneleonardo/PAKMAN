@@ -10,8 +10,7 @@ from .abstract_problem import AbstractProblem
 class ParabolicMinAtOrigin(AbstractProblem):
 
     def __init__(self):
-        super().__init__(dim=2,
-                         search_domain=np.array([[-10.0, 10.0], [-10.0, 10.0]]),
+        super().__init__(search_domain=np.array([[-10.0, 10.0], [-10.0, 10.0]]),
                          min_value=2.0)
         # self.num_init_pts = 3
 
@@ -21,8 +20,7 @@ class ParabolicMinAtOrigin(AbstractProblem):
 
 class ParabolicMinAtTwoAndThree(AbstractProblem):
     def __init__(self):
-        super().__init__(dim=2,
-                         search_domain=np.array([[-10.0, 10.0], [-10.0, 10.0]]),
+        super().__init__(search_domain=np.array([[-10.0, 10.0], [-10.0, 10.0]]),
                          min_value=2.0)
         # self.num_init_pts = 3
 
@@ -33,8 +31,7 @@ class ParabolicMinAtTwoAndThree(AbstractProblem):
 class Branin(AbstractProblem):
 
     def __init__(self):
-        super().__init__(dim=2,
-                         search_domain=np.array([[0.0, 15.0], [-5.0, 15.0]]),
+        super().__init__(search_domain=np.array([[0.0, 15.0], [-5.0, 15.0]]),
                          min_value=0.397887)
         # self.num_init_pts = 3
 
@@ -58,9 +55,7 @@ class Branin(AbstractProblem):
 class Rosenbrock(AbstractProblem):
 
     def __init__(self):
-        dim = 2
-        super().__init__(dim=dim,
-                         search_domain=np.repeat([[-2., 2.]], dim, axis=0),
+        super().__init__(search_domain=np.repeat([[-2., 2.]], 2, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 
@@ -82,9 +77,7 @@ class Rosenbrock(AbstractProblem):
 class Hartmann3(AbstractProblem):
 
     def __init__(self):
-        dim = 3
-        super().__init__(dim=3,
-                         search_domain=np.repeat([[0., 1.]], dim, axis=0),
+        super().__init__(search_domain=np.repeat([[0., 1.]], 3, axis=0),
                          min_value=-3.86278)
         # self.num_init_pts = 3
 
@@ -95,25 +88,27 @@ class Hartmann3(AbstractProblem):
             :param x[3]: 3-dimension np array with domain stated above
         """
         alpha = np.array([1.0, 1.2, 3.0, 3.2])
-        A = np.array([[3., 10., 30.], [0.1, 10., 35.], [3., 10., 30.], [0.1, 10., 35.]])
-        P = 1e-4 * np.array([[3689, 1170, 2673], [4699, 4387, 7470], [1091, 8732, 5547], [381, 5743, 8828]])
-        results = [0.0]*4
+        A = np.array([[3., 10., 30.],
+                      [0.1, 10., 35.],
+                      [3., 10., 30.],
+                      [0.1, 10., 35.]])
+        P = 1e-4 * np.array([[3689, 1170, 2673],
+                             [4699, 4387, 7470],
+                             [1091, 8732, 5547],
+                             [381, 5743, 8828]])
+        result = 0
         for i in range(4):
             inner_value = 0.0
             for j in range(self.dim):
                 inner_value -= A[i, j] * pow(x[j] - P[i, j], 2.0)
-            results[0] -= alpha[i] * np.exp(inner_value)
-            for j in range(self.dim-self._num_fidelity):
-                results[j+1] -= (alpha[i] * np.exp(inner_value)) * ((-2) * A[i,j] * (x[j] - P[i, j]))
-        return np.array(results)
+            result -= alpha[i] * np.exp(inner_value)
+        return result
 
 
 class Levy4(AbstractProblem):
 
     def __init__(self):
-        dim = 4
-        super().__init__(dim=dim,
-                         search_domain=np.repeat([[-5., 5.]], dim, axis=0),
+        super().__init__(search_domain=np.repeat([[-5., 5.]], 4, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 
@@ -138,15 +133,13 @@ class Levy4(AbstractProblem):
 
         results[1:-1] += (((z[:-1] - 1)**2) * (20. * sin(pi * z[:-1] + 1) * cos(pi * z[:-1] + 1) * pi *(0.25))
                           + 2 * (z[:-1]-1) * (0.25) * (1 + 10. * sin(pi * z[:-1] + 1)**2 ))
-        return np.array(results)
+        return np.array(results).sum()
 
 
 class Hartmann6(AbstractProblem):
 
     def __init__(self):
-        dim = 6
-        super().__init__(dim=dim,
-                         search_domain=np.repeat([[0., 1.]], dim, axis=0),
+        super().__init__(search_domain=np.repeat([[0., 1.]], 6, axis=0),
                          min_value=-3.32237)
         # self.num_init_pts = 3
 
@@ -175,9 +168,7 @@ class Hartmann6(AbstractProblem):
 class Ackley(AbstractProblem):
 
     def __init__(self):
-        dim = 5
-        super().__init__(dim=dim,
-                         search_domain=np.repeat([[-1., 1.]], dim, axis=0),
+        super().__init__(search_domain=np.repeat([[-1., 1.]], 5, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 

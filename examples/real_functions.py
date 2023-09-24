@@ -34,8 +34,7 @@ def run_in_separate_process(method, args):
 class CIFAR10(AbstractProblem):
 
     def __init__(self):
-        super().__init__(dim=5,
-                         search_domain=np.array([[-6, 0], [32, 512], [5, 9], [5, 9], [5, 9]]),
+        super().__init__(search_domain=np.array([[-6, 0], [32, 512], [5, 9], [5, 9], [5, 9]]),
                          min_value=0.0)
         # self.num_init_pts = 1
         self._observations = []  # TODO: Remove?
@@ -164,8 +163,7 @@ class CIFAR10(AbstractProblem):
 class KISSGP(AbstractProblem):
 
     def __init__(self):
-        super().__init__(dim=3,
-                         search_domain=np.array([[-1, 3], [-1, 3], [-1, 3]]),
+        super().__init__(search_domain=np.array([[-1, 3], [-1, 3], [-1, 3]]),
                          min_value=0.0)
         # self.num_init_pts = 1
         self._num_observations = np.arange(self.dim)  # TODO: Remove?

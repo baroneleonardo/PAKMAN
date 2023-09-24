@@ -1,0 +1,350 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      25.07640296778722,
+      2.8222604562231117,
+      15.046798787727289,
+      2.3945110893117163
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      15,
+      2
+    ],
+    "computed_cost": 69030.0,
+    "n_evaluations": 6,
+    "error": 32239.0,
+    "error_ratio": 0.8762740887717104
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      25.07640296778722,
+      2.887952327779264,
+      15.103512323057556,
+      2.60196192867603
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      15,
+      3
+    ],
+    "computed_cost": 69501.0,
+    "n_evaluations": 9,
+    "error": 32710.0,
+    "error_ratio": 0.8890761327498573
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      21.452060570647458,
+      3.0,
+      15.31204370797144,
+      2.5579171171037864
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      15,
+      3
+    ],
+    "computed_cost": 69501.0,
+    "n_evaluations": 12,
+    "error": 32710.0,
+    "error_ratio": 0.8890761327498573
+  },
+  {
+    "iteration": 3,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      23.277988754569016,
+      2.947103526278446,
+      15.485169295701189,
+      2.1055629870904053
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      15,
+      2
+    ],
+    "computed_cost": 69030.0,
+    "n_evaluations": 15,
+    "error": 32239.0,
+    "error_ratio": 0.8762740887717104
+  },
+  {
+    "iteration": 4,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      24.408193904767327,
+      2.914498830512293,
+      15.262275818694524,
+      2.5173234519627945
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      15,
+      3
+    ],
+    "computed_cost": 69501.0,
+    "n_evaluations": 18,
+    "error": 32710.0,
+    "error_ratio": 0.8890761327498573
+  },
+  {
+    "iteration": 5,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      24.992554645650912,
+      2.891889727661043,
+      15.423844416334259,
+      2.5702301192445036
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      15,
+      3
+    ],
+    "computed_cost": 69501.0,
+    "n_evaluations": 21,
+    "error": 32710.0,
+    "error_ratio": 0.8890761327498573
+  },
+  {
+    "iteration": 6,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      24.5726341225888,
+      2.845433742227663,
+      14.765162597864116,
+      2.689914000510916
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      15,
+      3
+    ],
+    "computed_cost": 69501.0,
+    "n_evaluations": 24,
+    "error": 32710.0,
+    "error_ratio": 0.8890761327498573
+  },
+  {
+    "iteration": 7,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      24.026332271639138,
+      2.873790052189184,
+      14.81688608185732,
+      3.02419826746915
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      15,
+      3
+    ],
+    "computed_cost": 69501.0,
+    "n_evaluations": 27,
+    "error": 32710.0,
+    "error_ratio": 0.8890761327498573
+  },
+  {
+    "iteration": 8,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      25.88313795268085,
+      2.907020588372702,
+      13.757580225219446,
+      2.384135869261134
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      14,
+      2
+    ],
+    "computed_cost": 65400.0,
+    "n_evaluations": 30,
+    "error": 28609.0,
+    "error_ratio": 0.7776086542904515
+  },
+  {
+    "iteration": 9,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      24.466732871624917,
+      2.9140283951578803,
+      10.954812169876078,
+      1.9368031118130216
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      11,
+      2
+    ],
+    "computed_cost": 61338.0,
+    "n_evaluations": 33,
+    "error": 24547.0,
+    "error_ratio": 0.6672012176891088
+  },
+  {
+    "iteration": 10,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      24.09092333401758,
+      3.0,
+      8.6179965101532,
+      1.0
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      9,
+      1
+    ],
+    "computed_cost": 56047.0,
+    "n_evaluations": 36,
+    "error": 19256.0,
+    "error_ratio": 0.5233888722785464
+  },
+  {
+    "iteration": 11,
+    "n_initial_points": 3,
+    "q": 3,
+    "m": 12,
+    "target": "StereoMatch",
+    "suggested_minimum": [
+      24.842437069017056,
+      3.0,
+      7.8517330462942905,
+      1.0
+    ],
+    "known_minimum": [
+      14,
+      3,
+      1,
+      1
+    ],
+    "closest_point_in_domain": [
+      24,
+      3,
+      8,
+      1
+    ],
+    "computed_cost": 54662.0,
+    "n_evaluations": 39,
+    "error": 17871.0,
+    "error_ratio": 0.4857437960370743
+  }
+]

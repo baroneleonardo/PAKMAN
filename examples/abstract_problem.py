@@ -8,10 +8,8 @@ from moe.optimal_learning.python.cpp_wrappers.domain import TensorProductDomain 
 class AbstractProblem:
 
     def __init__(self, *,
-                 dim,
                  search_domain,
                  min_value):
-        self.dim = dim
         self.search_domain = search_domain
         self.min_value = min_value
 
@@ -23,6 +21,10 @@ class AbstractProblem:
 
     def get_initial_points(self):
         return np.zeros((self.num_init_pts, self.dim))
+
+    @property
+    def dim(self) -> int:
+        return len(self.search_domain)
 
     @property
     def evaluation_count(self):

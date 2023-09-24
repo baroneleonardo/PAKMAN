@@ -4,7 +4,7 @@ from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, knowle
 from moe.optimal_learning.python import repeated_domain
 from moe.optimal_learning.python.python_version import optimization
 
-from qualiboo import finite_domain
+from qaliboo import finite_domain
 
 
 def compute_suggested_minimum(domain: finite_domain.FiniteDomain,

@@ -12,12 +12,29 @@ from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimi
 from moe.optimal_learning.python.python_version import optimization as py_optimization
 from moe.optimal_learning.python import default_priors
 
-from examples import bayesian_optimization, auxiliary
-from qualiboo import precomputed_functions
+from examples import bayesian_optimization, auxiliary, synthetic_functions
+from qaliboo import precomputed_functions, finite_domain
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
+
+###########################
+# Constants
+###########################
+N_RANDOM_WALKERS = 2 ** 4
+AVAILABLE_PROBLEMS = [
+    # Toy problems:
+    'ParabolicMinAtOrigin',
+    'ParabolicMinAtTwoAndThree',
+    # Benchmark functions:
+    'Hartmann3',
+    # 'Levy4',  # This function implementation is probably wrong
+    # Data sets
+    'Query26',
+    'LiGen',
+    'StereoMatch'
+]
 
 ###########################
 # Script parameters
@@ -26,22 +43,13 @@ parser = argparse.ArgumentParser(prog='QALIBOO: Simplified finite domain q-KG',
                                  description='QALIBOO: Simplified finite domain q-KG',
                                  usage='Specify the selected problem and the other parameters.'
                                        ' Results are saved in the results/simplified_runs folder')
-parser.add_argument('--problem', '-p', help='Selected dataset', choices=['Query26', 'LiGen', 'StereoMatch'], required=True)
+parser.add_argument('--problem', '-p', help='Selected dataset', choices=AVAILABLE_PROBLEMS, required=True)
 parser.add_argument('--init', '-i', help='Number of initial points', type=int, default=7)
 parser.add_argument('--iter', '-n', help='Number of iterations', type=int, default=10)
 parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
 parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=12)
 
 params = parser.parse_args()
-
-###########################
-# Constants
-###########################
-# N_INITIAL_POINTS = 10
-# N_ITERATIONS = 20
-# N_POINTS_PER_ITERATION = 10  # The q- parameter
-# M_DOMAIN_DISCRETIZATION_SAMPLE_SIZE = 10  # M parameter
-N_RANDOM_WALKERS = 2 ** 4
 
 #############################################
 # Collection of target functions and domains
@@ -55,9 +63,9 @@ N_RANDOM_WALKERS = 2 ** 4
 # objective_func_name = 'Hartmann3'
 # objective_func = synthetic_functions.Hartmann3()
 # known_minimum = None
-# domain = finite_domain.FiniteDomain.Grid(np.arange(0, 1, 0.005),
-#                                          np.arange(0, 1, 0.005),
-#                                          np.arange(0, 1, 0.005))
+# domain = finite_domain.FiniteDomain.Grid(np.arange(0, 1, 0.01),
+#                                          np.arange(0, 1, 0.01),
+#                                          np.arange(0, 1, 0.01))
 
 # objective_func_name = 'Query26'
 # objective_func = precomputed_functions.Query26
@@ -89,9 +97,35 @@ N_RANDOM_WALKERS = 2 ** 4
 # Initializing variables from parameters
 #########################################
 objective_func_name = params.problem
-objective_func = getattr(precomputed_functions, params.problem)
-known_minimum = objective_func.minimum
-domain = objective_func
+
+if objective_func_name == 'ParabolicMinAtOrigin':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0])
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-5, 5, 0.1),
+                                                np.arange(-5, 5, 0.1))
+elif objective_func_name == 'ParabolicMinAtTwoAndThree':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([2.0, 3.0])
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-5, 5, 0.1),
+                                                np.arange(-5, 5, 0.1))
+elif objective_func_name == 'Hartmann3':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.114614, 0.555649, 0.852547])
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 1, 0.01),
+                                                np.arange(0, 1, 0.01),
+                                                np.arange(0, 1, 0.01))
+# elif objective_func_name == 'Levy4':  # Levy4 implementation is probably broken
+#     objective_func = getattr(synthetic_functions, params.problem)()
+#     known_minimum = np.array([1, 1, 1, 1])
+#     domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-5, 5, 0.1),
+#                                                 np.arange(-5, 5, 0.1),
+#                                                 np.arange(-5, 5, 0.1),
+#                                                 np.arange(-5, 5, 0.1))
+else:
+    objective_func = getattr(precomputed_functions, params.problem)
+    known_minimum = objective_func.minimum
+    domain = objective_func
+
 n_initial_points = params.init
 n_iterations = params.iter
 n_points_per_iteration = params.points
@@ -144,8 +178,7 @@ initial_points_array = domain.sample_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 # Build points using custom container class
 initial_points = [data_containers.SamplePoint(pt,
-                                              [initial_points_value[num, i]
-                                               for i in objective_func.observations])
+                                              initial_points_value[num])
                   for num, pt in enumerate(initial_points_array)]
 
 # Build historical data container
@@ -277,7 +310,7 @@ for s in range(n_iterations):
     # > ALgorithm 1.5: 5: Sample these points (z∗1 , z∗2 , · · · , z∗q)
     # > ...
     sampled_points = [data_containers.SamplePoint(pt,
-                                                  objective_func.evaluate(pt)[objective_func.observations])
+                                                  objective_func.evaluate(pt))
                       for pt in next_points]
 
     time1 = time.time()
@@ -314,8 +347,9 @@ for s in range(n_iterations):
         _log.info(f"Distance from closest point in domain to known minimum: {np.linalg.norm(closest_point_in_domain - known_minimum)}")
 
     error = np.linalg.norm(objective_func.min_value - computed_cost)
+    error_ratio = np.abs(error/objective_func.min_value)
     _log.info(f'Error: {error}')
-    _log.info(f'Error ratio: {error/objective_func.min_value}')
+    _log.info(f'Error ratio: {error_ratio}')
     _log.info(f'Squared error: {np.square(error)}')
 
     results.append(
@@ -326,12 +360,12 @@ for s in range(n_iterations):
             m=m_domain_discretization_sample_size,
             target=objective_func_name,
             suggested_minimum=suggested_minimum.tolist(),
-            known_minimum=known_minimum.to_list(),
+            known_minimum=known_minimum.tolist(),
             closest_point_in_domain=closest_point_in_domain.tolist(),
             computed_cost=float(computed_cost),
             n_evaluations=objective_func.evaluation_count,
             error=error,
-            error_ratio=error/objective_func.min_value
+            error_ratio=error_ratio
         )
     )
 

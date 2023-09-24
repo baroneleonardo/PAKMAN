@@ -8,7 +8,7 @@ import logging
 import numpy as np
 
 from examples import abstract_problem
-from qualiboo import finite_domain, datasets
+from qaliboo import finite_domain, datasets
 
 
 _log = logging.getLogger(__name__)
@@ -22,7 +22,6 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
         M = np.max(dataset.X, axis=0)
         domain_bounds = np.vstack([m, M]).transpose()
         super().__init__(data=dataset.X.values,
-                         dim=dataset.X.shape[1],
                          search_domain=domain_bounds,
                          min_value=np.min(dataset.y))
         self._dataset = dataset
@@ -30,7 +29,7 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
     @property
     def minimum(self):
         ix = np.argmin(self._dataset.y)
-        return self._dataset.X.loc[ix]
+        return self._dataset.X.loc[ix].values
 
     def evaluate_true(self, x):
         distances, indexes, points = self.find_distances_indexes_closest_points(x)

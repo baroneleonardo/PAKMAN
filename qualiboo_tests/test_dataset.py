@@ -5,7 +5,7 @@ Test on the Dataset class
 import unittest
 import pandas as pd
 import numpy as np
-from qualiboo import datasets
+from qaliboo import datasets
 
 
 class DatasetTests(unittest.TestCase):
@@ -13,7 +13,7 @@ class DatasetTests(unittest.TestCase):
     def test_dataset(self):
         feature_cols = ['#vm', 'ram']
         target_col = 'cost'
-        df = pd.read_csv('../qualiboo/datasets/query26_vm_ram.csv')
+        df = pd.read_csv('../qaliboo/datasets/query26_vm_ram.csv')
         df = df[feature_cols + [target_col]]
         n_rows = df.shape[0]
         n_cols = len(feature_cols)

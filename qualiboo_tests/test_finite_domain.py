@@ -8,7 +8,7 @@ import unittest
 
 import numpy as np
 
-from qualiboo import finite_domain
+from qaliboo import finite_domain
 
 
 class PyFiniteDomainTests(unittest.TestCase):

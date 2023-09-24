@@ -4,6 +4,8 @@ This module implements two classes that share the same interface.
 One is implemented in pure python, the other one is a wrapper
 araound a C++ implementation.
 """
+import abc
+
 import numpy as np
 from scipy import spatial
 from typing import Tuple
@@ -13,7 +15,7 @@ from moe.optimal_learning.python import geometry_utils
 from moe.build import GPP as C_GP
 
 
-class _BaseFiniteDomain:
+class _AbstractFiniteDomain(abc.ABC):
 
     @classmethod
     def Grid(cls, *coords):
@@ -25,8 +27,13 @@ class _BaseFiniteDomain:
         data = np.vstack([g.ravel() for g in grid]).T
         return cls(data)
 
+    @property
+    @abc.abstractmethod
+    def dim(self) -> int:
+        raise NotImplementedError
 
-class FiniteDomain(_BaseFiniteDomain):
+
+class FiniteDomain(_AbstractFiniteDomain):
 
     # TODO: Using this type of domain since C++ implementation
     #  of FiniteDomain is not complete
@@ -52,6 +59,10 @@ class FiniteDomain(_BaseFiniteDomain):
         selected = np.random.choice(indexes, sample_size, replace=False)
         self._sampled[selected] = True
         return self._data[selected]
+
+    @property
+    def dim(self) -> int:
+        return self._data.shape[1]
 
     @property
     def domain_bounds(self):
@@ -128,7 +139,7 @@ class FiniteDomain(_BaseFiniteDomain):
         return self.find_distances_indexes_closest_points(point, k=1)
 
 
-class CPPFiniteDomain(_BaseFiniteDomain):
+class CPPFiniteDomain(_AbstractFiniteDomain):
 
     # TODO: Using this type of domain since C++ implementation
     #  of FiniteDomain is not complete
@@ -151,6 +162,10 @@ class CPPFiniteDomain(_BaseFiniteDomain):
         if points_as_list:
             # Return something only if the list is not empty
             return np.array(points_as_list)
+
+    @property
+    def dim(self) -> int:
+        return self._cpp_finite_domain.dim()
 
     @property
     def domain_bounds(self):

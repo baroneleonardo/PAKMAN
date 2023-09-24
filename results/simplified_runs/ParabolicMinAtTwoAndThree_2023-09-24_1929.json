@@ -1,0 +1,71 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "ParabolicMinAtTwoAndThree",
+    "suggested_minimum": [
+      2.3956337618509624,
+      3.678508739104887
+    ],
+    "known_minimum": [
+      1.9999999999999751,
+      2.9999999999999716
+    ],
+    "closest_point_in_domain": [
+      2.3999999999999737,
+      3.699999999999969
+    ],
+    "computed_cost": 2.177999999999981,
+    "n_evaluations": 14,
+    "error": 0.17799999999998084,
+    "error_ratio": 0.08899999999999042
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "ParabolicMinAtTwoAndThree",
+    "suggested_minimum": [
+      1.8977013742499567,
+      2.728528297025017
+    ],
+    "known_minimum": [
+      1.9999999999999751,
+      2.9999999999999716
+    ],
+    "closest_point_in_domain": [
+      1.8999999999999755,
+      2.6999999999999726
+    ],
+    "computed_cost": 2.023000000000006,
+    "n_evaluations": 21,
+    "error": 0.023000000000005905,
+    "error_ratio": 0.011500000000002952
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "ParabolicMinAtTwoAndThree",
+    "suggested_minimum": [
+      1.9754601925256934,
+      2.994258575089883
+    ],
+    "known_minimum": [
+      1.9999999999999751,
+      2.9999999999999716
+    ],
+    "closest_point_in_domain": [
+      1.9999999999999751,
+      2.9999999999999716
+    ],
+    "computed_cost": 2.0,
+    "n_evaluations": 28,
+    "error": 0.0,
+    "error_ratio": 0.0
+  }
+]

@@ -90,9 +90,21 @@ $ python -m pip install -e .
 ## Running QALIBOO
 
 The program is shipped with three test precomputed functions / datasets:
-* LiGen
-* Query26
-* StereoMatch
+* _**LiGen**_
+* _**Query26**_
+* _**StereoMatch**_
+
+Additionally, a few toy examples and benchmark functions
+are also available. They are evaluated on a discretization of their
+domain of 100 steps in each dimension. 
+For instance the 3D Hartmann function, which is defined on
+the [0, 1] x [0, 1] x [0, 1] cube, is evaluated on a 100 x 100 x 100 grid
+with each [0, 1] interval divided in steps of size 0.01
+
+The toy examples / benchmarks are:
+* _**ParabolicMinAtOrigin**_: a simple paraboloid with minimum at (0, 0)
+* _**ParabolicMinAtTwoAndThree**_: a simple paraboloid with minimum at (2, 3)
+* _**Hartmann3**_: The Hartmann 3D function
 
 To run the program with default parameters, just use
 ```bash
@@ -105,6 +117,8 @@ $ python main.py -p Query26
 
 > NOTE: In some cases, if the internal q-EI does not converge, you may see some
 logs warning that a fallback algorithm it is used. This is not an error
+
+> NOTE: 
 
 The results are saved in JSON format under `results/simplified_runs`
 
