@@ -11,6 +11,7 @@ from moe.optimal_learning.python import data_containers
 from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimization as cpp_optimization, knowledge_gradient
 from moe.optimal_learning.python.python_version import optimization as py_optimization
 from moe.optimal_learning.python import default_priors
+from moe.optimal_learning.python import random_features
 
 from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
@@ -22,7 +23,7 @@ _log.setLevel(logging.DEBUG)
 ###########################
 # Constants
 ###########################
-N_RANDOM_WALKERS = 2 ** 4
+N_RANDOM_WALKERS = 1 #2 ** 4
 AVAILABLE_PROBLEMS = [
     # Toy problems:
     'ParabolicMinAtOrigin',
@@ -45,7 +46,7 @@ parser = argparse.ArgumentParser(prog='QALIBOO: Simplified finite domain q-KG',
                                        ' Results are saved in the results/simplified_runs folder')
 parser.add_argument('--problem', '-p', help='Selected dataset', choices=AVAILABLE_PROBLEMS, required=True)
 parser.add_argument('--init', '-i', help='Number of initial points', type=int, default=7)
-parser.add_argument('--iter', '-n', help='Number of iterations', type=int, default=10)
+parser.add_argument('--iter', '-n', help='Number of iterations', type=int, default=9)
 parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
 parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=12)
 
@@ -220,13 +221,13 @@ if known_minimum is not None:
     if not np.all(np.equal(known_minimum_in_domain, known_minimum)):
         _log.warning('Known Minimum NOT in domain')
         known_minimum = known_minimum_in_domain
-
+_log.info(f'The minimum in the domain is:\n{known_minimum}')
 ###########################
 # Main cycle
 ###########################
 
 results = []
-result_file = f'./results/simplified_runs/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/my_runs/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
@@ -254,19 +255,31 @@ for s in range(n_iterations):
     # So, the infinite domain A is replaced by a discrete set of points A_n (see above)
     discrete_pts_list = []
     
+    '''
     qEI_next_points, _ = bayesian_optimization.qEI_generate_next_points_using_mcmc(
         gaussian_process_mcmc=gp_loglikelihood._gaussian_process_mcmc,
         search_domain=domain,
         gd_params=KG_gradient_descent_params,
         q=m_domain_discretization_sample_size,
         mc_iterations=2 ** 10)
-    
+    '''
+    # > The discrete set A_n is not chosen statically,
+    # > but evolves over time: specifically, we suggest drawing M samples
+    # > from the global optima of the posterior distribution of the Gaussian
+    glb_opt_smpl = False
     # Per tutti i miei modelli di GP 
     for i, cpp_gaussian_process in enumerate(gp_loglikelihood.models):  # What are these models?
 
+        if glb_opt_smpl == True:
+            init_points = domain.generate_uniform_random_points_in_domain(int(1e2))
+            discrete_pts_optima = random_features.sample_from_global_optima(cpp_gaussian_process, 
+                                                                            100, 
+                                                                            objective_func.search_domain, 
+                                                                            init_points, 
+                                                                            10)
+
         # genero 100 punti uniformemente al interno del dominio (!! ma se sono discreto)
         eval_pts = domain.generate_uniform_random_points_in_domain(int(1e2))
-        
         # aggiungo alla mia griglia di punti i 100 precedenti e quelli all0interno del mio gaussian process
         # al primo passo saranno chiaramente gli initial data
         eval_pts = np.reshape(np.append(eval_pts,
@@ -300,9 +313,18 @@ for s in range(n_iterations):
             initial_guess=initial_point,
             max_num_threads=4
         )
-        
+        '''
         discrete_pts_optima = np.reshape(np.append(qEI_next_points, report_point),
                                          (qEI_next_points.shape[0] + 1, cpp_gaussian_process.dim))
+        discrete_pts_optima = np.reshape(report_point, (1, cpp_gaussian_process.dim))
+        
+        '''
+        if glb_opt_smpl == True:
+            discrete_pts_optima = np.reshape(np.append(discrete_pts_optima, report_point),
+                                            (discrete_pts_optima.shape[0] + 1, cpp_gaussian_process.dim))
+        else:
+            discrete_pts_optima = np.reshape(report_point, (1, cpp_gaussian_process.dim))   
+        
         discrete_pts_list.append(discrete_pts_optima)
         
     ps_evaluator = knowledge_gradient.PosteriorMean(gp_loglikelihood.models[0], 0)
@@ -335,7 +357,7 @@ for s in range(n_iterations):
                       for pt in next_points]
 
     time1 = time.time()
-
+    
     # > ...
     # > re-train the hyperparameters of the GP by MLE
     # > and update the posterior distribution of f
@@ -354,7 +376,9 @@ for s in range(n_iterations):
     ####################
     # Suggested Minimum
     ####################
+    # Calcola la posterior del modello retrain e trova il minimo ---> questo sarà il mio punto di minimo
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
+    # Trovo il punto più vicino al mio nel punto di minimo
     _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
     computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
 

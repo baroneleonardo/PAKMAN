@@ -1,0 +1,262 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.3041787009142448,
+      0.6488362676067274,
+      0.9277497302901628
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.3,
+      0.65,
+      0.93
+    ],
+    "computed_cost": -3.037018790925381,
+    "n_evaluations": 14,
+    "error": 0.8257612090746189,
+    "error_ratio": 0.21377381292090644
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.9899999997614615,
+      0.7125058497602853,
+      0.8701726164848042
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.99,
+      0.71,
+      0.87
+    ],
+    "computed_cost": -2.758143106160631,
+    "n_evaluations": 21,
+    "error": 1.104636893839369,
+    "error_ratio": 0.28596940385923325
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.4286649893639031,
+      0.5620898267232749,
+      0.8402890773389069
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.43,
+      0.56,
+      0.84
+    ],
+    "computed_cost": -3.7864969419281476,
+    "n_evaluations": 28,
+    "error": 0.07628305807185232,
+    "error_ratio": 0.019748227461013134
+  },
+  {
+    "iteration": 3,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.07698121590161217,
+      0.5498393591612163,
+      0.8515500531766418
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.08,
+      0.55,
+      0.85
+    ],
+    "computed_cost": -3.860331971867306,
+    "n_evaluations": 35,
+    "error": 0.002448028132693736,
+    "error_ratio": 0.0006337477497278478
+  },
+  {
+    "iteration": 4,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.18420655895425356,
+      0.5486773407197494,
+      0.853649183673986
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.18,
+      0.55,
+      0.85
+    ],
+    "computed_cost": -3.8586623242938485,
+    "n_evaluations": 42,
+    "error": 0.0041176757061514024,
+    "error_ratio": 0.0010659876322626199
+  },
+  {
+    "iteration": 5,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.20761996223746318,
+      0.5484758362236476,
+      0.8526783249830139
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.21,
+      0.55,
+      0.85
+    ],
+    "computed_cost": -3.8558167741416933,
+    "n_evaluations": 49,
+    "error": 0.006963225858306554,
+    "error_ratio": 0.0018026462439762437
+  },
+  {
+    "iteration": 6,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.11117689329445302,
+      0.5538490923621169,
+      0.8506040695746975
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.11,
+      0.55,
+      0.85
+    ],
+    "computed_cost": -3.8611042904559656,
+    "n_evaluations": 56,
+    "error": 0.0016757095440342873,
+    "error_ratio": 0.0004338092109916401
+  },
+  {
+    "iteration": 7,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.13620791284677794,
+      0.5549919470434934,
+      0.8517172479857748
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.14,
+      0.55,
+      0.85
+    ],
+    "computed_cost": -3.860783416027333,
+    "n_evaluations": 63,
+    "error": 0.0019965839726667767,
+    "error_ratio": 0.0005168774749446712
+  },
+  {
+    "iteration": 8,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.13412224906425876,
+      0.5549074892934555,
+      0.852470490167761
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.13,
+      0.55,
+      0.85
+    ],
+    "computed_cost": -3.8610117621935895,
+    "n_evaluations": 70,
+    "error": 0.0017682378064103332,
+    "error_ratio": 0.0004577630117196251
+  },
+  {
+    "iteration": 9,
+    "n_initial_points": 7,
+    "q": 7,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.1333740925718397,
+      0.555180256288559,
+      0.8525588743745044
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.13,
+      0.56,
+      0.85
+    ],
+    "computed_cost": -3.8612907294476924,
+    "n_evaluations": 77,
+    "error": 0.00148927055230752,
+    "error_ratio": 0.00038554371522776863
+  }
+]

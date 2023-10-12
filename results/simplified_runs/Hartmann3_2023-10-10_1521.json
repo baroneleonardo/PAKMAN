@@ -1,0 +1,28 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 7,
+    "q": 3,
+    "m": 12,
+    "target": "Hartmann3",
+    "suggested_minimum": [
+      0.41965463240031664,
+      0.9899999999357173,
+      0.9899999998639579
+    ],
+    "known_minimum": [
+      0.11,
+      0.56,
+      0.85
+    ],
+    "closest_point_in_domain": [
+      0.42,
+      0.99,
+      0.99
+    ],
+    "computed_cost": -0.38859405248348416,
+    "n_evaluations": 10,
+    "error": 3.4741859475165158,
+    "error_ratio": 0.8994004182263851
+  }
+]

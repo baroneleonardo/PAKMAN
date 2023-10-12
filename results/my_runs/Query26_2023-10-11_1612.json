@@ -1,0 +1,94 @@
+[
+  {
+    "iteration": 0,
+    "n_initial_points": 7,
+    "q": 3,
+    "m": 12,
+    "target": "Query26",
+    "suggested_minimum": [
+      4.786884269035233,
+      4.250839944557411
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1294435.0,
+    "n_evaluations": 10,
+    "error": 610753.0,
+    "error_ratio": 0.893329062341849
+  },
+  {
+    "iteration": 1,
+    "n_initial_points": 7,
+    "q": 3,
+    "m": 12,
+    "target": "Query26",
+    "suggested_minimum": [
+      5.000268634989936,
+      4.000230760039971
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1302830.0,
+    "n_evaluations": 13,
+    "error": 619148.0,
+    "error_ratio": 0.9056081628593411
+  },
+  {
+    "iteration": 2,
+    "n_initial_points": 7,
+    "q": 3,
+    "m": 12,
+    "target": "Query26",
+    "suggested_minimum": [
+      4.588973901367578,
+      3.6552460542502336
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      5.0,
+      4.0
+    ],
+    "computed_cost": 1313630.0,
+    "n_evaluations": 16,
+    "error": 629948.0,
+    "error_ratio": 0.9214049806781516
+  },
+  {
+    "iteration": 3,
+    "n_initial_points": 7,
+    "q": 3,
+    "m": 12,
+    "target": "Query26",
+    "suggested_minimum": [
+      5.896872886639676,
+      2.8643538757920397
+    ],
+    "known_minimum": [
+      3.0,
+      9.0
+    ],
+    "closest_point_in_domain": [
+      6.0,
+      4.0
+    ],
+    "computed_cost": 1412382.0,
+    "n_evaluations": 19,
+    "error": 728700.0,
+    "error_ratio": 1.0658464022747418
+  }
+]
