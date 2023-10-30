@@ -124,6 +124,7 @@ initial_data = data_containers.HistoricalData(dim=objective_func.dim)
 
 initial_data.append_sample_points(initial_points)
 
+Queue = initial_points_array
 
 n_prior_hyperparameters = 1 + objective_func.dim + objective_func.n_observations
 n_prior_noises = objective_func.n_observations
@@ -178,8 +179,9 @@ for s in range(n_iterations):
                                                                             objective_func.search_domain, 
                                                                             init_points, 
                                                                             10)
-    eval_pts = domain.generate_uniform_random_points_in_domain(int(m_domain_discretization_sample_size))
-        
+    #eval_pts = domain.generate_uniform_random_points_in_domain(int(m_domain_discretization_sample_size))  # Sample continuous
+    eval_pts = domain.sample_points_in_domain(int(m_domain_discretization_sample_size)) # Sample discrete
+    
     eval_pts = np.reshape(np.append(eval_pts,
                                     (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
                           (eval_pts.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
@@ -190,7 +192,7 @@ for s in range(n_iterations):
     #discrete_pts_optima = np.reshape(eval_pts, (1, cpp_gaussian_process.dim))   
 
     discrete_pts_list.append(eval_pts)
-        
+    #print(f"dicrete point list = {discrete_pts_list[0].shape[0]}")    
     ps_evaluator = knowledge_gradient.PosteriorMean(gp_loglikelihood.models[0], 0)
     ps_sgd_optimizer = cpp_optimization.GradientDescentOptimizer(
         domain,
@@ -216,12 +218,41 @@ for s in range(n_iterations):
 
     # > ALgorithm 1.5: 5: Sample these points (z∗1 , z∗2 , · · · , z∗q)
     # > ...
+
+    print(f"nex points= {next_points}")
+    
+    
+    # QUEUE FOR POINTS ALREADY SAMPLED
+    max_queue_size=10
+    new_points = []
+    for i in range(n_points_per_iteration):
+        _, _, closest_point = domain.find_distance_index_closest_point(next_points[i])
+        #print(f"new point === {closest_point}")
+        new_points.append(closest_point)
+        is_different = ~np.all(Queue == closest_point, axis=1)
+        result = is_different.all()
+        if result == False:
+            break
+    if result == False:
+        _log.info("Point already sampled")
+        continue
+    else:
+        for i in range(n_points_per_iteration):
+            if Queue.shape[0] < max_queue_size:
+                Queue = np.vstack((Queue, new_points[i]))
+            else:
+                Queue = np.vstack((Queue[1:], new_points[i]))
+    
+    new_points = np.array(new_points)
+    print(f"new pointsssss =   {new_points}")    
+
+
+
     sampled_points = [data_containers.SamplePoint(pt,
                                                   objective_func.evaluate(pt))
                       for pt in next_points]
 
     time1 = time.time()
-    
     # > ...
     # > re-train the hyperparameters of the GP by MLE
     # > and update the posterior distribution of f
@@ -245,7 +276,8 @@ for s in range(n_iterations):
     # Trovo il punto più vicino al mio nel punto di minimo
     _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
     computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
-
+                 
+    
     _log.info(f"The suggested minimum is:\n {suggested_minimum}")
     _log.info(f"The closest point in the finite domain is:\n {closest_point_in_domain}")
     _log.info(f"Which has a cost of:\n {computed_cost}")
