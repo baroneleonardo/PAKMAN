@@ -30,11 +30,13 @@ AVAILABLE_PROBLEMS = [
     'ParabolicMinAtTwoAndThree',
     # Benchmark functions:
     'Hartmann3',
-    # 'Levy4',  # This function implementation is probably wrong
+    'Branin',
+    'Levy4',  # This function implementation is probably wrong
     # Data sets
     'Query26',
     'LiGen',
-    'StereoMatch'
+    'StereoMatch',
+    'LiGenTot'
 ]
 
 ###########################
@@ -49,7 +51,7 @@ parser.add_argument('--init', '-i', help='Number of initial points', type=int, d
 parser.add_argument('--iter', '-n', help='Number of iterations', type=int, default=9)
 parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
 parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=30)
-
+parser.add_argument('--queue_size', '-u', help='Dimension of the Queue', type=int, default=0)
 params = parser.parse_args()
 
 objective_func_name = params.problem
@@ -70,6 +72,18 @@ elif objective_func_name == 'Hartmann3':
     domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 1, 0.01),
                                                 np.arange(0, 1, 0.01),
                                                 np.arange(0, 1, 0.01))
+elif objective_func_name == 'Branin':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([3.14, 2.28])
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 15, 0.01),
+                                                np.arange(-5, 15, 0.01))
+elif objective_func_name == 'Levy4':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),
+                                                np.arange(-1, 2, 0.1),
+                                                np.arange(-1, 2, 0.1),
+                                                np.arange(-1, 2, 0.1))
 else:
     objective_func = getattr(precomputed_functions, params.problem)
     known_minimum = objective_func.minimum
@@ -110,27 +124,24 @@ KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
     max_relative_change=0.5,
     tolerance=1.0e-10)
 
-# Seleziono n_initial points_in_domain from a latin hypercube
-# Draw initial points from domain (as np array)
-initial_points_array = domain.sample_points_in_domain(n_initial_points)
 
+# Draw initial points from domain from a Latin Hypercube(as np array)
+initial_points_array = domain.sample_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 
 initial_points = [data_containers.SamplePoint(pt,
                                               initial_points_value[num])
                   for num, pt in enumerate(initial_points_array)]
-
 initial_data = data_containers.HistoricalData(dim=objective_func.dim)
-
 initial_data.append_sample_points(initial_points)
 
-Queue = initial_points_array
+#Queue = initial_points_array # If I want to add the queue
 
 n_prior_hyperparameters = 1 + objective_func.dim + objective_func.n_observations
 n_prior_noises = objective_func.n_observations
 prior = default_priors.DefaultPrior(n_prior_hyperparameters, n_prior_noises)
 
-
+# Initialization of the gaussian process
 gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     historical_data=initial_data,
     derivatives=objective_func.derivatives,  # Questo valore quando passato è 0
@@ -168,7 +179,8 @@ for s in range(n_iterations):
 
     discrete_pts_list = []
     
-    glb_opt_smpl = True
+    glb_opt_smpl = False
+
 
     cpp_gaussian_process = gp_loglikelihood.models[0]
     
@@ -178,19 +190,24 @@ for s in range(n_iterations):
                                                                             100, 
                                                                             objective_func.search_domain, 
                                                                             init_points, 
-                                                                            10)
-    #eval_pts = domain.generate_uniform_random_points_in_domain(int(m_domain_discretization_sample_size))  # Sample continuous
-    eval_pts = domain.sample_points_in_domain(int(m_domain_discretization_sample_size)) # Sample discrete
+                                                                            m_domain_discretization_sample_size
+                                                                            )
+            eval_pts = np.reshape(np.append(discrete_pts_optima,
+                                            (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
+                                            (discrete_pts_optima.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
+    else:
+        #eval_pts = domain.generate_uniform_random_points_in_domain(int(m_domain_discretization_sample_size))  # Sample continuous
+        eval_pts = domain.sample_points_in_domain(sample_size=int(m_domain_discretization_sample_size), allow_previously_sampled=True) # Sample discrete
     
-    eval_pts = np.reshape(np.append(eval_pts,
-                                    (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
-                          (eval_pts.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
-
+        eval_pts = np.reshape(np.append(eval_pts,
+                                        (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
+                              (eval_pts.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
+    '''
     if glb_opt_smpl == True:
             eval_pts = np.reshape(np.append(discrete_pts_optima, eval_pts),
                                             (discrete_pts_optima.shape[0] + eval_pts.shape[0], cpp_gaussian_process.dim))   
     #discrete_pts_optima = np.reshape(eval_pts, (1, cpp_gaussian_process.dim))   
-
+    '''
     discrete_pts_list.append(eval_pts)
     #print(f"dicrete point list = {discrete_pts_list[0].shape[0]}")    
     ps_evaluator = knowledge_gradient.PosteriorMean(gp_loglikelihood.models[0], 0)
@@ -218,12 +235,9 @@ for s in range(n_iterations):
 
     # > ALgorithm 1.5: 5: Sample these points (z∗1 , z∗2 , · · · , z∗q)
     # > ...
-
-    print(f"nex points= {next_points}")
-    
-    
+    '''
     # QUEUE FOR POINTS ALREADY SAMPLED
-    max_queue_size=10
+    max_queue_size=5
     new_points = []
     for i in range(n_points_per_iteration):
         _, _, closest_point = domain.find_distance_index_closest_point(next_points[i])
@@ -243,10 +257,9 @@ for s in range(n_iterations):
             else:
                 Queue = np.vstack((Queue[1:], new_points[i]))
     
-    new_points = np.array(new_points)
-    print(f"new pointsssss =   {new_points}")    
-
-
+    #next_points = np.array(new_points)
+'''
+# Try to use new_points instead of next points in sampled points
 
     sampled_points = [data_containers.SamplePoint(pt,
                                                   objective_func.evaluate(pt))
@@ -312,9 +325,9 @@ for s in range(n_iterations):
 
     with open(result_file, 'w') as f:
         json.dump(results, f, indent=2)
-    
+    '''
     if error < 0.0000001:
         _log.info(f'Error is small enough. Exiting cycle at iteration {s}')
         break
-
+    '''
 _log.info("\nOptimization finished successfully!")

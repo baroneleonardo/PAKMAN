@@ -60,6 +60,20 @@ LiGen = Dataset(
     reduce_to_unique=False
 )
 
+LiGenTot = Dataset(
+    csv_file='ligen_synth_table.csv',
+    param_cols = ['ALIGN_SPLIT',
+                  'OPTIMIZE_SPLIT',
+                  'OPTIMIZE_REPS',
+                  'CUDA_THREADS',
+                  'N_RESTART',
+                  'CLIPPING',
+                  'SIM_THRESH',
+                  'BUFFER_SIZE'],
+    target_col='RMSD^3*TIME',
+    reduce_to_unique=False
+)
+
 
 Query26 = Dataset(
     csv_file='query26_vm_ram.csv',

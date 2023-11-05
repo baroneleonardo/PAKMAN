@@ -47,15 +47,13 @@ class Branin(AbstractProblem):
         r = 6
         s = 10
         t = old_div(1, (8 * np.pi))
-        return np.array([(a * pow(x[1] - b * pow(x[0], 2.0) + c * x[0] - r, 2.0) + s * (1 - t) * np.cos(x[0]) + s),
-                         (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r) * (-2* b * x[0] + c) + s * (1 - t) * (-np.sin(x[0]))),
-                         (2*a*(x[1] - b * pow(x[0], 2.0) + c * x[0] - r))])
+        return np.array([a * pow(x[1] - b * pow(x[0], 2.0) + c * x[0] - r, 2.0) + s * (1 - t) * np.cos(x[0]) + s])
 
 
-class Rosenbrock(AbstractProblem):
+class Rosenbrock4(AbstractProblem):
 
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-2., 2.]], 2, axis=0),
+        super().__init__(search_domain=np.repeat([[-2., 2.]], 4, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 
@@ -108,7 +106,7 @@ class Hartmann3(AbstractProblem):
 class Levy4(AbstractProblem):
 
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-5., 5.]], 4, axis=0),
+        super().__init__(search_domain=np.repeat([[-1., 2.]], 4, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 
@@ -120,22 +118,18 @@ class Levy4(AbstractProblem):
             a difficult test case for KG-type methods.
         """
         x = np.asarray_chkfinite(x)
-        n = len(x)
-        z = 1 + old_div((x - 1), 4)
+        d = len(x)
+        w = 1 + (x - 1) / 4
 
-        results = [0] * (n+1)
-        results[0] = (sin( pi * z[0] )**2
-                      + sum( (z[:-1] - 1)**2 * (1 + 10 * sin( pi * z[:-1] + 1 )**2 ))
-                      +       (z[-1] - 1)**2 * (1 + sin( 2 * pi * z[-1] )**2 ))
-        results[1] = 2. * sin(pi * z[0]) * cos(pi * z[0]) * pi * (0.25)
-        results[n] = (((z[-1] - 1)**2) * (2. * sin(2 * pi * z[-1]) * cos(2. * pi * z[-1]) * 2. * pi *(0.25))
-                      + 2. * (z[-1]-1) * (0.25) * (1 + sin( 2. * pi * z[-1] )**2 ))
+        term1 = (np.sin(np.pi * w[0]))**2
+        term3 = (w[-1] - 1)**2 * (1 + 1 * (np.sin(2 * np.pi * w[-1]))**2)
 
-        results[1:-1] += (((z[:-1] - 1)**2) * (20. * sin(pi * z[:-1] + 1) * cos(pi * z[:-1] + 1) * pi *(0.25))
-                          + 2 * (z[:-1]-1) * (0.25) * (1 + 10. * sin(pi * z[:-1] + 1)**2 ))
-        return np.array(results).sum()
+        wi = w[:d-1]
+        sum_result = np.sum((wi - 1)**2 * (1 + 10 * (np.sin(np.pi * wi + 1))**2))
 
-
+        result = term1 + sum_result + term3
+        return result
+    
 class Hartmann6(AbstractProblem):
 
     def __init__(self):

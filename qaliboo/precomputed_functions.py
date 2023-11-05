@@ -61,3 +61,7 @@ Query26 = _PrecomputedFunction(
 StereoMatch = _PrecomputedFunction(
     dataset=datasets.StereoMatch
 )
+
+LiGenTot = _PrecomputedFunction(
+    dataset=datasets.LiGenTot
+)
