@@ -266,6 +266,7 @@ boost::python::list MultistartKnowledgeGradientMCMCOptimizationWrapper(const boo
                                                                        const boost::python::list& points_being_sampled,
                                                                        int num_pts, int num_to_sample, int num_being_sampled,
                                                                        const boost::python::list& best_so_far, int max_int_steps, int max_num_threads,
+                                                                       //const boost::python::list& restart_pts, int num_multistarts,
                                                                        RandomnessSourceContainer& randomness_source,
                                                                        boost::python::dict& status) {
   // TODO(GH-131): make domain objects constructible from python; and pass them in through
@@ -294,7 +295,7 @@ boost::python::list MultistartKnowledgeGradientMCMCOptimizationWrapper(const boo
   CopyPylistToVector(best_so_far, gaussian_process_mcmc.num_mcmc(), best_so_far_list);
 
   std::vector<double> best_points_to_sample_C(input_container.dim*num_to_sample);
-
+  
   DomainTypes domain_type = boost::python::extract<DomainTypes>(optimizer_parameters.attr("domain_type"));
   OptimizerTypes optimizer_type = boost::python::extract<OptimizerTypes>(optimizer_parameters.attr("optimizer_type"));
   switch (domain_type) {

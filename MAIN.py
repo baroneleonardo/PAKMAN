@@ -94,6 +94,7 @@ n_iterations = params.iter
 n_points_per_iteration = params.points
 m_domain_discretization_sample_size = params.sample_size
 
+num_restarts = 20
 
 py_sgd_params_ps = py_optimization.GradientDescentParameters(
     max_num_steps=1000,
@@ -115,7 +116,7 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     tolerance=1.0e-10)
 
 KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
-    num_multistarts=20,
+    num_multistarts=num_restarts,
     max_num_steps=50,
     max_num_restarts=2,
     num_steps_averaged=4,
@@ -218,9 +219,10 @@ for s in range(n_iterations):
     )
 
     # Selection of the R restarting points
+
     R_points=[]
     R_points.append(np.array(domain.generate_uniform_random_points_in_domain(20*n_points_per_iteration)))
-    print(R_points)
+    # TODO use this list instead of the one implemented in c++
     
 
     # KG method

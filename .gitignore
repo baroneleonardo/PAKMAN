@@ -5,6 +5,9 @@
 *.sw[nop]
 *~
 
+# Data and results files
+*.json
+*.csv
 # Data files
 *.mat
 
