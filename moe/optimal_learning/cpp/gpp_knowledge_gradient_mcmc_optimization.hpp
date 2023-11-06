@@ -640,7 +640,7 @@ void RestartedGradientDescentKGMCMCOptimization(const KnowledgeGradientMCMCEvalu
   \param
     :gaussian_process: GaussianProcess object (holds ``points_sampled``, ``values``, ``noise_variance``, derived quantities)
       that describes the underlying GP
-    :optimizer_parameters: GradientDescentParameters object that describes the parameters controlling EI optimization
+    :optimizer_parameters: GradientDescentParameters object that describes the parameters controlling KG optimization
       (e.g., number of iterations, tolerances, learning rate)
     :domain: object specifying the domain to optimize over (see ``gpp_domain.hpp``)
     :thread_schedule: struct instructing OpenMP on how to schedule threads; i.e., (suggestions in parens)
@@ -671,10 +671,10 @@ OL_NONNULL_POINTERS void ComputeKGMCMCOptimalPointsToSampleViaMultistartGradient
     const DomainType& domain,
     const DomainType& inner_domain,
     const ThreadSchedule& thread_schedule,
-    double const * restrict start_point_set,
-    double const * restrict points_being_sampled,
-    double const * discrete_pts,
-    int num_multistarts,
+    double const * restrict start_point_set,        // R set of multistrat (tot_points=R*q*dim)
+    double const * restrict points_being_sampled,   
+    double const * discrete_pts,                    // points where discretize the domain
+    int num_multistarts,                            // num of multistart  (R)
     int num_to_sample,
     int num_being_sampled,
     int num_pts,
@@ -688,7 +688,10 @@ OL_NONNULL_POINTERS void ComputeKGMCMCOptimalPointsToSampleViaMultistartGradient
   }
 
   bool configure_for_gradients = true;
+  // Define the list of KG value 
   std::vector<typename KnowledgeGradientState<DomainType>::EvaluatorType> kg_evaluator_lst;
+
+  // Define the knoledge gradient object where evaluate points
   KnowledgeGradientMCMCEvaluator<DomainType> kg_evaluator(gaussian_process_mcmc, num_fidelity, discrete_pts, num_pts, max_int_steps,
                                                           inner_domain, optimizer_parameters_inner, best_so_far, &kg_evaluator_lst);
 
@@ -701,13 +704,17 @@ OL_NONNULL_POINTERS void ComputeKGMCMCOptimalPointsToSampleViaMultistartGradient
                                   num_to_sample, num_being_sampled, num_pts, derivatives.data(), num_derivatives,
                                   thread_schedule.max_num_threads, configure_for_gradients,
                                   normal_rng, kg_state_vector.data(), &state_vector);
-
+  
+  // Define the KG value list of the R starting points
   std::vector<double> KG_starting(num_multistarts);
+  // Evaluate the R starting points
   EvaluateKGMCMCAtPointList(gaussian_process_mcmc, num_fidelity, optimizer_parameters_inner, domain, inner_domain, thread_schedule,
                             start_point_set, points_being_sampled, discrete_pts, num_multistarts, num_to_sample,
                             num_being_sampled, num_pts, best_so_far, max_int_steps, found_flag, normal_rng,
                             KG_starting.data(), best_next_point);
 
+  
+  // Select the best 20 restartng points
   std::priority_queue<std::pair<double, int>> q;
   int k = 20; // number of indices we need
   for (int i = 0; i < KG_starting.size(); ++i) {
@@ -738,10 +745,14 @@ OL_NONNULL_POINTERS void ComputeKGMCMCOptimalPointsToSampleViaMultistartGradient
   RepeatedDomain repeated_domain(domain, num_to_sample);
   GradientDescentOptimizer<KnowledgeGradientMCMCEvaluator<DomainType>, RepeatedDomain> gd_opt;
   MultistartOptimizer<GradientDescentOptimizer<KnowledgeGradientMCMCEvaluator<DomainType>, RepeatedDomain> > multistart_optimizer;
+
+  // Start the SGA from the top k_starting and put the obtained x inside the io container
   multistart_optimizer.MultistartOptimize(gd_opt, kg_evaluator, optimizer_parameters,
                                           repeated_domain, thread_schedule, top_k_starting.data(),
                                           k, state_vector.data(), nullptr, &io_container);
   *found_flag = io_container.found_flag;
+
+  // return the best_next_points by coping the io container inside it
   std::copy(io_container.best_point.begin(), io_container.best_point.end(), best_next_point);
 }
 
@@ -893,8 +904,14 @@ void ComputeKGMCMCOptimalPointsToSampleWithRandomStarts(GaussianProcessMCMC& gau
 */
   std::vector<double> starting_points(gaussian_process_mcmc.dim()*optimizer_parameters.num_multistarts*num_to_sample);
   RepeatedDomain<DomainType> repeated_domain(domain, num_to_sample);
+  
+  // Definisco num_multistart dove partire per il SGD in maniera uniforme all'interno del mio dominio
+  // TODO è qui che voglio modificare e inserire il modello
+  // TODO verifica se sono a conoscenza dei points being sampled
+  // crea il mio regressore dove faccio sample in maniera Simulation Annealing
   int num_multistarts = repeated_domain.GenerateUniformPointsInDomain(optimizer_parameters.num_multistarts,
                                                                       uniform_generator, starting_points.data());
+
   ComputeKGMCMCOptimalPointsToSampleViaMultistartGradientDescent(gaussian_process_mcmc, num_fidelity, optimizer_parameters, optimizer_parameters_inner, domain,
                                                                  inner_domain, thread_schedule, starting_points.data(),
                                                                  points_being_sampled, discrete_pts, num_multistarts,

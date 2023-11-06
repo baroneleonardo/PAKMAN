@@ -115,7 +115,7 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     tolerance=1.0e-10)
 
 KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
-    num_multistarts=300,
+    num_multistarts=20,
     max_num_steps=50,
     max_num_restarts=2,
     num_steps_averaged=4,
@@ -196,8 +196,8 @@ for s in range(n_iterations):
                                             (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
                                             (discrete_pts_optima.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
     else:
-        #eval_pts = domain.generate_uniform_random_points_in_domain(int(m_domain_discretization_sample_size))  # Sample continuous
-        eval_pts = domain.sample_points_in_domain(sample_size=int(m_domain_discretization_sample_size), allow_previously_sampled=True) # Sample discrete
+        eval_pts = domain.generate_uniform_random_points_in_domain(int(m_domain_discretization_sample_size))  # Sample continuous
+        #eval_pts = domain.sample_points_in_domain(sample_size=int(m_domain_discretization_sample_size), allow_previously_sampled=True) # Sample discrete
     
         eval_pts = np.reshape(np.append(eval_pts,
                                         (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
@@ -216,6 +216,13 @@ for s in range(n_iterations):
         ps_evaluator,
         cpp_sgd_params_ps
     )
+
+    # Selection of the R restarting points
+    R_points=[]
+    R_points.append(np.array(domain.generate_uniform_random_points_in_domain(20*n_points_per_iteration)))
+    print(R_points)
+    
+
     # KG method
     next_points, voi = bayesian_optimization.gen_sample_from_qkg_mcmc(
         gp_loglikelihood._gaussian_process_mcmc,

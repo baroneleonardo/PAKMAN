@@ -140,6 +140,8 @@ boost::python::list ComputeGradKnowledgeGradientMCMCWrapper(GaussianProcessMCMC&
   PythonInterfaceInputContainer input_container(points_to_sample, points_being_sampled, gradients, gaussian_process_mcmc.dim(),
                                                 num_to_sample, num_being_sampled, num_derivatives_input);
 
+
+
   std::vector<double> grad_KG(num_to_sample*input_container.dim);
   bool configure_for_gradients = true;
 
@@ -209,14 +211,14 @@ void DispatchKnowledgeGradientMCMCOptimization(const boost::python::object& opti
                                                boost::python::dict& status,
                                                double * restrict best_points_to_sample) {
   bool found_flag = false;
-
+  
   switch (optimizer_type) {
     case OptimizerTypes::kNull: {
       ThreadSchedule thread_schedule(max_num_threads, omp_sched_static);
       // optimizer_parameters must contain an int num_random_samples field, extract it
       const GradientDescentParameters& gradient_descent_parameters_inner = boost::python::extract<GradientDescentParameters&>(optimizer_parameters_inner.attr("optimizer_parameters"));
       int num_random_samples = boost::python::extract<int>(optimizer_parameters.attr("num_random_samples"));
-
+      
       ComputeKGMCMCOptimalPointsToSampleViaLatinHypercubeSearch(gaussian_process_mcmc, num_fidelity, gradient_descent_parameters_inner, domain, inner_domain, thread_schedule,
                                                                 input_container.points_being_sampled.data(),
                                                                 input_container_discrete.points_to_sample.data(),
@@ -238,6 +240,7 @@ void DispatchKnowledgeGradientMCMCOptimization(const boost::python::object& opti
       int num_random_samples = boost::python::extract<int>(optimizer_parameters.attr("num_random_samples"));
 
       bool random_search_only = false;
+      
       ComputeKGMCMCOptimalPointsToSample(gaussian_process_mcmc, num_fidelity, gradient_descent_parameters, gradient_descent_parameters_inner, domain, inner_domain, thread_schedule,
                                          input_container.points_being_sampled.data(), input_container_discrete.points_to_sample.data(),
                                          num_to_sample, input_container.num_being_sampled, num_pts,

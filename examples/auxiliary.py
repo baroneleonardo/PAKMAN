@@ -11,8 +11,8 @@ def compute_suggested_minimum(domain: finite_domain.FiniteDomain,
                               gp_loglikelihood: log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC,
                               py_sgd_params_ps: optimization.GradientDescentParameters) -> np.ndarray:
     
-    #eval_pts = domain.generate_uniform_random_points_in_domain(int(1e2)) # here you sample continuous
-    eval_pts = domain.sample_points_in_domain(sample_size=int(1e3), allow_previously_sampled=True) # here you sample discrete 
+    eval_pts = domain.generate_uniform_random_points_in_domain(int(1e2)) # here you sample continuous
+    #eval_pts = domain.sample_points_in_domain(sample_size=int(1e3), allow_previously_sampled=True) # here you sample discrete 
     
     eval_pts = np.reshape(
         np.append(eval_pts, (gp_loglikelihood.get_historical_data_copy()).points_sampled[:, :gp_loglikelihood.dim]),
@@ -29,7 +29,6 @@ def compute_suggested_minimum(domain: finite_domain.FiniteDomain,
         test[i] = -post_mean.compute_objective_function()
     initial_point = eval_pts[np.argmin(test)].reshape((1, gp_loglikelihood.dim))
     
-    #print(f"Solution ==== {initial_point}")
 
     domain_repeated = repeated_domain.RepeatedDomain(num_repeats=1,
                                                      domain=domain)
