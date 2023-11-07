@@ -12,7 +12,7 @@ from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimi
 from moe.optimal_learning.python.python_version import optimization as py_optimization
 from moe.optimal_learning.python import default_priors
 from moe.optimal_learning.python import random_features
-
+from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as KG
 from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
 
@@ -94,7 +94,6 @@ n_iterations = params.iter
 n_points_per_iteration = params.points
 m_domain_discretization_sample_size = params.sample_size
 
-num_restarts = 20
 
 py_sgd_params_ps = py_optimization.GradientDescentParameters(
     max_num_steps=1000,
@@ -114,17 +113,6 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     pre_mult=1.0,
     max_relative_change=0.1,
     tolerance=1.0e-10)
-
-KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
-    num_multistarts=num_restarts,
-    max_num_steps=50,
-    max_num_restarts=2,
-    num_steps_averaged=4,
-    gamma=0.7,
-    pre_mult=1.0,
-    max_relative_change=0.5,
-    tolerance=1.0e-10)
-
 
 # Draw initial points from domain from a Latin Hypercube(as np array)
 initial_points_array = domain.sample_points_in_domain(n_initial_points)
@@ -180,7 +168,7 @@ for s in range(n_iterations):
 
     discrete_pts_list = []
     
-    glb_opt_smpl = False
+    glb_opt_smpl = True
 
 
     cpp_gaussian_process = gp_loglikelihood.models[0]
@@ -203,13 +191,10 @@ for s in range(n_iterations):
         eval_pts = np.reshape(np.append(eval_pts,
                                         (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
                               (eval_pts.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
-    '''
-    if glb_opt_smpl == True:
-            eval_pts = np.reshape(np.append(discrete_pts_optima, eval_pts),
-                                            (discrete_pts_optima.shape[0] + eval_pts.shape[0], cpp_gaussian_process.dim))   
-    #discrete_pts_optima = np.reshape(eval_pts, (1, cpp_gaussian_process.dim))   
-    '''
+
     discrete_pts_list.append(eval_pts)
+
+    
     #print(f"dicrete point list = {discrete_pts_list[0].shape[0]}")    
     ps_evaluator = knowledge_gradient.PosteriorMean(gp_loglikelihood.models[0], 0)
     ps_sgd_optimizer = cpp_optimization.GradientDescentOptimizer(
@@ -218,25 +203,57 @@ for s in range(n_iterations):
         cpp_sgd_params_ps
     )
 
-    # Selection of the R restarting points
+    # Selection of the R restarting points    
 
-    R_points=[]
-    R_points.append(np.array(domain.generate_uniform_random_points_in_domain(20*n_points_per_iteration)))
-    # TODO use this list instead of the one implemented in c++
+    kg = KG.KnowledgeGradientMCMC(gaussian_process_mcmc=gp_loglikelihood._gaussian_process_mcmc,
+                                    gaussian_process_list=gp_loglikelihood.models,
+                                    num_fidelity=0,
+                                    inner_optimizer=ps_sgd_optimizer,
+                                    discrete_pts_list=discrete_pts_list,
+                                    num_to_sample=n_points_per_iteration,
+                                    num_mc_iterations=2**7,
+                                    points_to_sample=init_points
+                                    )
     
 
-    # KG method
-    next_points, voi = bayesian_optimization.gen_sample_from_qkg_mcmc(
-        gp_loglikelihood._gaussian_process_mcmc,
-        gp_loglikelihood.models,
-        ps_sgd_optimizer,
-        domain,
-        0,
-        discrete_pts_list,
-        KG_gradient_descent_params,
-        n_points_per_iteration,
-        num_mc=2 ** 7)
+    #Parameters of the SGA
+    para_sgd = 50 # Number of sgd steps
+    alpha = 4
+    num_restarts = 20
 
+    report_point = []
+    kg_list = []
+    
+    print(domain.domain_bounds)
+
+    for i in range(num_restarts):
+        
+        # TODO implement 
+        init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
+        
+        new_point = init_point
+
+        for j in range(para_sgd):
+
+            alpha_t = alpha/(1+j)
+            kg.set_current_point(new_point)
+
+            G = kg.compute_grad_knowledge_gradient_mcmc()
+
+            for i in range(len(G)):
+                G[i] = G[i] * alpha_t
+            
+            new_point = new_point + G
+            # TODO check if new_point is in the domain        
+
+        report_point.append(new_point)
+        kg.set_current_point(new_point)
+        
+        kg_list.append(kg.compute_knowledge_gradient_mcmc())
+
+
+    index = np.argmax(kg_list)
+    next_points = report_point[index]
 
     _log.info(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
     _log.info("Suggests points:")
@@ -252,7 +269,7 @@ for s in range(n_iterations):
                       for pt in next_points]
 
     time1 = time.time()
-    # > ...
+
     # > re-train the hyperparameters of the GP by MLE
     # > and update the posterior distribution of f
     gp_loglikelihood.add_sampled_points(sampled_points)
@@ -260,19 +277,17 @@ for s in range(n_iterations):
     _log.info(f"Retraining the model takes {time.time() - time1} seconds")
     time1 = time.time()
 
-    # > Algorithm 1.7: Return the argmin of the average function `μ` currently estimated in `A`
-
-    # In the current implementation, this argmin is found
-    # and returned at every interaction (called "suggested_minimum").
-
+    
     _log.info("\nIteration finished successfully!")
 
     ####################
     # Suggested Minimum
     ####################
-    # Calcola la posterior del modello retrain e trova il minimo ---> questo sarà il mio punto di minimo
+    
+    # > Algorithm 1.7: Return the argmin of the average function `μ` currently estimated in `A`
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
-    # Trovo il punto più vicino al mio nel punto di minimo
+    
+    # -> Nearest point in domain
     _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
     computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
                  

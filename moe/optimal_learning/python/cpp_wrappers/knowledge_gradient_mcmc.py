@@ -568,6 +568,7 @@ class KnowledgeGradientMCMC(OptimizableInterface):
             cpp_utils.cppify(self._best_so_far_list),
             self._randomness,
         )
+        
         return knowledge_gradient_mcmc
 
     compute_objective_function = compute_knowledge_gradient_mcmc
@@ -614,8 +615,7 @@ class KnowledgeGradientMCMC(OptimizableInterface):
             cpp_utils.cppify(self._best_so_far_list),
             self._randomness,
         )
-        return grad_knowledge_gradient_mcmc
-
+        return cpp_utils.uncppify(grad_knowledge_gradient_mcmc, (self.num_to_sample, self.dim))
     compute_grad_objective_function = compute_grad_knowledge_gradient_mcmc
 
     def compute_hessian_objective_function(self, **kwargs):
