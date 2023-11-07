@@ -85,9 +85,9 @@ def gen_sample_from_qkg_mcmc(cpp_gp_mcmc, cpp_gp_list, inner_optimizer, cpp_sear
                                                                                  max_num_threads=20))
     
     # Here I obtain q=5 sample o gaussian_process.dim() ---> 5 different semple of the dimension of my problem
-    print(f"points to sample list: {points_to_sample_list}")
+    # print(f"points to sample list: {points_to_sample_list}")
 
-    # QUESTA PARTE MI
+    # This part have no sense!!!!
     cpp_kg_evaluator.set_current_point(points_to_sample_list[0])
     kg_list.append(cpp_kg_evaluator.compute_objective_function())
     return points_to_sample_list[numpy.argmax(kg_list)], numpy.amax(kg_list)

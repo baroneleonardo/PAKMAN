@@ -18,6 +18,7 @@
 // NOLINT-ing the C, C++ header includes as well; otherwise cpplint gets confused
 #include <string>  // NOLINT(build/include_order)
 #include <vector>  // NOLINT(build/include_order)
+#include <iostream>
 
 #include <boost/python/bases.hpp>  // NOLINT(build/include_order)
 #include <boost/python/class.hpp>  // NOLINT(build/include_order)
@@ -271,7 +272,7 @@ boost::python::list MultistartKnowledgeGradientMCMCOptimizationWrapper(const boo
                                                                        boost::python::dict& status) {
   // TODO(GH-131): make domain objects constructible from python; and pass them in through
   // the optimizer_parameters python object
-
+  
   // abort if we do not have enough sources of randomness to run with max_num_threads
   if (unlikely(max_num_threads > static_cast<int>(randomness_source.normal_rng_vec.size()))) {
     OL_THROW_EXCEPTION(LowerBoundException<int>, "Fewer randomness_sources than max_num_threads.", randomness_source.normal_rng_vec.size(), max_num_threads);

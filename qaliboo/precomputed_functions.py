@@ -18,8 +18,8 @@ _log.setLevel(level=logging.DEBUG)
 class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.AbstractProblem):
 
     def __init__(self, dataset: datasets.Dataset):
-        m = np.min(dataset.X, axis=0)
-        M = np.max(dataset.X, axis=0)
+        m = np.min(dataset.X, axis=0).astype(float)
+        M = np.max(dataset.X, axis=0).astype(float)
         domain_bounds = np.vstack([m, M]).transpose()
         super().__init__(data=dataset.X.values,
                          search_domain=domain_bounds,

@@ -138,7 +138,7 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     chain_length=1000,
     burnin_steps=2000,
     n_hypers=N_RANDOM_WALKERS,
-    noisy=True
+    noisy=False
 )
 gp_loglikelihood.train()
 
@@ -194,8 +194,7 @@ for s in range(n_iterations):
 
     discrete_pts_list.append(eval_pts)
 
-    
-    #print(f"dicrete point list = {discrete_pts_list[0].shape[0]}")    
+     
     ps_evaluator = knowledge_gradient.PosteriorMean(gp_loglikelihood.models[0], 0)
     ps_sgd_optimizer = cpp_optimization.GradientDescentOptimizer(
         domain,
@@ -212,40 +211,44 @@ for s in range(n_iterations):
                                     discrete_pts_list=discrete_pts_list,
                                     num_to_sample=n_points_per_iteration,
                                     num_mc_iterations=2**7,
-                                    points_to_sample=init_points
+                                    points_to_sample=None
                                     )
     
-
-    #Parameters of the SGA
-    para_sgd = 50 # Number of sgd steps
-    alpha = 4
+    ############################
+    # Multistart SGA parameters
+    ############################
+    para_sgd = 100 # Number of sgd steps
+    alpha = 1
+    gamma = 0.7
     num_restarts = 20
+    max_relative_change = 0.5
 
     report_point = []
     kg_list = []
-    
-    print(domain.domain_bounds)
 
-    for i in range(num_restarts):
+    for r in range(num_restarts):
         
-        # TODO implement 
+        # TODO implement SA
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
-        
+
         new_point = init_point
+
 
         for j in range(para_sgd):
 
-            alpha_t = alpha/(1+j)
+            alpha_t = alpha/((1+j)**gamma)     # otherwise alpha = alpha/(1+j)
             kg.set_current_point(new_point)
 
             G = kg.compute_grad_knowledge_gradient_mcmc()
 
             for i in range(len(G)):
                 G[i] = G[i] * alpha_t
-            
-            new_point = new_point + G
-            # TODO check if new_point is in the domain        
 
+            for k in range(n_points_per_iteration):
+                new_point_update = domain.compute_update_restricted_to_domain(max_relative_change, new_point[k], G[k])
+                new_point[k] = new_point[k] + new_point_update
+                
+        
         report_point.append(new_point)
         kg.set_current_point(new_point)
         
@@ -254,6 +257,7 @@ for s in range(n_iterations):
 
     index = np.argmax(kg_list)
     next_points = report_point[index]
+
 
     _log.info(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
     _log.info("Suggests points:")

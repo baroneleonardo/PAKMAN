@@ -45,8 +45,8 @@ class FiniteDomain(_AbstractFiniteDomain):
         self._kdtree = spatial.KDTree(data)
         self._sampled = np.zeros(data.shape[0]).astype(bool)
 
-        self._domain_bounds = [geometry_utils.ClosedInterval(np.min(data[:, i]),
-                                                             np.max(data[:, i]))
+        self._domain_bounds = [geometry_utils.ClosedInterval(np.min(data[:, i]).astype(float),
+                                                             np.max(data[:, i]).astype(float))
                                for i in range(data.shape[1])]
 
     def sample_points_in_domain(self, sample_size: int, allow_previously_sampled: bool = False) -> np.ndarray:
@@ -150,8 +150,8 @@ class CPPFiniteDomain(_AbstractFiniteDomain):
         self._data = data
         self._cpp_finite_domain = C_GP.FiniteDomain(data.tolist(), data.shape[1])
 
-        self._domain_bounds = [geometry_utils.ClosedInterval(np.min(data[:, i]),
-                                                             np.max(data[:, i]))
+        self._domain_bounds = [geometry_utils.ClosedInterval(np.min(data[:, i]).astype(float),
+                                                             np.max(data[:, i]).astype(float))
                                for i in range(data.shape[1])]
 
     def sample_points_in_domain(self, sample_size: int, allow_previously_sampled: bool = False) -> np.ndarray:
