@@ -2,7 +2,18 @@ import numpy as np
 
 from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as KG
 
+####################################
+#####  SIMULATED ANNEALING  ########
+####################################
+# Implememntation of the simulated annealing alghoritm
+# NB: it can be used insted/with the SGD to find the minima
+#  
 # Remember: kg have to be of the type KG imported above
+#
+# TEMPERATURE      APPROX.METHOD      MODE 
+# high             random walk        global exploration
+# med              sgd                improvement focused
+# low              gd                 local search/exploit
 
 def generate_neighbor_point(domain, current_point, max_relative_change):
 
@@ -10,6 +21,7 @@ def generate_neighbor_point(domain, current_point, max_relative_change):
     
     new_points = current_point.copy()
     
+    # TODO set this random vector proportional to the problem that I'm solving (ex: LiGen last feature)
     random_vectors = np.random.uniform(-max_relative_change, max_relative_change, size=(num_samples, num_features))
 
     for k in range(num_samples):
@@ -18,7 +30,9 @@ def generate_neighbor_point(domain, current_point, max_relative_change):
 
     return new_points
 
-def simulated_annealing(domain, kg, initial_point, num_iterations, initial_temperature, max_relative_change):
+def simulated_annealing(domain, kg, initial_point, num_iterations, initial_temperature, 
+                        max_relative_change, typeT='log', alpha=1):
+    
     current_point = initial_point
     kg.set_current_point(current_point)
     current_value = kg.compute_knowledge_gradient_mcmc()  
@@ -32,11 +46,20 @@ def simulated_annealing(domain, kg, initial_point, num_iterations, initial_tempe
 
         delta = new_value - current_value
 
-        if delta < 0 or np.random.uniform(0, 1) < np.exp(-delta / temperature_schedule(iteration, initial_temperature)):
+        if delta < 0 or np.random.uniform(0, 1) < np.exp(-delta / temperature(iteration, initial_temperature, typeT, alpha)):
             current_point = new_point
             current_value = new_value
 
     return current_point
 
-def temperature_schedule(iteration, initial_temperature): 
-    return initial_temperature / np.log(2 + iteration)
+def temperature(iteration, initial_temperature, typeT, alpha): 
+    if typeT=='log':
+        return initial_temperature / (1+alpha*np.log(1 + iteration))
+    elif typeT=='linear':
+         return initial_temperature - alpha*iteration
+    elif typeT=='exp':
+         return initial_temperature*alpha**iteration
+    elif typeT=='quad':
+         return initial_temperature/(1+alpha*iteration**2)
+    else:
+         raise KeyError("Insert a valid type for temperature")  

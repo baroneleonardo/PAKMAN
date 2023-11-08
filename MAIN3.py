@@ -16,6 +16,7 @@ from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as 
 from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
 from qaliboo import simulated_annealing as SA
+from qaliboo import sga_kg as sga
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
@@ -115,9 +116,19 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     max_relative_change=0.1,
     tolerance=1.0e-10)
 
+best_pt = None
+best_vl = None
+
 # Draw initial points from domain from a Latin Hypercube(as np array)
 initial_points_array = domain.sample_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
+
+for i in range(len(initial_points_array)):
+    if best_vl==None or best_vl > initial_points_value[i]:
+        best_vl = initial_points_value[i]
+        best_pt = initial_points_array[i]
+
+
 
 initial_points = [data_containers.SamplePoint(pt,
                                               initial_points_value[num])
@@ -169,7 +180,7 @@ for s in range(n_iterations):
 
     discrete_pts_list = []
     
-    glb_opt_smpl = True
+    glb_opt_smpl = False
 
 
     cpp_gaussian_process = gp_loglikelihood.models[0]
@@ -215,26 +226,43 @@ for s in range(n_iterations):
                                     points_to_sample=None
                                     )
     
-    ############################
-    # Multistart SGA parameters
-    ############################
-    para_sgd = 100 # Number of sgd steps
+    ################################
+    # Multistart SGA & SA parameters
+    ################################
+    sgd_on = True
+    para_sgd = 100 
     alpha = 1
     gamma = 0.7
     num_restarts = 20
-    max_relative_change = 0.5
+    max_relative_change = 0.9
+    initial_temperature = 3
+    n_iter_sa = 40
 
     report_point = []
     kg_list = []
     
-
+    '''
     for r in range(num_restarts):
         
-        # TODO implement SA
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
 
-        new_point = SA.simulated_annealing(domain, kg, init_point, para_sgd, 1, max_relative_change)
+        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, max_relative_change)
 
+        if sgd_on==True:
+
+            for j in range(para_sgd):
+
+                alpha_t = alpha/((1+j)**gamma)     # otherwise alpha = alpha/(1+j)
+                kg.set_current_point(new_point)
+
+                G = kg.compute_grad_knowledge_gradient_mcmc()
+                G = alpha_t*G
+                
+                for k in range(n_points_per_iteration):
+                    new_point_update = domain.compute_update_restricted_to_domain(max_relative_change, new_point[k], G[k])
+                    new_point[k] = new_point[k] + new_point_update
+                    
+        
         report_point.append(new_point)
         kg.set_current_point(new_point)
         
@@ -243,6 +271,8 @@ for s in range(n_iterations):
 
     index = np.argmax(kg_list)
     next_points = report_point[index]
+    '''
+    next_points = sga.multistart_sga_kg(kg, domain, n_points_per_iteration, num_restarts, para_sgd, gamma, alpha, max_relative_change)
 
 
     _log.info(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
