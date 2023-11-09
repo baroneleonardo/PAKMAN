@@ -56,10 +56,13 @@ def temperature(iteration, initial_temperature, typeT, alpha):
     if typeT=='log':
         return initial_temperature / (1+alpha*np.log(1 + iteration))
     elif typeT=='linear':
-         return initial_temperature - alpha*iteration
+        if (initial_temperature - alpha*iteration)==0:
+            return 1
+        else:
+            return initial_temperature - alpha*iteration
     elif typeT=='exp':
-         return initial_temperature*alpha**iteration
+        return initial_temperature*alpha**(iteration+1)
     elif typeT=='quad':
-         return initial_temperature/(1+alpha*iteration**2)
+        return initial_temperature/(1+alpha*iteration**2)
     else:
-         raise KeyError("Insert a valid type for temperature")  
+        raise KeyError("Insert a valid type for temperature")  

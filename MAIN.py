@@ -31,6 +31,7 @@ AVAILABLE_PROBLEMS = [
     # Benchmark functions:
     'Hartmann3',
     'Branin',
+    'Ackley5',
     'Levy4',  # This function implementation is probably wrong
     # Data sets
     'Query26',
@@ -51,7 +52,7 @@ parser.add_argument('--init', '-i', help='Number of initial points', type=int, d
 parser.add_argument('--iter', '-n', help='Number of iterations', type=int, default=9)
 parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
 parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=30)
-parser.add_argument('--queue_size', '-u', help='Dimension of the Queue', type=int, default=0)
+
 params = parser.parse_args()
 
 objective_func_name = params.problem
@@ -84,6 +85,11 @@ elif objective_func_name == 'Levy4':
                                                 np.arange(-1, 2, 0.1),
                                                 np.arange(-1, 2, 0.1),
                                                 np.arange(-1, 2, 0.1))
+elif objective_func_name=='Ackley5':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1))
+
 else:
     objective_func = getattr(precomputed_functions, params.problem)
     known_minimum = objective_func.minimum
@@ -219,11 +225,6 @@ for s in range(n_iterations):
     )
 
     # Selection of the R restarting points
-
-    R_points=[]
-    R_points.append(np.array(domain.generate_uniform_random_points_in_domain(20*n_points_per_iteration)))
-    # TODO use this list instead of the one implemented in c++
-    
 
     # KG method
     next_points, voi = bayesian_optimization.gen_sample_from_qkg_mcmc(

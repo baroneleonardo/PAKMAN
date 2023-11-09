@@ -159,32 +159,21 @@ class Hartmann6(AbstractProblem):
         return np.array(results)
 
 
-class Ackley(AbstractProblem):
+class Ackley5(AbstractProblem):
 
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-1., 1.]], 5, axis=0),
+        super().__init__(search_domain=np.repeat([[-5.0, 5.0]], 5, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 
     def evaluate_true(self, x):
-        x = 20*x
-        firstSum = 0.0
-        secondSum = 0.0
-        for c in x:
-            firstSum += c**2.0
-            secondSum += math.cos(2.0*math.pi*c)
-        n = float(len(x))
-        results = [old_div((-20.0*math.exp(-0.2*math.sqrt(old_div(firstSum,n))) - math.exp(old_div(secondSum,n)) + 20 + math.e),6.)]
-        for i in range(int(n)):
-            results += [-20.0*math.exp(-0.2*math.sqrt(old_div(firstSum,n))) * (-0.2*(old_div(x[i],n))/(math.sqrt(old_div(firstSum,n)))) -
-                        math.exp(old_div(secondSum,n)) * (2.0*math.pi/n) * (-math.sin(2.0*math.pi*x[i]))]
-
-        return np.array(results)
-
-    def evaluate(self, x):
-        t = self.evaluate_true(x)
-        results = []
-        for r in t:
-            n = np.random.normal(0, np.sqrt(self._sample_var))
-            results += [r+n]
-        return np.array(results)
+        a = 20.0
+        b = 0.2
+        c = 2*np.pi
+        sum1 = 0.0
+        sum2 = 0.0
+        for i in range(5):
+            sum1 += x[i]**2
+            sum2 += cos(x[i]*c)
+        result = -a*np.exp(-b*np.sqrt(sum1/5))-np.exp(sum2/5) + a + np.exp(1)
+        return result 

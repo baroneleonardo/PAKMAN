@@ -17,6 +17,7 @@ from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
 from qaliboo import simulated_annealing as SA
 from qaliboo import sga_kg as sga
+from qaliboo.machine_learning_models import ML_model
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ AVAILABLE_PROBLEMS = [
     # Benchmark functions:
     'Hartmann3',
     'Branin',
+    'Ackley5',
     'Levy4',  # This function implementation is probably wrong
     # Data sets
     'Query26',
@@ -79,13 +81,15 @@ elif objective_func_name == 'Branin':
     known_minimum = np.array([3.14, 2.28])
     domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 15, 0.01),
                                                 np.arange(-5, 15, 0.01))
+elif objective_func_name=='Ackley5':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1))
+
 elif objective_func_name == 'Levy4':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),
-                                                np.arange(-1, 2, 0.1),
-                                                np.arange(-1, 2, 0.1),
-                                                np.arange(-1, 2, 0.1))
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1))
 else:
     objective_func = getattr(precomputed_functions, params.problem)
     known_minimum = objective_func.minimum
@@ -116,18 +120,10 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     max_relative_change=0.1,
     tolerance=1.0e-10)
 
-best_pt = None
-best_vl = None
 
 # Draw initial points from domain from a Latin Hypercube(as np array)
 initial_points_array = domain.sample_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
-
-for i in range(len(initial_points_array)):
-    if best_vl==None or best_vl > initial_points_value[i]:
-        best_vl = initial_points_value[i]
-        best_pt = initial_points_array[i]
-
 
 
 initial_points = [data_containers.SamplePoint(pt,
@@ -136,7 +132,12 @@ initial_points = [data_containers.SamplePoint(pt,
 initial_data = data_containers.HistoricalData(dim=objective_func.dim)
 initial_data.append_sample_points(initial_points)
 
-#Queue = initial_points_array # If I want to add the queue
+
+# Train the Machine Learning Model
+# ml_model = ML_model(initial_points_array, initial_points_value)
+
+
+
 
 n_prior_hyperparameters = 1 + objective_func.dim + objective_func.n_observations
 n_prior_noises = objective_func.n_observations
@@ -226,6 +227,7 @@ for s in range(n_iterations):
                                     points_to_sample=None
                                     )
     
+
     ################################
     # Multistart SGA & SA parameters
     ################################
@@ -241,38 +243,27 @@ for s in range(n_iterations):
     report_point = []
     kg_list = []
     
-    '''
+    
+    
     for r in range(num_restarts):
         
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
 
         new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, max_relative_change)
-
-        if sgd_on==True:
-
-            for j in range(para_sgd):
-
-                alpha_t = alpha/((1+j)**gamma)     # otherwise alpha = alpha/(1+j)
-                kg.set_current_point(new_point)
-
-                G = kg.compute_grad_knowledge_gradient_mcmc()
-                G = alpha_t*G
-                
-                for k in range(n_points_per_iteration):
-                    new_point_update = domain.compute_update_restricted_to_domain(max_relative_change, new_point[k], G[k])
-                    new_point[k] = new_point[k] + new_point_update
-                    
+         
+        new_point = sga.sga_kg(kg,domain,new_point)
         
         report_point.append(new_point)
         kg.set_current_point(new_point)
         
+        # TODO implement a machine learning indicator funzition and multiply it for the KG
         kg_list.append(kg.compute_knowledge_gradient_mcmc())
 
 
     index = np.argmax(kg_list)
     next_points = report_point[index]
-    '''
-    next_points = sga.multistart_sga_kg(kg, domain, n_points_per_iteration, num_restarts, para_sgd, gamma, alpha, max_relative_change)
+    
+    #next_points = sga.multistart_sga_kg(kg, domain, n_points_per_iteration, num_restarts, para_sgd, gamma, alpha, max_relative_change)
 
 
     _log.info(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
@@ -281,12 +272,12 @@ for s in range(n_iterations):
 
     # > ALgorithm 1.5: 5: Sample these points (z∗1 , z∗2 , · · · , z∗q)
     # > ...
-
-# Try to use new_points instead of next points in sampled points
-
+    
+    next_points_value = np.array([objective_func.evaluate(pt) for pt in next_points])
+    
     sampled_points = [data_containers.SamplePoint(pt,
-                                                  objective_func.evaluate(pt))
-                      for pt in next_points]
+                                              next_points_value[num])
+                  for num, pt in enumerate(next_points)]
 
     time1 = time.time()
 
