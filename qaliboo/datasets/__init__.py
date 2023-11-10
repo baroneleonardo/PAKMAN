@@ -16,13 +16,15 @@ _log.setLevel(logging.DEBUG)
 
 class Dataset:
 
-    def __init__(self, csv_file, param_cols, target_col, reduce_to_unique=False):
+    def __init__(self, csv_file, param_cols, target_col, time_col, reduce_to_unique=False):
         cols = param_cols + [target_col]
         self._param_cols = param_cols
         self._target_col = target_col
+        self._time_col = time_col
         self._reduce_to_unique = reduce_to_unique
         csv_file = os.path.join(os.path.dirname(__file__), csv_file)
         data = pd.read_csv(csv_file, usecols=cols)
+        self._datatime = pd.read_csv(csv_file, usecols=[time_col])
         n_init_rows = len(data)
         unique_data = data[param_cols + [target_col]].groupby(param_cols).agg(np.mean).reset_index()
         n_rows = len(unique_data)
@@ -44,6 +46,10 @@ class Dataset:
     @property
     def y(self):
         return self._data[self._target_col]
+    
+    @property
+    def time(self):
+        return self._datatime[self._time_col]
 
 
 LiGen = Dataset(
@@ -57,6 +63,7 @@ LiGen = Dataset(
                 'SIM_THRESH',
                 'BUFFER_SIZE'],
     target_col='AVG_RMSD^3_TIME',
+    time_col ='AVG_RMSD',
     reduce_to_unique=False
 )
 
@@ -71,6 +78,7 @@ LiGenTot = Dataset(
                   'SIM_THRESH',
                   'BUFFER_SIZE'],
     target_col='RMSD^3*TIME',
+    time_col = 'RMSD_0.75',
     reduce_to_unique=False
 )
 
@@ -79,6 +87,7 @@ Query26 = Dataset(
     csv_file='query26_vm_ram.csv',
     param_cols=['#vm', 'ram'],
     target_col='cost',
+    time_col = 'time',
     reduce_to_unique=False
 )
 
@@ -87,5 +96,6 @@ StereoMatch = Dataset(
     csv_file='stereomatch.csv',
     param_cols=['confidence', 'hypo_step', 'max_arm_length', 'num_threads'],
     target_col='cost',
+    time_col = 'exec_time_ms',
     reduce_to_unique=False
 )

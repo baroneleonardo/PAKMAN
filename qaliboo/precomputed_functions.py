@@ -48,6 +48,20 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
             indexes = indexes[mask]
             values = [self._dataset.y[np.random.choice(indexes)]]
         return np.array(values)
+    
+    def evaluate_time(self, x):
+        distances, indexes, points = self.find_distances_indexes_closest_points(x)
+        min_distance = np.min(distances)
+        mask = distances == min_distance
+        
+        if np.sum(mask)==1:
+            values = self._dataset.time[indexes[mask]]
+        else:
+            indexes = indexes[mask]
+            values = [self._dataset.time[np.random.choice(indexes)]]
+        
+        return np.array(values) 
+
 
 
 LiGen = _PrecomputedFunction(

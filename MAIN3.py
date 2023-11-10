@@ -121,7 +121,9 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     tolerance=1.0e-10)
 
 
-# Draw initial points from domain from a Latin Hypercube(as np array)
+################################
+##### Initial samples ##########
+################################
 initial_points_array = domain.sample_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 
@@ -133,11 +135,18 @@ initial_data = data_containers.HistoricalData(dim=objective_func.dim)
 initial_data.append_sample_points(initial_points)
 
 
-# Train the Machine Learning Model
-# ml_model = ML_model(initial_points_array, initial_points_value)
+
+#################################
+###### ML model init.############
+#################################
+ml_model = ML_model(X_data=initial_points_array, 
+                    y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
+                    X_ub=2.5) # Set this value if you are intrested in I(T(X) < X_ub)
 
 
-
+#################################
+######## GP init. ###############
+#################################
 
 n_prior_hyperparameters = 1 + objective_func.dim + objective_func.n_observations
 n_prior_noises = objective_func.n_observations
@@ -155,6 +164,9 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
 )
 gp_loglikelihood.train()
 
+###########################
+###### Def. minima ########
+###########################
 
 if known_minimum is not None:
 
@@ -166,7 +178,7 @@ if known_minimum is not None:
 _log.info(f'The minimum in the domain is:\n{known_minimum}')
 
 ###########################
-# Main cycle
+####### Main cycle ########
 ###########################
 
 results = []
@@ -179,12 +191,14 @@ for s in range(n_iterations):
               f"q={n_points_per_iteration}")
     time1 = time.time()
 
-    discrete_pts_list = []
-    
-    glb_opt_smpl = False
-
-
     cpp_gaussian_process = gp_loglikelihood.models[0]
+    
+    ##################################
+    #### Def. of the space A #########
+    ##################################
+    discrete_pts_list = []
+    glb_opt_smpl = False     # Set to true if you want a dynamic space
+    # X(1:n) + z(1:q) + sample from the global optima of the posterior
     
     if glb_opt_smpl == True:
             init_points = domain.generate_uniform_random_points_in_domain(int(1e2))
@@ -231,7 +245,6 @@ for s in range(n_iterations):
     ################################
     # Multistart SGA & SA parameters
     ################################
-    sgd_on = True
     para_sgd = 100 
     alpha = 1
     gamma = 0.7
@@ -249,15 +262,21 @@ for s in range(n_iterations):
         
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
 
+        # SIMULATED ANNEALING
         new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, max_relative_change)
-         
+
+        # STOCHASTIC GRADIENT ASCENT 
         new_point = sga.sga_kg(kg,domain,new_point)
         
         report_point.append(new_point)
         kg.set_current_point(new_point)
         
-        # TODO implement a machine learning indicator funzition and multiply it for the KG
-        kg_list.append(kg.compute_knowledge_gradient_mcmc())
+        # EVALUATION OF THE ML MODEL
+        identity = ml_model.identity_ub(new_point) #ml_model indicator function
+        # ml_model.nascent_minima(new_point) # nascent minima coefficients
+
+        # EVALUATION OF THE ACQUISITION FUNCTION
+        kg_list.append(kg.compute_knowledge_gradient_mcmc() *identity)
 
 
     index = np.argmax(kg_list)
@@ -279,8 +298,14 @@ for s in range(n_iterations):
                                               next_points_value[num])
                   for num, pt in enumerate(next_points)]
 
+    
+    # UPDATE OF THE ML MODEL
+    ml_model.update(next_points, np.array([objective_func.evaluate_time(pt) for pt in next_points]))
+    
+
     time1 = time.time()
 
+    # UPDATE OF THE GP
     # > re-train the hyperparameters of the GP by MLE
     # > and update the posterior distribution of f
     gp_loglikelihood.add_sampled_points(sampled_points)
