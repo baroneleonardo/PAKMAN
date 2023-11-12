@@ -12,7 +12,7 @@ def sga_kg(kg, domain, new_point, para_sgd=100, gamma=0.7, alpha=1.0, max_relati
         alpha_t = alpha/((1+j)**gamma)     # otherwise alpha = alpha/(1+j)
         kg.set_current_point(new_point)
 
-        G = kg.compute_grad_knowledge_gradient_mcmc()
+        G = kg.compute_grad_objective_function() # the same as compute_grad_knowledge_gradient_mcmc()
         G = alpha_t*G
         
         for k in range(n_samples):
@@ -35,7 +35,7 @@ def multistart_sga_kg(kg, domain, n_points, n_restarts, para_sgd=100, gamma=0.7,
         report_point.append(new_point)
         kg.set_current_point(new_point)
         
-        kg_list.append(kg.compute_knowledge_gradient_mcmc())
+        kg_list.append(kg.compute_objective_function())
 
 
     index = np.argmax(kg_list)

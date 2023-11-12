@@ -13,7 +13,6 @@ from moe.optimal_learning.python.python_version import optimization as py_optimi
 from moe.optimal_learning.python import default_priors
 from moe.optimal_learning.python import random_features
 from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as KG
-from moe.optimal_learning.python.cpp_wrappers import expected_improvement_mcmc as EI
 from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
 from qaliboo import simulated_annealing as SA
@@ -235,11 +234,16 @@ for s in range(n_iterations):
     )
 
     # Selection of the R restarting points    
-    ei = EI.ExpectedImprovementMCMC(gaussian_process_mcmc=gp_loglikelihood._gaussian_process_mcmc,
-                                    num_to_sample=n_points_per_iteration,
-                                    points_to_sample=None,
-                                    num_mc_iterations=2**7) 
 
+    kg = KG.KnowledgeGradientMCMC(gaussian_process_mcmc=gp_loglikelihood._gaussian_process_mcmc,
+                                    gaussian_process_list=gp_loglikelihood.models,
+                                    num_fidelity=0,
+                                    inner_optimizer=ps_sgd_optimizer,
+                                    discrete_pts_list=discrete_pts_list,
+                                    num_to_sample=n_points_per_iteration,
+                                    num_mc_iterations=2**7,
+                                    points_to_sample=None
+                                    )
     
 
     ################################
@@ -254,7 +258,7 @@ for s in range(n_iterations):
     n_iter_sa = 40
 
     report_point = []
-    ei_list = []
+    kg_list = []
     
     
     
@@ -262,27 +266,27 @@ for s in range(n_iterations):
 
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
         
-        new_point = SA.simulated_annealing(domain, ei, init_point, n_iter_sa, initial_temperature, max_relative_change)
+        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, max_relative_change)
         
-        new_point = sga.sga_kg(ei, domain, new_point)
+        new_point = sga.sga_kg(kg, domain, new_point)
         
-        ei.set_current_point(new_point)
+        kg.set_current_point(new_point)
 
         #identity = ml_model.nascent_minima(new_point)
-        #identity = ml_model.identity(new_point)
+        identity = ml_model.identity(new_point)
 
-        ei_value = ei.compute_objective_function()
+        kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
-        return new_point, ei_value
+        return new_point, kg_value
 
     
 
     with ProcessPoolExecutor() as executor:
         res = list(executor.map(optimize_point, range(num_restarts)))
 
-    report_point, ei_list = zip(*res)
+    report_point, kg_list = zip(*res)
 
-    index = np.argmax(ei_list)
+    index = np.argmax(kg_list)
     next_points = report_point[index]
     
     #next_points = sga.multistart_sga_kg(kg, domain, n_points_per_iteration, num_restarts, para_sgd, gamma, alpha, max_relative_change)

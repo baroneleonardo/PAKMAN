@@ -347,7 +347,7 @@ class ExpectedImprovementMCMC(ExpectedImprovementInterface, OptimizableInterface
                 cpp_utils.cppify(self._best_so_far_list),
                 self._randomness,
         )
-        return grad_ei_mcmc
+        return cpp_utils.uncppify(grad_ei_mcmc, (self.num_to_sample, self.dim))
 
     compute_grad_objective_function = compute_grad_expected_improvement
 

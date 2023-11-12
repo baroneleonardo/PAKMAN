@@ -35,13 +35,13 @@ def simulated_annealing(domain, kg, initial_point, num_iterations, initial_tempe
     
     current_point = initial_point
     kg.set_current_point(current_point)
-    current_value = kg.compute_knowledge_gradient_mcmc()  
+    current_value = kg.compute_objective_function() # the same of compute_knoledge_gradient_mcmc()  
 
     for iteration in range(num_iterations):
         
         new_point = generate_neighbor_point(domain, current_point, max_relative_change)
         kg.set_current_point(new_point)
-        new_value = kg.compute_knowledge_gradient_mcmc()
+        new_value = kg.compute_objective_function()
 
 
         delta = new_value - current_value
