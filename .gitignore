@@ -8,6 +8,7 @@
 # Data and results files
 *.json
 *.csv
+*.ipynb
 # Data files
 *.mat
 

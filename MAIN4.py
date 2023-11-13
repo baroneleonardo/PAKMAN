@@ -20,6 +20,7 @@ from qaliboo import sga_kg as sga
 from qaliboo.machine_learning_models import ML_model
 from concurrent.futures import ProcessPoolExecutor
 
+
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
@@ -279,10 +280,9 @@ for s in range(n_iterations):
         
         return new_point, kg_value
 
-    
-
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=5) as executor:
         res = list(executor.map(optimize_point, range(num_restarts)))
+        
 
     report_point, kg_list = zip(*res)
 
@@ -309,8 +309,8 @@ for s in range(n_iterations):
     # UPDATE OF THE ML MODEL
     ml_model.update(next_points, np.array([objective_func.evaluate_time(pt) for pt in next_points]))
     
-    min_evaluated = np.min(np.array(min_evaluated, np.min(next_points_value)))
-
+    
+    min_evaluated = np.min([min_evaluated, np.min(next_points_value)])
     time1 = time.time()
 
     # UPDATE OF THE GP
@@ -359,6 +359,7 @@ for s in range(n_iterations):
             q=n_points_per_iteration,
             m=m_domain_discretization_sample_size,
             target=objective_func_name,
+            minimum_evaluated = min_evaluated.tolist(),
             suggested_minimum=suggested_minimum.tolist(),
             known_minimum=known_minimum.tolist(),
             closest_point_in_domain=closest_point_in_domain.tolist(),

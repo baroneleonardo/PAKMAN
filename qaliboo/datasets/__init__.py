@@ -66,7 +66,20 @@ LiGen = Dataset(
     time_col ='AVG_RMSD',
     reduce_to_unique=False
 )
-
+ScaledLiGen = Dataset(
+    csv_file='scaledLiGen.csv',
+    param_cols=['ALIGN_SPLIT',
+                'OPTIMIZE_SPLIT',
+                'OPTIMIZE_REPS',
+                'CUDA_THREADS',
+                'N_RESTART',
+                'CLIPPING',
+                'SIM_THRESH',
+                'BUFFER_SIZE'],
+    target_col='AVG_RMSD^3_TIME',
+    time_col ='AVG_RMSD',
+    reduce_to_unique=False
+)
 LiGenTot = Dataset(
     csv_file='ligen_synth_table.csv',
     param_cols = ['ALIGN_SPLIT',
@@ -81,7 +94,20 @@ LiGenTot = Dataset(
     time_col = 'RMSD_0.75',
     reduce_to_unique=False
 )
-
+ScaledLiGenTot = Dataset(
+    csv_file='scaledligentot.csv',
+    param_cols = ['ALIGN_SPLIT',
+                  'OPTIMIZE_SPLIT',
+                  'OPTIMIZE_REPS',
+                  'CUDA_THREADS',
+                  'N_RESTART',
+                  'CLIPPING',
+                  'SIM_THRESH',
+                  'BUFFER_SIZE'],
+    target_col='RMSD^3*TIME',
+    time_col = 'RMSD_0.75',
+    reduce_to_unique=False
+)
 
 Query26 = Dataset(
     csv_file='query26_vm_ram.csv',

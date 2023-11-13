@@ -13,7 +13,7 @@ from moe.optimal_learning.python.python_version import optimization as py_optimi
 from moe.optimal_learning.python import default_priors
 from moe.optimal_learning.python import random_features
 from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as KG
-from examples import bayesian_optimization, auxiliary, synthetic_functions
+from examples import bayesian_optimization, auxiliary, synthetic_functions, real_functions
 from qaliboo import precomputed_functions, finite_domain
 from qaliboo import simulated_annealing as SA
 from qaliboo import sga_kg as sga
@@ -40,7 +40,10 @@ AVAILABLE_PROBLEMS = [
     'Query26',
     'LiGen',
     'StereoMatch',
-    'LiGenTot'
+    'LiGenTot',
+    'ScaledLiGen',
+    'CIFAR10'
+
 ]
 
 ###########################
@@ -90,6 +93,9 @@ elif objective_func_name == 'Levy4':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
     domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1))
+elif objective_func_name == 'CIFAR10':
+    objective_func = getattr(real_functions, params.problem())
+
 else:
     objective_func = getattr(precomputed_functions, params.problem)
     known_minimum = objective_func.minimum
@@ -117,10 +123,9 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     num_steps_averaged=3,
     gamma=0.0,
     pre_mult=1.0,
-    max_relative_change=0.1,
+    max_relative_change=0.2,
     tolerance=1.0e-10)
-
-
+min_evaluated = None
 ################################
 ##### Initial samples ##########
 ################################
@@ -134,6 +139,7 @@ initial_points = [data_containers.SamplePoint(pt,
 initial_data = data_containers.HistoricalData(dim=objective_func.dim)
 initial_data.append_sample_points(initial_points)
 
+min_evaluated = np.min(initial_points_value)
 
 
 #################################
@@ -168,6 +174,7 @@ gp_loglikelihood.train()
 ###### Def. minima ########
 ###########################
 
+
 if known_minimum is not None:
 
     _, _, known_minimum_in_domain = domain.find_distance_index_closest_point(known_minimum)
@@ -177,13 +184,14 @@ if known_minimum is not None:
         known_minimum = known_minimum_in_domain
 _log.info(f'The minimum in the domain is:\n{known_minimum}')
 
+
 ###########################
 ####### Main cycle ########
 ###########################
-
+'''
 results = []
 result_file = f'./results/prove_sa/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
-
+'''
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
     _log.info(f"{s}th iteration, "
@@ -197,7 +205,7 @@ for s in range(n_iterations):
     #### Def. of the space A #########
     ##################################
     discrete_pts_list = []
-    glb_opt_smpl = False     # Set to true if you want a dynamic space
+    glb_opt_smpl = True     # Set to true if you want a dynamic space
     # X(1:n) + z(1:q) + sample from the global optima of the posterior
     
     if glb_opt_smpl == True:
@@ -221,7 +229,7 @@ for s in range(n_iterations):
 
     discrete_pts_list.append(eval_pts)
 
-     
+   
     ps_evaluator = knowledge_gradient.PosteriorMean(gp_loglikelihood.models[0], 0)
     ps_sgd_optimizer = cpp_optimization.GradientDescentOptimizer(
         domain,
@@ -261,10 +269,9 @@ for s in range(n_iterations):
     for r in range(num_restarts):
         
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
-
         # SIMULATED ANNEALING
         new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, max_relative_change)
-
+        
         # STOCHASTIC GRADIENT ASCENT 
         new_point = sga.sga_kg(kg,domain,new_point)
         
@@ -272,16 +279,17 @@ for s in range(n_iterations):
         kg.set_current_point(new_point)
         
         # EVALUATION OF THE ML MODEL
-        identity = ml_model.identity_ub(new_point) #ml_model indicator function
-        # ml_model.nascent_minima(new_point) # nascent minima coefficients
-
+        identity = ml_model.identity(new_point) #ml_model indicator function
+        #identity = ml_model.nascent_minima(new_point) # nascent minima coefficients
+        
         # EVALUATION OF THE ACQUISITION FUNCTION
-        kg_list.append(kg.compute_knowledge_gradient_mcmc() *identity)
+        value = kg.compute_knowledge_gradient_mcmc()*identity
+        kg_list.append(value)
 
-
+   
     index = np.argmax(kg_list)
     next_points = report_point[index]
-    
+
     #next_points = sga.multistart_sga_kg(kg, domain, n_points_per_iteration, num_restarts, para_sgd, gamma, alpha, max_relative_change)
 
 
@@ -302,6 +310,7 @@ for s in range(n_iterations):
     # UPDATE OF THE ML MODEL
     ml_model.update(next_points, np.array([objective_func.evaluate_time(pt) for pt in next_points]))
     
+    min_evaluated = np.min([min_evaluated, np.min(next_points_value)])
 
     time1 = time.time()
 
@@ -331,6 +340,7 @@ for s in range(n_iterations):
     _log.info(f"The suggested minimum is:\n {suggested_minimum}")
     _log.info(f"The closest point in the finite domain is:\n {closest_point_in_domain}")
     _log.info(f"Which has a cost of:\n {computed_cost}")
+    _log.info(f"Cost of the minimum evaluated:\n {min_evaluated}")
     _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
     _log.info(f'The target function was evaluated {objective_func.evaluation_count} times')
 
@@ -343,6 +353,7 @@ for s in range(n_iterations):
     _log.info(f'Error ratio: {error_ratio}')
     _log.info(f'Squared error: {np.square(error)}')
     
+    '''
     results.append(
         dict(
             iteration=s,
@@ -362,6 +373,7 @@ for s in range(n_iterations):
 
     with open(result_file, 'w') as f:
         json.dump(results, f, indent=2)
+    '''
     '''
     if error < 0.0000001:
         _log.info(f'Error is small enough. Exiting cycle at iteration {s}')

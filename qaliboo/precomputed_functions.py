@@ -79,3 +79,11 @@ StereoMatch = _PrecomputedFunction(
 LiGenTot = _PrecomputedFunction(
     dataset=datasets.LiGenTot
 )
+
+ScaledLiGen = _PrecomputedFunction(
+    dataset=datasets.ScaledLiGen
+)
+
+ScaledLiGenTot = _PrecomputedFunction(
+    dataset=datasets.ScaledLiGenTot
+)
