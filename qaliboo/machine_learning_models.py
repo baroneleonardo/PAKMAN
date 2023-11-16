@@ -2,6 +2,7 @@ from sklearn.linear_model import Ridge, Lasso
 import numpy as np 
 
 class ML_model:
+
     def __init__(self,
                  X_data,
                  y_data,
@@ -30,7 +31,9 @@ class ML_model:
     @property
     def y_data(self):
         return self._y_data
-    
+    @property
+    def typemodel(self):
+        return self._type
 
     def predict(self,X):
         return self.model.predict(X)
@@ -44,22 +47,41 @@ class ML_model:
     def nascent_minima(self, X, k=2):
         return np.exp(-k*np.linalg.norm(self.predict(X)))
     
-    def identity(self, X):
-        if (self._X_ub == None and self._X_lb == None):
-            raise KeyError('No constraints defined!')
-        pred = self.predict(X)
-        if (self._X_lb == None):
-            if (pred < self._X_ub).all():
-                return 1
-            else: 
-                return 0
-        elif (self._X_ub == None):
-            if (self._X_lb < pred).all():
-                return 1
-            else:
-                return 0
+    # Ratio of how many points of the q-dimension batch are
+    # otside the constraints
+    
+    def out_ratio(self, X):
+        
+        if (self._X_ub is not None) and (self._X_lb is not None):
+            pred = self.predict(X)
+            out_count = np.sum((pred > self._X_ub) | (pred < self._X_lb))
+            tot_p = len(pred)
+            out_ratio = out_count / tot_p
+            return out_ratio
+        
+        elif self._X_ub is not None:
+            pred = self.predict(X)
+            out_count = np.sum(pred > self._X_ub)
+            tot_p = len(pred)
+            out_ratio = out_count / tot_p
+            return out_ratio
+        
+        elif self._X_lb is not None:
+            pred = self.predict(X)
+            out_count = np.sum(pred < self._X_lb)
+            tot_p = len(pred)
+            out_ratio = out_count / tot_p
+            return out_ratio
+        
         else:
-            if (pred < self._X_ub).all() and (self._X_lb < pred).all():
-                return 1
-            else:
-                return 0
+            raise ValueError("Upper or lower bound should be provided.")
+
+    # Penality terms
+    def linear_penality(self, X):
+        return 1 - self.out_ratio(X)
+    
+    def quadratic_penality(self, X):
+        return self.linear_penality(X)**2
+    
+    def exponential_penality(self, X, k):
+        return np.exp(-k * self.out_ratio(X))
