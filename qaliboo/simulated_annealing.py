@@ -15,23 +15,26 @@ from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as 
 # med              sgd                improvement focused
 # low              gd                 local search/exploit
 
-def generate_neighbor_point(domain, current_point, max_relative_change):
+def generate_neighbor_point(domain, current_point, step):
 
     num_samples, num_features = current_point.shape
     
     new_points = current_point.copy()
     
+    
     # TODO set this random vector proportional to the problem that I'm solving (ex: LiGen last feature)
-    random_vectors = np.random.uniform(-max_relative_change, max_relative_change, size=(num_samples, num_features))
-
+    #random_vectors = np.random.uniform(-max_relative_change, max_relative_change, size=(num_samples, num_features))
+    random_vectors = np.random.normal(loc=0, scale=1, size=(num_samples, num_features))
+    random_vectors = random_vectors*step
     for k in range(num_samples):
-            new_point_update = domain.compute_update_restricted_to_domain(max_relative_change, new_points[k], random_vectors[k])
+            new_point_update = domain.compute_update_restricted_to_domain(1, new_points[k], random_vectors[k])
             new_points[k] = new_points[k] + new_point_update
+
 
     return new_points
 
 def simulated_annealing(domain, kg, initial_point, num_iterations, initial_temperature, 
-                        max_relative_change, typeT='log', alpha=1):
+                        step, typeT='log', alpha=1):
     
     current_point = initial_point
     kg.set_current_point(current_point)
@@ -39,7 +42,7 @@ def simulated_annealing(domain, kg, initial_point, num_iterations, initial_tempe
 
     for iteration in range(num_iterations):
         
-        new_point = generate_neighbor_point(domain, current_point, max_relative_change)
+        new_point = generate_neighbor_point(domain, current_point, step)
         kg.set_current_point(new_point)
         new_value = kg.compute_objective_function()
 
@@ -56,10 +59,7 @@ def temperature(iteration, initial_temperature, typeT, alpha):
     if typeT=='log':
         return initial_temperature / (1+alpha*np.log(1 + iteration))
     elif typeT=='linear':
-        if (initial_temperature - alpha*iteration)==0:
-            return 1
-        else:
-            return initial_temperature - alpha*iteration
+        return initial_temperature / alpha*iteration + 1
     elif typeT=='exp':
         return initial_temperature*alpha**(iteration+1)
     elif typeT=='quad':

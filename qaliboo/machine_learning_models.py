@@ -25,6 +25,8 @@ class ML_model:
         
         self.model.fit(self._X_data, self._y_data)
 
+        self._const = np.linalg.norm(self.model.predict(X_data))
+
     @property
     def X_data(self):
         return self._X_data
@@ -45,11 +47,13 @@ class ML_model:
         self.model.fit(self._X_data, self._y_data)
 
     def nascent_minima(self, X, k=2):
-        return np.exp(-k*np.linalg.norm(self.predict(X)))
+        #pred = self.predict(X)
+        
+        return np.exp(-k*np.linalg.norm(self.predict(X))/self._const)
     
     # Ratio of how many points of the q-dimension batch are
     # otside the constraints
-    
+
     def out_ratio(self, X):
         
         if (self._X_ub is not None) and (self._X_lb is not None):
@@ -83,5 +87,5 @@ class ML_model:
     def quadratic_penality(self, X):
         return self.linear_penality(X)**2
     
-    def exponential_penality(self, X, k):
+    def exponential_penality(self, X, k=2):
         return np.exp(-k * self.out_ratio(X))

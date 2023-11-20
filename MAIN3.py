@@ -13,7 +13,7 @@ from moe.optimal_learning.python.python_version import optimization as py_optimi
 from moe.optimal_learning.python import default_priors
 from moe.optimal_learning.python import random_features
 from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as KG
-from examples import bayesian_optimization, auxiliary, synthetic_functions, real_functions
+from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
 from qaliboo import simulated_annealing as SA
 from qaliboo import sga_kg as sga
@@ -42,7 +42,6 @@ AVAILABLE_PROBLEMS = [
     'StereoMatch',
     'LiGenTot',
     'ScaledLiGen',
-    'CIFAR10'
 
 ]
 
@@ -93,9 +92,6 @@ elif objective_func_name == 'Levy4':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
     domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1))
-elif objective_func_name == 'CIFAR10':
-    objective_func = getattr(real_functions, params.problem())
-
 else:
     objective_func = getattr(precomputed_functions, params.problem)
     known_minimum = objective_func.minimum
@@ -147,7 +143,7 @@ min_evaluated = np.min(initial_points_value)
 #################################
 ml_model = ML_model(X_data=initial_points_array, 
                     y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
-                    X_ub=2.5) # Set this value if you are intrested in I(T(X) < X_ub)
+                    X_ub=2.3) # Set this value if you are intrested in I(T(X) < X_ub)
 
 
 #################################
@@ -188,10 +184,10 @@ _log.info(f'The minimum in the domain is:\n{known_minimum}')
 ###########################
 ####### Main cycle ########
 ###########################
-'''
+
 results = []
-result_file = f'./results/prove_sa/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
-'''
+result_file = f'./results/SM_Q_NM/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
     _log.info(f"{s}th iteration, "
@@ -279,8 +275,8 @@ for s in range(n_iterations):
         kg.set_current_point(new_point)
         
         # EVALUATION OF THE ML MODEL
-        identity = ml_model.identity(new_point) #ml_model indicator function
-        #identity = ml_model.nascent_minima(new_point) # nascent minima coefficients
+        identity = ml_model.nascent_minima(new_point)
+        print(identity)
         
         # EVALUATION OF THE ACQUISITION FUNCTION
         value = kg.compute_knowledge_gradient_mcmc()*identity
@@ -352,8 +348,6 @@ for s in range(n_iterations):
     _log.info(f'Error: {error}')
     _log.info(f'Error ratio: {error_ratio}')
     _log.info(f'Squared error: {np.square(error)}')
-    
-    '''
     results.append(
         dict(
             iteration=s,
@@ -361,6 +355,7 @@ for s in range(n_iterations):
             q=n_points_per_iteration,
             m=m_domain_discretization_sample_size,
             target=objective_func_name,
+            minimum_evaluated = min_evaluated.tolist(),
             suggested_minimum=suggested_minimum.tolist(),
             known_minimum=known_minimum.tolist(),
             closest_point_in_domain=closest_point_in_domain.tolist(),
@@ -373,7 +368,6 @@ for s in range(n_iterations):
 
     with open(result_file, 'w') as f:
         json.dump(results, f, indent=2)
-    '''
     '''
     if error < 0.0000001:
         _log.info(f'Error is small enough. Exiting cycle at iteration {s}')
