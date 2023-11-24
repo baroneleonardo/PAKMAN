@@ -44,7 +44,9 @@ AVAILABLE_PROBLEMS = [
     'StereoMatch',
     'LiGenTot',
     'ScaledLiGen',
-    'ScaledLiGenTot'
+    'ScaledLiGenTot',
+    'ScaledStereoMatch',
+    'ScaledQuery26'
 ]
 
 ###########################
@@ -125,6 +127,7 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     tolerance=1.0e-10)
 
 min_evaluated = None
+
 ################################
 ##### Initial samples ##########
 ################################
@@ -144,9 +147,17 @@ min_evaluated = np.min(initial_points_value)
 #################################
 ###### ML model init.############
 #################################
-ml_model = ML_model(X_data=initial_points_array, 
-                    y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
-                    X_ub=2.5) # Set this value if you are intrested in I(T(X) < X_ub)
+use_ml = False
+
+if(use_ml==True):
+    print("You have selected an acquisition function with ML integrated")
+else:
+    print("Without ML model")
+
+if use_ml == True:
+    ml_model = ML_model(X_data=initial_points_array, 
+                        y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
+                        X_ub=2.5) # Set this value if you are intrested in I(T(X) < X_ub)
 
 
 #################################
@@ -187,7 +198,7 @@ _log.info(f'The minimum in the domain is:\n{known_minimum}')
 ###########################
 
 results = []
-result_file = f'./results/prove_sa/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/SynthFun/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
@@ -202,7 +213,7 @@ for s in range(n_iterations):
     #### Def. of the space A #########
     ##################################
     discrete_pts_list = []
-    glb_opt_smpl = True     # Set to true if you want a dynamic space
+    glb_opt_smpl = False     # Set to true if you want a dynamic space
     # X(1:n) + z(1:q) + sample from the global optima of the posterior
     
     if glb_opt_smpl == True:
@@ -256,7 +267,7 @@ for s in range(n_iterations):
     num_restarts = 20
     max_relative_change = 0.9
     initial_temperature = 3
-    n_iter_sa = 40
+    n_iter_sa = 40   #40
 
     report_point = []
     kg_list = []
@@ -265,23 +276,30 @@ for s in range(n_iterations):
     
     def optimize_point(seed):
 
+        np.random.seed(seed)
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
-        
-        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, max_relative_change)
+        new_point=init_point
+        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.01)
         
         new_point = sga.sga_kg(kg, domain, new_point)
-        
+
         kg.set_current_point(new_point)
 
-        #identity = ml_model.nascent_minima(new_point)
-        identity = ml_model.identity(new_point)
-
+         
+        if use_ml==True:    
+            identity = ml_model.nascent_minima(new_point)*ml_model.linear_penality(new_point)
+    
+        else:
+            identity=1
+            
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
         return new_point, kg_value
 
+
+    seeds = np.random.randint(0, 10000, size=num_restarts)
     with ProcessPoolExecutor(max_workers=5) as executor:
-        res = list(executor.map(optimize_point, range(num_restarts)))
+        res = list(executor.map(optimize_point, seeds))
         
 
     report_point, kg_list = zip(*res)
@@ -307,7 +325,8 @@ for s in range(n_iterations):
 
     
     # UPDATE OF THE ML MODEL
-    ml_model.update(next_points, np.array([objective_func.evaluate_time(pt) for pt in next_points]))
+    if use_ml==True:
+        ml_model.update(next_points, np.array([objective_func.evaluate_time(pt) for pt in next_points]))
     
     
     min_evaluated = np.min([min_evaluated, np.min(next_points_value)])

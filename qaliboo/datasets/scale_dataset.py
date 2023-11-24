@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-original_dataset = pd.read_csv("ligen_synth_table.csv")
+original_dataset = pd.read_csv("query26_vm_ram.csv")
 
 def scale_and_save(dataset, output_filename):
     features = dataset.iloc[:, :-2].values
@@ -16,4 +16,4 @@ def scale_and_save(dataset, output_filename):
     
     scaled_dataset.to_csv(output_filename, index=False)
 
-scale_and_save(original_dataset, "scaledligentot.csv")
+scale_and_save(original_dataset, "scaledQuery26.csv")

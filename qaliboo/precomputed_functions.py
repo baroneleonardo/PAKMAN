@@ -72,8 +72,16 @@ Query26 = _PrecomputedFunction(
     dataset=datasets.Query26
 )
 
+ScaledQuery26 = _PrecomputedFunction(
+    dataset=datasets.ScaledQuery26
+)
+
 StereoMatch = _PrecomputedFunction(
     dataset=datasets.StereoMatch
+)
+
+ScaledStereoMatch = _PrecomputedFunction(
+    dataset=datasets.ScaledStereoMatch
 )
 
 LiGenTot = _PrecomputedFunction(

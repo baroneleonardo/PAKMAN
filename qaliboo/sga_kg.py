@@ -42,4 +42,3 @@ def multistart_sga_kg(kg, domain, n_points, n_restarts, para_sgd=100, gamma=0.7,
     best_point = report_point[index]
 
     return(best_point)
-

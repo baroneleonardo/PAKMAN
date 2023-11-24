@@ -116,10 +116,24 @@ Query26 = Dataset(
     time_col = 'time',
     reduce_to_unique=False
 )
-
+ScaledQuery26 = Dataset(
+    csv_file='scaledQuery26.csv',
+    param_cols=['#vm', 'ram'],
+    target_col='cost',
+    time_col = 'time',
+    reduce_to_unique=False
+)
 
 StereoMatch = Dataset(
     csv_file='stereomatch.csv',
+    param_cols=['confidence', 'hypo_step', 'max_arm_length', 'num_threads'],
+    target_col='cost',
+    time_col = 'exec_time_ms',
+    reduce_to_unique=False
+)
+
+ScaledStereoMatch = Dataset(
+    csv_file='scaledstereomatch.csv',
     param_cols=['confidence', 'hypo_step', 'max_arm_length', 'num_threads'],
     target_col='cost',
     time_col = 'exec_time_ms',

@@ -37,7 +37,9 @@ AVAILABLE_PROBLEMS = [
     'Query26',
     'LiGen',
     'StereoMatch',
-    'LiGenTot'
+    'LiGenTot',
+    'ScaledLiGen',
+    'ScaledLiGenTot'
 ]
 
 ###########################
@@ -175,7 +177,7 @@ _log.info(f'The minimum in the domain is:\n{known_minimum}')
 ###########################
 
 results = []
-result_file = f'./results/prova_KG/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/SynthFun/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
