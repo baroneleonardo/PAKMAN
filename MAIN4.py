@@ -61,7 +61,9 @@ parser.add_argument('--init', '-i', help='Number of initial points', type=int, d
 parser.add_argument('--iter', '-n', help='Number of iterations', type=int, default=9)
 parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
 parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=30)
-parser.add_argument('--queue_size', '-u', help='Dimension of the Queue', type=int, default=0)
+parser.add_argument('--upper_bound', '-ub', help='Upper Bound (ML model)', type=float, default=None)
+parser.add_argument('--lower_bound', '-lb', help='Lower Bound (ML model)', type=float, default=None)
+parser.add_argument('--nascent_minima', '-nm', help='Nascent Minima term (ML model)', type=bool, default=False)
 params = parser.parse_args()
 
 objective_func_name = params.problem
@@ -105,7 +107,9 @@ n_initial_points = params.init
 n_iterations = params.iter
 n_points_per_iteration = params.points
 m_domain_discretization_sample_size = params.sample_size
-
+lb = params.lower_bound
+ub = params.upper_bound
+nm = params.nascent_minima
 
 py_sgd_params_ps = py_optimization.GradientDescentParameters(
     max_num_steps=1000,
@@ -147,7 +151,8 @@ min_evaluated = np.min(initial_points_value)
 #################################
 ###### ML model init.############
 #################################
-use_ml = False
+if (ub is not None) or (lb is not None) or (nm is not None):
+    use_ml = True
 
 if(use_ml==True):
     print("You have selected an acquisition function with ML integrated")
@@ -157,7 +162,8 @@ else:
 if use_ml == True:
     ml_model = ML_model(X_data=initial_points_array, 
                         y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
-                        X_ub=2.5) # Set this value if you are intrested in I(T(X) < X_ub)
+                        X_ub=ub,
+                        X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
 
 
 #################################
@@ -198,7 +204,7 @@ _log.info(f'The minimum in the domain is:\n{known_minimum}')
 ###########################
 
 results = []
-result_file = f'./results/SynthFun/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
@@ -285,12 +291,14 @@ for s in range(n_iterations):
 
         kg.set_current_point(new_point)
 
-         
-        if use_ml==True:    
-            identity = ml_model.nascent_minima(new_point)*ml_model.linear_penality(new_point)
+
+        identity = 1
+
+        if nm==True:    
+            identity = identity*ml_model.nascent_minima(new_point)
     
-        else:
-            identity=1
+        if (ub is not None) or (lb is not None):
+            identity=identity*ml_model.quadratic_penality(new_point)
             
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
