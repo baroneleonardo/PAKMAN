@@ -6,7 +6,6 @@ dependencies:
   - _openmp_mutex=5.1
   - appdirs=1.4.4
   - blas=1.0
-  - boost=1.74
   - bottleneck=1.3.5
   - brotlipy=0.7.0
   - ca-certificates=2023.05.30
