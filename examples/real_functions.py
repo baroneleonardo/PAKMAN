@@ -11,9 +11,6 @@ from keras.layers import Conv2D, MaxPooling2D
 import tensorflow as tf
 from keras.datasets import cifar10
 
-from oct2py import octave
-octave.addpath(octave.genpath("gpml-matlab-v4.0-2016-10-19"))
-
 from .abstract_problem import AbstractProblem
 
 

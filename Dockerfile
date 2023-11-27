@@ -9,6 +9,7 @@ RUN apt-get update && \
     python3 \
     python3-dev \
     gcc \
+    g++ \
     cmake \
     libboost-all-dev \
     libblas-dev \

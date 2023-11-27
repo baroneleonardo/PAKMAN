@@ -46,7 +46,8 @@ AVAILABLE_PROBLEMS = [
     'ScaledLiGen',
     'ScaledLiGenTot',
     'ScaledStereoMatch',
-    'ScaledQuery26'
+    'ScaledQuery26',
+    'Rastrigin9'
 ]
 
 ###########################
@@ -98,6 +99,7 @@ elif objective_func_name == 'Levy4':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
     domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1))
+
 else:
     objective_func = getattr(precomputed_functions, params.problem)
     known_minimum = objective_func.minimum
@@ -151,7 +153,8 @@ min_evaluated = np.min(initial_points_value)
 #################################
 ###### ML model init.############
 #################################
-if (ub is not None) or (lb is not None) or (nm is not None):
+use_ml = False
+if (ub is not None) or (lb is not None) or (nm is not False):
     use_ml = True
 
 if(use_ml==True):

@@ -177,3 +177,16 @@ class Ackley5(AbstractProblem):
             sum2 += cos(x[i]*c)
         result = -a*np.exp(-b*np.sqrt(sum1/5))-np.exp(sum2/5) + a + np.exp(1)
         return result 
+    
+class Rastrigin9(AbstractProblem):
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-5., 5.]], 9, axis=0),
+                         min_value=0.0)
+        
+    def evaluate_true(self, x):
+        res = 90.0
+        for i in range(9):
+            res += x[i]**2 - np.cos(2*np.pi*x[i])
+
+        return res
+
