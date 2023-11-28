@@ -1,24 +1,18 @@
 # QALIBOO
 QALIBOO is a fork of Cornell-MOE (Cornell-Metrics-Optimization-Engine) that allows you to run 
 the parallel Knowledge Gradient optimization algorithm (q-KG) on finite domains, namely precomputed functions.
+It also allow you to use the q-KG and q-EI integrated with Machine Learning models and metaheuristic such as Simulated Annealing.
 
 > *NOTE*: this documentation is largely based on the original `README.MD`
 > Please refer to that file for more details
 
-## Step-by-Step Installation
+## Step-by-Step Installation with Conda virtual environment
 We only tested an installation based on Anaconda/Miniconda 
-on a Ubuntu 20.04 machine. Other Linux distributions should be OK too.
-
-To install on an Apple machine, please refer to the original `README.MD`
-
-> **IMPORTANT**: As far as we know, it is **NOT** possible to build
-> the code on newer Apple machines with M1 processors.
-
-> **IMPORTANT**: There are no installation instructions for Windows.
+on a Ubuntu 20.04 machine.
 
 #### 0.1 Clone the repository
 ```bash
-$ git clone https://github.com/Vysybyl/QALIBOO
+$ git clone https://github.com/baroneleonardo/QALIBOO
 $ cd QALIBOO
 ```
 
@@ -31,6 +25,7 @@ Create and activate a new `conda` environment
 ```bash
 $ conda env create -f qaliboo_env.yaml --name qaliboo
 $ conda activate qaliboo
+$ conda install -c conda-forge boost=1.74 python=3.8
 ```
 
 #### 1-bis Additional build requirements
@@ -44,7 +39,7 @@ In that case, install them
 
 ```bash
 $ sudo apt-get update
-$ sudo apt-get install python3-dev gcc cmake libboost-all-dev libblas-dev liblapack-dev gfortran
+$ sudo apt-get install python3-dev gcc cmake libboost-all-dev libblas-dev g++ liblapack-dev gfortran
 ```
 
 #### 3. Set environment variables
@@ -85,7 +80,8 @@ development mode:
 ```bash
 $ python -m pip install -e .
 ```
-
+## Installation with Docker
+If you want to install the library using Docker, download the dockerfile.
 
 ## Running QALIBOO
 
