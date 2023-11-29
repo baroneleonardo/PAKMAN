@@ -155,19 +155,3 @@ class CIFAR10(AbstractProblem):
 
     def evaluate(self, x):
         return self.evaluate_true(x)
-
-
-class KISSGP(AbstractProblem):
-
-    def __init__(self):
-        super().__init__(search_domain=np.array([[-1, 3], [-1, 3], [-1, 3]]),
-                         min_value=0.0)
-        # self.num_init_pts = 1
-        self._num_observations = np.arange(self.dim)  # TODO: Remove?
-        
-    def evaluate_true(self, x):
-        value = np.array(octave.KISSGP(np.exp(x))).flatten()
-        return value
-
-    def evaluate(self, x):
-        return self.evaluate_true(x)

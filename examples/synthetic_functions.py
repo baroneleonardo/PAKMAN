@@ -159,10 +159,10 @@ class Hartmann6(AbstractProblem):
         return np.array(results)
 
 
-class Ackley5(AbstractProblem):
+class Ackley10(AbstractProblem):
 
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-5.0, 5.0]], 5, axis=0),
+        super().__init__(search_domain=np.repeat([[-32.0, 32.0]], 10, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 
@@ -172,7 +172,7 @@ class Ackley5(AbstractProblem):
         c = 2*np.pi
         sum1 = 0.0
         sum2 = 0.0
-        for i in range(5):
+        for i in range(10):
             sum1 += x[i]**2
             sum2 += cos(x[i]*c)
         result = -a*np.exp(-b*np.sqrt(sum1/5))-np.exp(sum2/5) + a + np.exp(1)
@@ -187,6 +187,18 @@ class Rastrigin9(AbstractProblem):
         res = 90.0
         for i in range(9):
             res += x[i]**2 - np.cos(2*np.pi*x[i])
+
+        return res
+    
+class Schwefel8(AbstractProblem):
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-500., 500.]], 8, axis=0),
+                         min_value= -418.9829*8)
+        
+    def evaluate_true(self, x):
+        res = 90.0
+        for i in range(8):
+            res += -x[i]*np.sin(np.sqrt(np.abs(x[i])))
 
         return res
 

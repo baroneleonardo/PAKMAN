@@ -12,6 +12,9 @@ from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimi
 from moe.optimal_learning.python.python_version import optimization as py_optimization
 from moe.optimal_learning.python import default_priors
 from moe.optimal_learning.python import random_features
+from moe.optimal_learning.python.geometry_utils import ClosedInterval
+from moe.optimal_learning.python.cpp_wrappers.domain import TensorProductDomain as cppTensorProductDomain
+from moe.optimal_learning.python.python_version.domain import TensorProductDomain as pythonTensorProductDomain
 from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as KG
 from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
@@ -19,6 +22,7 @@ from qaliboo import simulated_annealing as SA
 from qaliboo import sga_kg as sga
 from qaliboo.machine_learning_models import ML_model
 from concurrent.futures import ProcessPoolExecutor
+from examples.xgb import xgboostopt 
 
 
 logging.basicConfig(level=logging.NOTSET)
@@ -36,18 +40,12 @@ AVAILABLE_PROBLEMS = [
     # Benchmark functions:
     'Hartmann3',
     'Branin',
-    'Ackley5',
+    'Ackley10',
     'Levy4',  # This function implementation is probably wrong
-    # Data sets
-    'Query26',
-    'LiGen',
-    'StereoMatch',
-    'LiGenTot',
-    'ScaledLiGen',
-    'ScaledLiGenTot',
-    'ScaledStereoMatch',
-    'ScaledQuery26',
-    'Rastrigin9'
+    'Rastrigin9',
+    'Schwefel8',
+    'XGBoost'
+
 ]
 
 ###########################
@@ -72,38 +70,40 @@ objective_func_name = params.problem
 if objective_func_name == 'ParabolicMinAtOrigin':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([0.0, 0.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-5, 5, 0.1),
-                                                np.arange(-5, 5, 0.1))
+
 elif objective_func_name == 'ParabolicMinAtTwoAndThree':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([2.0, 3.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-5, 5, 0.1),
-                                                np.arange(-5, 5, 0.1))
+
 elif objective_func_name == 'Hartmann3':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([0.114614, 0.555649, 0.852547])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 1, 0.01),
-                                                np.arange(0, 1, 0.01),
-                                                np.arange(0, 1, 0.01))
+
 elif objective_func_name == 'Branin':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([3.14, 2.28])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 15, 0.01),
-                                                np.arange(-5, 15, 0.01))
-elif objective_func_name=='Ackley5':
+
+elif objective_func_name=='Ackley10':
     objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1))
+    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0])
 
 elif objective_func_name == 'Levy4':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1))
 
-else:
-    objective_func = getattr(precomputed_functions, params.problem)
-    known_minimum = objective_func.minimum
-    domain = objective_func
+elif objective_func_name == 'Rastrigin9':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+elif objective_func_name == 'Schwefel8':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([420.9687,420.9687,420.9687,420.9687,420.9687,420.9687,420.9687,420.9687])
+
+elif objective_func_name == 'XGBoost':
+    objective_func = getattr(xgboostopt, params.problem)()
+    known_minimum = None
+
+
 
 n_initial_points = params.init
 n_iterations = params.iter
@@ -112,6 +112,11 @@ m_domain_discretization_sample_size = params.sample_size
 lb = params.lower_bound
 ub = params.upper_bound
 nm = params.nascent_minima
+cpp_domain = cppTensorProductDomain([ClosedInterval(objective_func.search_domain[i, 0], objective_func.search_domain[i, 1])
+                                                  for i in range(objective_func.search_domain.shape[0])])
+
+domain = pythonTensorProductDomain([ClosedInterval(objective_func.search_domain[i, 0], objective_func.search_domain[i, 1])
+                                                 for i in range(objective_func.search_domain.shape[0])])
 
 py_sgd_params_ps = py_optimization.GradientDescentParameters(
     max_num_steps=1000,
@@ -137,7 +142,7 @@ min_evaluated = None
 ################################
 ##### Initial samples ##########
 ################################
-initial_points_array = domain.sample_points_in_domain(n_initial_points)
+initial_points_array = domain.generate_uniform_random_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 
 
@@ -164,7 +169,7 @@ else:
 
 if use_ml == True:
     ml_model = ML_model(X_data=initial_points_array, 
-                        y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
+                        y_data=initial_points_value, 
                         X_ub=ub,
                         X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
 
@@ -192,15 +197,8 @@ gp_loglikelihood.train()
 ###########################
 ###### Def. minima ########
 ###########################
-
 if known_minimum is not None:
-
-    _, _, known_minimum_in_domain = domain.find_distance_index_closest_point(known_minimum)
-
-    if not np.all(np.equal(known_minimum_in_domain, known_minimum)):
-        _log.warning('Known Minimum NOT in domain')
-        known_minimum = known_minimum_in_domain
-_log.info(f'The minimum in the domain is:\n{known_minimum}')
+    _log.info(f'The minimum in the domain is:\n{known_minimum}')
 
 ###########################
 ####### Main cycle ########
@@ -249,7 +247,7 @@ for s in range(n_iterations):
      
     ps_evaluator = knowledge_gradient.PosteriorMean(gp_loglikelihood.models[0], 0)
     ps_sgd_optimizer = cpp_optimization.GradientDescentOptimizer(
-        domain,
+        cpp_domain,
         ps_evaluator,
         cpp_sgd_params_ps
     )
@@ -288,7 +286,7 @@ for s in range(n_iterations):
         np.random.seed(seed)
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
         new_point=init_point
-        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.01)
+        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 1)
         
         new_point = sga.sga_kg(kg, domain, new_point)
 
@@ -337,7 +335,7 @@ for s in range(n_iterations):
     
     # UPDATE OF THE ML MODEL
     if use_ml==True:
-        ml_model.update(next_points, np.array([objective_func.evaluate_time(pt) for pt in next_points]))
+        ml_model.update(next_points, np.array([pt for pt in next_points_value]))
     
     
     min_evaluated = np.min([min_evaluated, np.min(next_points_value)])
@@ -359,23 +357,17 @@ for s in range(n_iterations):
     ####################
     
     # > Algorithm 1.7: Return the argmin of the average function `μ` currently estimated in `A`
+
+    # -> Nearest point in domain 
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
-    
-    # -> Nearest point in domain
-    _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
-    computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
-                 
-    
-    _log.info(f"The suggested minimum is:\n {suggested_minimum}")
-    _log.info(f"The closest point in the finite domain is:\n {closest_point_in_domain}")
+    computed_cost = objective_func.evaluate(suggested_minimum, do_not_count=True) 
+    _log.info(f'The evaluated minimum is {min_evaluated}')               
+    _log.info(f"The suggested minimum is:\n {suggested_minimum}")    
     _log.info(f"Which has a cost of:\n {computed_cost}")
-    _log.info(f"Cost of the minimum evaluated:\n {min_evaluated}")
     _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
     _log.info(f'The target function was evaluated {objective_func.evaluation_count} times')
 
-    if known_minimum is not None:
-        _log.info(f"Distance from closest point in domain to known minimum: {np.linalg.norm(closest_point_in_domain - known_minimum)}")
-
+    
     error = np.linalg.norm(objective_func.min_value - computed_cost)
     error_ratio = np.abs(error/objective_func.min_value)
     _log.info(f'Error: {error}')
@@ -390,10 +382,7 @@ for s in range(n_iterations):
             m=m_domain_discretization_sample_size,
             target=objective_func_name,
             minimum_evaluated = min_evaluated.tolist(),
-            suggested_minimum=suggested_minimum.tolist(),
-            known_minimum=known_minimum.tolist(),
-            closest_point_in_domain=closest_point_in_domain.tolist(),
-            computed_cost=float(computed_cost),
+            #known_minimum=known_minimum.tolist(),
             n_evaluations=objective_func.evaluation_count,
             error=error,
             error_ratio=error_ratio

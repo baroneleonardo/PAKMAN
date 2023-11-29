@@ -12,9 +12,14 @@ from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimi
 from moe.optimal_learning.python.python_version import optimization as py_optimization
 from moe.optimal_learning.python import default_priors
 from moe.optimal_learning.python import random_features
-
+from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as KG
 from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
+from qaliboo import simulated_annealing as SA
+from qaliboo import sga_kg as sga
+from qaliboo.machine_learning_models import ML_model
+from concurrent.futures import ProcessPoolExecutor
+
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
@@ -39,7 +44,10 @@ AVAILABLE_PROBLEMS = [
     'StereoMatch',
     'LiGenTot',
     'ScaledLiGen',
-    'ScaledLiGenTot'
+    'ScaledLiGenTot',
+    'ScaledStereoMatch',
+    'ScaledQuery26',
+    'Rastrigin9'
 ]
 
 ###########################
@@ -54,7 +62,9 @@ parser.add_argument('--init', '-i', help='Number of initial points', type=int, d
 parser.add_argument('--iter', '-n', help='Number of iterations', type=int, default=9)
 parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
 parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=30)
-
+parser.add_argument('--upper_bound', '-ub', help='Upper Bound (ML model)', type=float, default=None)
+parser.add_argument('--lower_bound', '-lb', help='Lower Bound (ML model)', type=float, default=None)
+parser.add_argument('--nascent_minima', '-nm', help='Nascent Minima term (ML model)', type=bool, default=False)
 params = parser.parse_args()
 
 objective_func_name = params.problem
@@ -80,17 +90,15 @@ elif objective_func_name == 'Branin':
     known_minimum = np.array([3.14, 2.28])
     domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 15, 0.01),
                                                 np.arange(-5, 15, 0.01))
-elif objective_func_name == 'Levy4':
-    objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),
-                                                np.arange(-1, 2, 0.1),
-                                                np.arange(-1, 2, 0.1),
-                                                np.arange(-1, 2, 0.1))
 elif objective_func_name=='Ackley5':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
     domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1))
+
+elif objective_func_name == 'Levy4':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
+    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1))
 
 else:
     objective_func = getattr(precomputed_functions, params.problem)
@@ -101,8 +109,9 @@ n_initial_points = params.init
 n_iterations = params.iter
 n_points_per_iteration = params.points
 m_domain_discretization_sample_size = params.sample_size
-
-num_restarts = 20
+lb = params.lower_bound
+ub = params.upper_bound
+nm = params.nascent_minima
 
 py_sgd_params_ps = py_optimization.GradientDescentParameters(
     max_num_steps=1000,
@@ -120,23 +129,17 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     num_steps_averaged=3,
     gamma=0.0,
     pre_mult=1.0,
-    max_relative_change=0.1,
+    max_relative_change=0.2,
     tolerance=1.0e-10)
 
-KG_gradient_descent_params = cpp_optimization.GradientDescentParameters(
-    num_multistarts=num_restarts,
-    max_num_steps=50,
-    max_num_restarts=2,
-    num_steps_averaged=4,
-    gamma=0.7,
-    pre_mult=1.0,
-    max_relative_change=0.5,
-    tolerance=1.0e-10)
+min_evaluated = None
 
-
-# Draw initial points from domain from a Latin Hypercube(as np array)
+################################
+##### Initial samples ##########
+################################
 initial_points_array = domain.sample_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
+
 
 initial_points = [data_containers.SamplePoint(pt,
                                               initial_points_value[num])
@@ -144,7 +147,31 @@ initial_points = [data_containers.SamplePoint(pt,
 initial_data = data_containers.HistoricalData(dim=objective_func.dim)
 initial_data.append_sample_points(initial_points)
 
-#Queue = initial_points_array # If I want to add the queue
+min_evaluated = np.min(initial_points_value)
+
+
+#################################
+###### ML model init.############
+#################################
+use_ml = False
+if (ub is not None) or (lb is not None) or (nm is not False):
+    use_ml = True
+
+if(use_ml==True):
+    print("You have selected an acquisition function with ML integrated")
+else:
+    print("Without ML model")
+
+if use_ml == True:
+    ml_model = ML_model(X_data=initial_points_array, 
+                        y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
+                        X_ub=ub,
+                        X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
+
+
+#################################
+######## GP init. ###############
+#################################
 
 n_prior_hyperparameters = 1 + objective_func.dim + objective_func.n_observations
 n_prior_noises = objective_func.n_observations
@@ -158,10 +185,13 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     chain_length=1000,
     burnin_steps=2000,
     n_hypers=N_RANDOM_WALKERS,
-    noisy=True
+    noisy=False
 )
 gp_loglikelihood.train()
 
+###########################
+###### Def. minima ########
+###########################
 
 if known_minimum is not None:
 
@@ -173,11 +203,11 @@ if known_minimum is not None:
 _log.info(f'The minimum in the domain is:\n{known_minimum}')
 
 ###########################
-# Main cycle
+####### Main cycle ########
 ###########################
 
 results = []
-result_file = f'./results/SynthFun/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
@@ -186,12 +216,14 @@ for s in range(n_iterations):
               f"q={n_points_per_iteration}")
     time1 = time.time()
 
-    discrete_pts_list = []
-    
-    glb_opt_smpl = False
-
-
     cpp_gaussian_process = gp_loglikelihood.models[0]
+    
+    ##################################
+    #### Def. of the space A #########
+    ##################################
+    discrete_pts_list = []
+    glb_opt_smpl = False     # Set to true if you want a dynamic space
+    # X(1:n) + z(1:q) + sample from the global optima of the posterior
     
     if glb_opt_smpl == True:
             init_points = domain.generate_uniform_random_points_in_domain(int(1e2))
@@ -211,14 +243,10 @@ for s in range(n_iterations):
         eval_pts = np.reshape(np.append(eval_pts,
                                         (cpp_gaussian_process.get_historical_data_copy()).points_sampled[:, :(gp_loglikelihood.dim)]),
                               (eval_pts.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
-    '''
-    if glb_opt_smpl == True:
-            eval_pts = np.reshape(np.append(discrete_pts_optima, eval_pts),
-                                            (discrete_pts_optima.shape[0] + eval_pts.shape[0], cpp_gaussian_process.dim))   
-    #discrete_pts_optima = np.reshape(eval_pts, (1, cpp_gaussian_process.dim))   
-    '''
+
     discrete_pts_list.append(eval_pts)
-    #print(f"dicrete point list = {discrete_pts_list[0].shape[0]}")    
+
+     
     ps_evaluator = knowledge_gradient.PosteriorMean(gp_loglikelihood.models[0], 0)
     ps_sgd_optimizer = cpp_optimization.GradientDescentOptimizer(
         domain,
@@ -226,19 +254,71 @@ for s in range(n_iterations):
         cpp_sgd_params_ps
     )
 
-    # Selection of the R restarting points
+    # Selection of the R restarting points    
 
-    # KG method
-    next_points, voi = bayesian_optimization.gen_sample_from_qkg_mcmc(
-        gp_loglikelihood._gaussian_process_mcmc,
-        gp_loglikelihood.models,
-        ps_sgd_optimizer,
-        domain,
-        0,
-        discrete_pts_list,
-        KG_gradient_descent_params,
-        n_points_per_iteration,
-        num_mc=2 ** 7)
+    kg = KG.KnowledgeGradientMCMC(gaussian_process_mcmc=gp_loglikelihood._gaussian_process_mcmc,
+                                    gaussian_process_list=gp_loglikelihood.models,
+                                    num_fidelity=0,
+                                    inner_optimizer=ps_sgd_optimizer,
+                                    discrete_pts_list=discrete_pts_list,
+                                    num_to_sample=n_points_per_iteration,
+                                    num_mc_iterations=2**7,
+                                    points_to_sample=None
+                                    )
+    
+
+    ################################
+    # Multistart SGA & SA parameters
+    ################################
+    para_sgd = 100 
+    alpha = 1
+    gamma = 0.7
+    num_restarts = 20
+    max_relative_change = 0.9
+    initial_temperature = 3
+    n_iter_sa = 40   #40
+
+    report_point = []
+    kg_list = []
+    
+    
+    
+    def optimize_point(seed):
+
+        np.random.seed(seed)
+        init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
+        new_point=init_point
+        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.01)
+        
+        new_point = sga.sga_kg(kg, domain, new_point)
+
+        kg.set_current_point(new_point)
+
+
+        identity = 1
+
+        if nm==True:    
+            identity = identity*ml_model.nascent_minima(new_point)
+    
+        if (ub is not None) or (lb is not None):
+            identity=identity*ml_model.quadratic_penality(new_point)
+            
+        kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
+        
+        return new_point, kg_value
+
+
+    seeds = np.random.randint(0, 10000, size=num_restarts)
+    with ProcessPoolExecutor(max_workers=5) as executor:
+        res = list(executor.map(optimize_point, seeds))
+        
+
+    report_point, kg_list = zip(*res)
+
+    index = np.argmax(kg_list)
+    next_points = report_point[index]
+    
+    #next_points = sga.multistart_sga_kg(kg, domain, n_points_per_iteration, num_restarts, para_sgd, gamma, alpha, max_relative_change)
 
 
     _log.info(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
@@ -247,15 +327,23 @@ for s in range(n_iterations):
 
     # > ALgorithm 1.5: 5: Sample these points (z∗1 , z∗2 , · · · , z∗q)
     # > ...
-
-# Try to use new_points instead of next points in sampled points
-
+    
+    next_points_value = np.array([objective_func.evaluate(pt) for pt in next_points])
+    
     sampled_points = [data_containers.SamplePoint(pt,
-                                                  objective_func.evaluate(pt))
-                      for pt in next_points]
+                                              next_points_value[num])
+                  for num, pt in enumerate(next_points)]
 
+    
+    # UPDATE OF THE ML MODEL
+    if use_ml==True:
+        ml_model.update(next_points, np.array([objective_func.evaluate_time(pt) for pt in next_points]))
+    
+    
+    min_evaluated = np.min([min_evaluated, np.min(next_points_value)])
     time1 = time.time()
-    # > ...
+
+    # UPDATE OF THE GP
     # > re-train the hyperparameters of the GP by MLE
     # > and update the posterior distribution of f
     gp_loglikelihood.add_sampled_points(sampled_points)
@@ -263,19 +351,17 @@ for s in range(n_iterations):
     _log.info(f"Retraining the model takes {time.time() - time1} seconds")
     time1 = time.time()
 
-    # > Algorithm 1.7: Return the argmin of the average function `μ` currently estimated in `A`
-
-    # In the current implementation, this argmin is found
-    # and returned at every interaction (called "suggested_minimum").
-
+    
     _log.info("\nIteration finished successfully!")
 
     ####################
     # Suggested Minimum
     ####################
-    # Calcola la posterior del modello retrain e trova il minimo ---> questo sarà il mio punto di minimo
+    
+    # > Algorithm 1.7: Return the argmin of the average function `μ` currently estimated in `A`
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
-    # Trovo il punto più vicino al mio nel punto di minimo
+    
+    # -> Nearest point in domain
     _, _, closest_point_in_domain = domain.find_distance_index_closest_point(suggested_minimum)
     computed_cost = objective_func.evaluate(closest_point_in_domain, do_not_count=True)
                  
@@ -283,6 +369,7 @@ for s in range(n_iterations):
     _log.info(f"The suggested minimum is:\n {suggested_minimum}")
     _log.info(f"The closest point in the finite domain is:\n {closest_point_in_domain}")
     _log.info(f"Which has a cost of:\n {computed_cost}")
+    _log.info(f"Cost of the minimum evaluated:\n {min_evaluated}")
     _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
     _log.info(f'The target function was evaluated {objective_func.evaluation_count} times')
 
@@ -302,6 +389,7 @@ for s in range(n_iterations):
             q=n_points_per_iteration,
             m=m_domain_discretization_sample_size,
             target=objective_func_name,
+            minimum_evaluated = min_evaluated.tolist(),
             suggested_minimum=suggested_minimum.tolist(),
             known_minimum=known_minimum.tolist(),
             closest_point_in_domain=closest_point_in_domain.tolist(),
@@ -311,6 +399,7 @@ for s in range(n_iterations):
             error_ratio=error_ratio
         )
     )
+
 
     with open(result_file, 'w') as f:
         json.dump(results, f, indent=2)
