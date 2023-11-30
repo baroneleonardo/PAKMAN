@@ -22,7 +22,7 @@ from qaliboo import simulated_annealing as SA
 from qaliboo import sga_kg as sga
 from qaliboo.machine_learning_models import ML_model
 from concurrent.futures import ProcessPoolExecutor
-from examples.xgb import xgboostopt 
+from examples.RealProblem import xgboostopt 
 
 
 logging.basicConfig(level=logging.NOTSET)
@@ -44,7 +44,10 @@ AVAILABLE_PROBLEMS = [
     'Levy4',  # This function implementation is probably wrong
     'Rastrigin9',
     'Schwefel8',
-    'XGBoost'
+    'XGBoost',
+    'RandomForest',
+    'GradientBoosting',
+    'CIFRAR10'
 
 ]
 
@@ -102,8 +105,15 @@ elif objective_func_name == 'Schwefel8':
 elif objective_func_name == 'XGBoost':
     objective_func = getattr(xgboostopt, params.problem)()
     known_minimum = None
-
-
+elif objective_func_name == 'RandomForest':
+    objective_func = getattr(xgboostopt, params.problem)()
+    known_minimum = None
+elif objective_func_name == 'GradientBoosting':
+    objective_func = getattr(xgboostopt, params.problem)()
+    known_minimum = None
+elif objective_func_name == 'CIFRAR10':
+    objective_func = getattr(xgboostopt, params.problem)()
+    known_minimum = None
 
 n_initial_points = params.init
 n_iterations = params.iter
@@ -286,8 +296,8 @@ for s in range(n_iterations):
         np.random.seed(seed)
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
         new_point=init_point
-        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 1)
-        
+        #new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 1)
+                
         new_point = sga.sga_kg(kg, domain, new_point)
 
         kg.set_current_point(new_point)

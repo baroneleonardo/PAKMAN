@@ -1,7 +1,7 @@
 #!/bin/bash
 
-for q in {8..15}
+for q in {10..15}
 do
-    python main_test.py -p Rastrigin9 -i 11 -q $q -n 15 -nm True
+    python MAIN4.py -p ScaledLiGen -i 11 -q $q -n 15 -nm True -ub 2.7
 done
 
