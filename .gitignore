@@ -9,6 +9,7 @@
 *.json
 *.csv
 *.ipynb
+*.pkl
 # Data files
 *.mat
 

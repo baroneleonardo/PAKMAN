@@ -87,10 +87,6 @@ elif objective_func_name == 'Levy4':
                                                 np.arange(-1, 2, 0.1),
                                                 np.arange(-1, 2, 0.1),
                                                 np.arange(-1, 2, 0.1))
-elif objective_func_name=='Ackley5':
-    objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1))
 
 else:
     objective_func = getattr(precomputed_functions, params.problem)

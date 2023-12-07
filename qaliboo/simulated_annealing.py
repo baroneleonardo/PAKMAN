@@ -60,10 +60,16 @@ def simulated_annealing(domain, kg, initial_point, num_iterations, initial_tempe
 
 
         delta = new_value - current_value
+        use_delta = False
 
-        if delta < 0 or np.random.uniform(0, 1) < np.exp(-delta / temperature(iteration, initial_temperature, typeT, alpha)):
-            current_point = new_point
-            current_value = new_value
+        if use_delta==True:
+            if delta < 0 or np.random.uniform(0, 1) < np.exp(-delta / temperature(iteration, initial_temperature, typeT, alpha)):
+                current_point = new_point
+                current_value = new_value
+        else:
+            if np.random.uniform(0, 1) < np.exp(-delta / temperature(iteration, initial_temperature, typeT, alpha)):
+                current_point = new_point
+                current_value = new_value
 
     return current_point
 

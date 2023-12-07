@@ -148,21 +148,20 @@ class Hartmann6(AbstractProblem):
                       [17, 8, 0.05, 10, 0.1, 14]])
         P = 1.0e-4 * np.array([[1312, 1696, 5569, 124, 8283, 5886], [2329, 4135, 8307, 3736, 1004, 9991],
                                [2348, 1451, 3522, 2883, 3047, 6650], [4047, 8828, 8732, 5743, 1091, 381]])
-        results = [0.0]*7
+        results = 0.0
         for i in range(4):
             inner_value = 0.0
-            for j in range(self.dim-self._num_fidelity):
+            for j in range(6):
                 inner_value -= A[i, j] * pow(x[j] - P[i, j], 2.0)
-            results[0] -= alpha[i] * np.exp(inner_value)
-            for j in range(self.dim-self._num_fidelity):
-                results[j+1] -= (alpha[i] * np.exp(inner_value)) * ((-2) * A[i,j] * (x[j] - P[i, j]))
+            results += alpha[i] * np.exp(inner_value)
+        results = -(results + 2.58)/1.94
         return np.array(results)
 
 
-class Ackley10(AbstractProblem):
+class Ackley8(AbstractProblem):
 
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-32.0, 32.0]], 10, axis=0),
+        super().__init__(search_domain=np.repeat([[-32.0, 32.0]], 8, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 
@@ -172,33 +171,64 @@ class Ackley10(AbstractProblem):
         c = 2*np.pi
         sum1 = 0.0
         sum2 = 0.0
-        for i in range(10):
+        for i in range(8):
             sum1 += x[i]**2
             sum2 += cos(x[i]*c)
         result = -a*np.exp(-b*np.sqrt(sum1/5))-np.exp(sum2/5) + a + np.exp(1)
         return result 
     
-class Rastrigin9(AbstractProblem):
+class Ackley5(AbstractProblem):
+
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-5., 5.]], 9, axis=0),
+        super().__init__(search_domain=np.repeat([[-2.0, 2.0]], 5, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
+
+    def evaluate_true(self, x):
+        a = 20.0
+        b = 0.2
+        c = 2*np.pi
+        sum1 = 0.0
+        sum2 = 0.0
+        for i in range(5):
+            sum1 += x[i]**2
+            sum2 += cos(x[i]*c)
+        result = -a*np.exp(-b*np.sqrt(sum1/5))-np.exp(sum2/5) + a + np.exp(1)
+        return result 
+
+class Rastrigin5(AbstractProblem):
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-2., 2.]], 5, axis=0),
                          min_value=0.0)
         
     def evaluate_true(self, x):
-        res = 90.0
-        for i in range(9):
-            res += x[i]**2 - np.cos(2*np.pi*x[i])
+        res = 50.0
+        for i in range(5):
+            res += x[i]**2 - 10*np.cos(2*np.pi*x[i])
 
         return res
     
-class Schwefel8(AbstractProblem):
+class Schwefel7(AbstractProblem):
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-500., 500.]], 8, axis=0),
-                         min_value= -418.9829*8)
+        super().__init__(search_domain=np.repeat([[-0., 500.]], 5, axis=0),
+                         min_value= -418.9829*5)
         
     def evaluate_true(self, x):
-        res = 90.0
-        for i in range(8):
+        res=0.0
+        for i in range(5):
             res += -x[i]*np.sin(np.sqrt(np.abs(x[i])))
 
         return res
 
+
+class Schwefel4(AbstractProblem):
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-0., 500.]], 4, axis=0),
+                         min_value= -418.9829*4)
+        
+    def evaluate_true(self, x):
+        res=0.0
+        for i in range(4):
+            res += -x[i]*np.sin(np.sqrt(np.abs(x[i])))
+
+        return res

@@ -23,7 +23,7 @@ from qaliboo import sga_kg as sga
 from qaliboo.machine_learning_models import ML_model
 from concurrent.futures import ProcessPoolExecutor
 from examples.RealProblem import xgboostopt 
-
+from examples.VirtualSensor import VS
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
@@ -40,14 +40,19 @@ AVAILABLE_PROBLEMS = [
     # Benchmark functions:
     'Hartmann3',
     'Branin',
-    'Ackley10',
+    'Ackley8',
     'Levy4',  # This function implementation is probably wrong
-    'Rastrigin9',
-    'Schwefel8',
+    'Rastrigin5',
+    'Schwefel7',
     'XGBoost',
     'RandomForest',
     'GradientBoosting',
-    'CIFRAR10'
+    'CIFRAR10',
+    'Iris',
+    'RF',
+    'XGB',
+    'Hartmann6',
+    'Ackley5'
 
 ]
 
@@ -81,26 +86,34 @@ elif objective_func_name == 'ParabolicMinAtTwoAndThree':
 elif objective_func_name == 'Hartmann3':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([0.114614, 0.555649, 0.852547])
+elif objective_func_name == 'Hartmann6':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.20169, 0.150011, 0.476874, 0.275332, 0.311652, 0.6573])
 
 elif objective_func_name == 'Branin':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([3.14, 2.28])
 
-elif objective_func_name=='Ackley10':
+elif objective_func_name=='Ackley8':
     objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0])
+    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0, 0.0])
+
+elif objective_func_name=='Ackley5':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0])
+
 
 elif objective_func_name == 'Levy4':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
 
-elif objective_func_name == 'Rastrigin9':
+elif objective_func_name == 'Rastrigin5':
     objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
 
-elif objective_func_name == 'Schwefel8':
+elif objective_func_name == 'Schwefel5':
     objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([420.9687,420.9687,420.9687,420.9687,420.9687,420.9687,420.9687,420.9687])
+    known_minimum = np.array([420.9687,420.9687,420.9687,420.9687,420.9687])
 
 elif objective_func_name == 'XGBoost':
     objective_func = getattr(xgboostopt, params.problem)()
@@ -111,9 +124,19 @@ elif objective_func_name == 'RandomForest':
 elif objective_func_name == 'GradientBoosting':
     objective_func = getattr(xgboostopt, params.problem)()
     known_minimum = None
+elif objective_func_name == 'Iris':
+    objective_func = getattr(xgboostopt, params.problem)()
+    known_minimum = None
 elif objective_func_name == 'CIFRAR10':
     objective_func = getattr(xgboostopt, params.problem)()
     known_minimum = None
+elif objective_func_name == 'RF':
+    objective_func = getattr(VS, params.problem)()
+    known_minimum = None
+elif objective_func_name == 'XGB':
+    objective_func = getattr(VS, params.problem)()
+    known_minimum = None
+
 
 n_initial_points = params.init
 n_iterations = params.iter
@@ -155,10 +178,14 @@ min_evaluated = None
 initial_points_array = domain.generate_uniform_random_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 
+sum_of_squares = np.sum(initial_points_array ** 2, axis=1)    # Euclidean Norm
+sum_of_points = np.sum(np.abs(initial_points_array), axis=1)  # Manatthan Norm
+inf_norm = np.max(np.abs(initial_points_array), axis=1)       # Infinity Norm
 
 initial_points = [data_containers.SamplePoint(pt,
                                               initial_points_value[num])
                   for num, pt in enumerate(initial_points_array)]
+
 initial_data = data_containers.HistoricalData(dim=objective_func.dim)
 initial_data.append_sample_points(initial_points)
 
@@ -168,6 +195,7 @@ min_evaluated = np.min(initial_points_value)
 #################################
 ###### ML model init.############
 #################################
+
 use_ml = False
 if (ub is not None) or (lb is not None) or (nm is not False):
     use_ml = True
@@ -179,7 +207,7 @@ else:
 
 if use_ml == True:
     ml_model = ML_model(X_data=initial_points_array, 
-                        y_data=initial_points_value, 
+                        y_data=sum_of_points, 
                         X_ub=ub,
                         X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
 
@@ -200,7 +228,7 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     chain_length=1000,
     burnin_steps=2000,
     n_hypers=N_RANDOM_WALKERS,
-    noisy=False
+    noisy=True
 )
 gp_loglikelihood.train()
 
@@ -215,7 +243,7 @@ if known_minimum is not None:
 ###########################
 
 results = []
-result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/SynthFuncSA/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
@@ -230,7 +258,7 @@ for s in range(n_iterations):
     #### Def. of the space A #########
     ##################################
     discrete_pts_list = []
-    glb_opt_smpl = False     # Set to true if you want a dynamic space
+    glb_opt_smpl = True    # Set to true if you want a dynamic space
     # X(1:n) + z(1:q) + sample from the global optima of the posterior
     
     if glb_opt_smpl == True:
@@ -278,25 +306,29 @@ for s in range(n_iterations):
     ################################
     # Multistart SGA & SA parameters
     ################################
-    para_sgd = 100 
+    para_sgd = 200
     alpha = 1
     gamma = 0.7
     num_restarts = 20
     max_relative_change = 0.9
-    initial_temperature = 3
+    initial_temperature = 1
     n_iter_sa = 40   #40
 
     report_point = []
     kg_list = []
     
     
-    
+    use_SA = False
+
     def optimize_point(seed):
 
         np.random.seed(seed)
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
-        new_point=init_point
-        #new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 1)
+        
+        if use_SA == False:
+            new_point=init_point
+        else:
+            new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.001)
                 
         new_point = sga.sga_kg(kg, domain, new_point)
 
@@ -309,15 +341,16 @@ for s in range(n_iterations):
             identity = identity*ml_model.nascent_minima(new_point)
     
         if (ub is not None) or (lb is not None):
-            identity=identity*ml_model.quadratic_penality(new_point)
-            
+            identity=identity*ml_model.linear_penality(new_point)
+
+
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
         return new_point, kg_value
 
 
     seeds = np.random.randint(0, 10000, size=num_restarts)
-    with ProcessPoolExecutor(max_workers=5) as executor:
+    with ProcessPoolExecutor() as executor:                     #max_workers=5
         res = list(executor.map(optimize_point, seeds))
         
 
@@ -345,7 +378,10 @@ for s in range(n_iterations):
     
     # UPDATE OF THE ML MODEL
     if use_ml==True:
-        ml_model.update(next_points, np.array([pt for pt in next_points_value]))
+        #sum_of_squares = np.sum(next_points** 2, axis=1)         # Euclidian Norm
+        sum_of_points = np.sum(np.abs(next_points), axis=1)       # Norm one
+        #inf_norm = np.max(np.abs(initial_points_array), axis=1)  # Infinity Norm
+        ml_model.update(next_points, sum_of_points)
     
     
     min_evaluated = np.min([min_evaluated, np.min(next_points_value)])
@@ -369,7 +405,9 @@ for s in range(n_iterations):
     # > Algorithm 1.7: Return the argmin of the average function `μ` currently estimated in `A`
 
     # -> Nearest point in domain 
+    #suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
     suggested_minimum = auxiliary.compute_suggested_minimum(domain, gp_loglikelihood, py_sgd_params_ps)
+    
     computed_cost = objective_func.evaluate(suggested_minimum, do_not_count=True) 
     _log.info(f'The evaluated minimum is {min_evaluated}')               
     _log.info(f"The suggested minimum is:\n {suggested_minimum}")    
@@ -392,6 +430,7 @@ for s in range(n_iterations):
             m=m_domain_discretization_sample_size,
             target=objective_func_name,
             minimum_evaluated = min_evaluated.tolist(),
+            suggested_minimum=suggested_minimum.tolist(),
             #known_minimum=known_minimum.tolist(),
             n_evaluations=objective_func.evaluation_count,
             error=error,
