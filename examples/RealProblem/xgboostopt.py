@@ -14,7 +14,6 @@ class XGBoost(AbstractProblem):
     def __init__(self):
         super().__init__(search_domain = np.array([[3.0, 18.0],   # max_depth (int)
                                                    [1.0, 9.0],     # gamma (float)
-                                                   [0.0, 180.0], # reg_alpha (int)
                                                    [0.0, 1.0],     # reg_lambda (float)
                                                    [0.5, 1.0],   # colsample_bytree (float)
                                                    [0.0, 10.0],    # min_child_weight (int)
@@ -34,14 +33,12 @@ class XGBoost(AbstractProblem):
         X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size = 0.3)
 
 
-        max_depth, gamma, reg_alpha, reg_lambda, colsample_bytree, min_child_weight, learning_rate = x
+        max_depth, gamma, reg_lambda, colsample_bytree, min_child_weight, learning_rate = x
 
         clf=xgb.XGBClassifier(
                 n_estimators = self.n_estimators, 
                 max_depth = int(max_depth), 
                 gamma = gamma,
-                reg_alpha = reg_alpha,
-                reg_lambda=reg_lambda,
                 min_child_weight=int(min_child_weight),
                 colsample_bytree=colsample_bytree,
                 early_stopping_rounds=10,
@@ -151,7 +148,6 @@ class GradientBoosting(AbstractProblem):
         return np.array([loss])
 
 class Iris(AbstractProblem):
-    
     def __init__(self):
         super().__init__(search_domain = np.array([[3.0, 18.0],   # max_depth (int)
                                                    [1.0, 9.0],     # gamma (float)
@@ -160,7 +156,7 @@ class Iris(AbstractProblem):
                                                    [0.5, 1.0],   # colsample_bytree (float)
                                                    [0.0, 10.0],    # min_child_weight (int)
                                                    [0.05, 0.3],   #learning rate (float)
-                                                   [50, 500]]),   
+                                                   [50, 500]]),      
                          min_value=0.0)
         
         current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -178,7 +174,7 @@ class Iris(AbstractProblem):
                 n_estimators = int(n_estimators), 
                 max_depth = int(max_depth), 
                 gamma = gamma,
-                reg_alpha = reg_alpha,
+                reg_alpha=int(reg_alpha),
                 reg_lambda=reg_lambda,
                 min_child_weight=int(min_child_weight),
                 colsample_bytree=colsample_bytree,
@@ -200,6 +196,88 @@ class Iris(AbstractProblem):
         return loss
     
 
+    def evaluate_true(self, x):
+        loss = self.train(x)
+        return np.array([loss])
+    
+class IrisRF(AbstractProblem):
+
+    def __init__(self):
+        super().__init__(search_domain = np.array([[2.0, 20.0],  # max_depth (int)
+                                                   [2.0,10.0],   # min_samples_split (int)
+                                                   [1.0,25.0],   # min_samples_leaf (int)
+                                                   [50, 500]]),  # n_estimators (int)
+                                                      
+                         min_value=0.0)
+        
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(current_directory, 'iris.csv')
+        df = pd.read_csv(file_path)
+        self.X = df.drop('class', axis=1)
+        self.y = df['class']
+    
+    def train(self, x):
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size = 0.3)
+
+
+        max_depth, min_samples_split, min_samples_leaf, n_estimators = x
+        
+        rf=RandomForestClassifier(
+                n_estimators=int(n_estimators),
+                max_depth=int(max_depth),
+                min_samples_split=int(min_samples_split),
+                min_samples_leaf=int(min_samples_leaf),
+        )
+
+        
+        rf.fit(X_train, y_train)
+
+        pred = rf.predict(X_test)
+        accuracy = accuracy_score(y_test, pred>0.5)
+        loss = 1-accuracy
+        return loss
+    
+    def evaluate_true(self, x):
+        loss = self.train(x)
+        return np.array([loss])
+
+class IrisGB(AbstractProblem):
+
+    def __init__(self):
+        super().__init__(search_domain = np.array([[0.025, 0.3],       # learning_rate (float)
+                                                   [2.0, 25.0],        # max_depth (int)
+                                                   [2.0, 20.0],        # min_samples_split
+                                                   [0.15, 1.0],        # subsample (float)
+                                                   [50.0, 500.0]]),    # n_estimators (int)  
+                                                      
+                         min_value=0.0)
+        
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(current_directory, 'iris.csv')
+        df = pd.read_csv(file_path)
+        self.X = df.drop('class', axis=1)
+        self.y = df['class']
+    
+    def train(self, x):
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size = 0.3)
+
+
+        learning_rate, max_depth, min_samples_split, subsample, n_estimators = x
+        
+        gb = GradientBoostingClassifier(
+            n_estimators=int(n_estimators),
+            learning_rate=int(learning_rate),
+            max_depth=int(max_depth),
+            min_samples_split=int(min_samples_split),
+        )
+
+        
+        gb.fit(X_train, y_train)
+
+        pred = gb.predict(X_test)
+        accuracy = accuracy_score(y_test, pred>0.5)
+        loss = 1-accuracy
+        return loss
     def evaluate_true(self, x):
         loss = self.train(x)
         return np.array([loss])

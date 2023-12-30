@@ -161,7 +161,7 @@ class Hartmann6(AbstractProblem):
 class Ackley8(AbstractProblem):
 
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-32.0, 32.0]], 8, axis=0),
+        super().__init__(search_domain=np.repeat([[-2.0, 2.0]], 8, axis=0),
                          min_value=0.0)
         # self.num_init_pts = 3
 
@@ -196,9 +196,48 @@ class Ackley5(AbstractProblem):
         result = -a*np.exp(-b*np.sqrt(sum1/5))-np.exp(sum2/5) + a + np.exp(1)
         return result 
 
+class Ackley6(AbstractProblem):
+
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-2.0, 2.0]], 6, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
+
+    def evaluate_true(self, x):
+        a = 20.0
+        b = 0.2
+        c = 2*np.pi
+        sum1 = 0.0
+        sum2 = 0.0
+        for i in range(6):
+            sum1 += x[i]**2
+            sum2 += cos(x[i]*c)
+        result = -a*np.exp(-b*np.sqrt(sum1/5))-np.exp(sum2/5) + a + np.exp(1)
+        return result 
+    
+class Ackley7(AbstractProblem):
+
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-2.0, 2.0]], 7, axis=0),
+                         min_value=0.0)
+        # self.num_init_pts = 3
+
+    def evaluate_true(self, x):
+        a = 20.0
+        b = 0.2
+        c = 2*np.pi
+        sum1 = 0.0
+        sum2 = 0.0
+        for i in range(7):
+            sum1 += x[i]**2
+            sum2 += cos(x[i]*c)
+        result = -a*np.exp(-b*np.sqrt(sum1/5))-np.exp(sum2/5) + a + np.exp(1)
+        return result 
+
+
 class Rastrigin5(AbstractProblem):
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-2., 2.]], 5, axis=0),
+        super().__init__(search_domain=np.repeat([[-1., 1.]], 5, axis=0),
                          min_value=0.0)
         
     def evaluate_true(self, x):
@@ -221,14 +260,14 @@ class Schwefel7(AbstractProblem):
         return res
 
 
-class Schwefel4(AbstractProblem):
+class Schwefel5(AbstractProblem):
     def __init__(self):
-        super().__init__(search_domain=np.repeat([[-0., 500.]], 4, axis=0),
-                         min_value= -418.9829*4)
+        super().__init__(search_domain=np.repeat([[300., 500.]], 5, axis=0),
+                         min_value= -418.9829*5)
         
     def evaluate_true(self, x):
-        res=0.0
-        for i in range(4):
-            res += -x[i]*np.sin(np.sqrt(np.abs(x[i])))
+        s=0.0
+        for i in range(5):
+            s += -x[i]*np.sin(np.sqrt(np.abs(x[i])))
 
-        return res
+        return s

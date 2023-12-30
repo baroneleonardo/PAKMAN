@@ -52,7 +52,12 @@ AVAILABLE_PROBLEMS = [
     'RF',
     'XGB',
     'Hartmann6',
-    'Ackley5'
+    'Ackley5',
+    'Ackley6',
+    'Ackley7',
+    'IrisRF',
+    'IrisGB',
+    'Schwefel5'
 
 ]
 
@@ -101,6 +106,13 @@ elif objective_func_name=='Ackley8':
 elif objective_func_name=='Ackley5':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0])
+elif objective_func_name=='Ackley6':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0, 0.0])
+elif objective_func_name=='Ackley7':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0])
+
 
 
 elif objective_func_name == 'Levy4':
@@ -125,6 +137,12 @@ elif objective_func_name == 'GradientBoosting':
     objective_func = getattr(xgboostopt, params.problem)()
     known_minimum = None
 elif objective_func_name == 'Iris':
+    objective_func = getattr(xgboostopt, params.problem)()
+    known_minimum = None
+elif objective_func_name == 'IrisRF':
+    objective_func = getattr(xgboostopt, params.problem)()
+    known_minimum = None
+elif objective_func_name == 'IrisGB':
     objective_func = getattr(xgboostopt, params.problem)()
     known_minimum = None
 elif objective_func_name == 'CIFRAR10':
@@ -207,7 +225,7 @@ else:
 
 if use_ml == True:
     ml_model = ML_model(X_data=initial_points_array, 
-                        y_data=sum_of_points, 
+                        y_data=inf_norm, 
                         X_ub=ub,
                         X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
 
@@ -379,9 +397,9 @@ for s in range(n_iterations):
     # UPDATE OF THE ML MODEL
     if use_ml==True:
         #sum_of_squares = np.sum(next_points** 2, axis=1)         # Euclidian Norm
-        sum_of_points = np.sum(np.abs(next_points), axis=1)       # Norm one
-        #inf_norm = np.max(np.abs(initial_points_array), axis=1)  # Infinity Norm
-        ml_model.update(next_points, sum_of_points)
+        #sum_of_points = np.sum(np.abs(next_points), axis=1)       # Norm one
+        inf_norm = np.max(np.abs(next_points), axis=1)  # Infinity Norm
+        ml_model.update(next_points, inf_norm)
     
     
     min_evaluated = np.min([min_evaluated, np.min(next_points_value)])

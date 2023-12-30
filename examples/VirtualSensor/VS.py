@@ -53,13 +53,12 @@ class RF(AbstractProblem):
 class XGB(AbstractProblem):
     def __init__(self):
         super().__init__(search_domain = np.array([[3.0, 18.0],   # max_depth (int)
-                                                   [1.0, 9.0],     # gamma (float)
-                                                   [0.0, 180.0], # reg_alpha (int)
-                                                   [0.0, 1.0],     # reg_lambda (float)
-                                                   [0.5, 1.0],   # colsample_bytree (float)
-                                                   [0.0, 10.0],    # min_child_weight (int)
-                                                   [0.05, 0.3],   ##learning rate (float)
-                                                   [50, 500]]),  # n_estimators   
+                                                   [1.0, 9.0],    # gamma (float)
+                                                   [0.0, 1.0],    # reg_lambda (float)
+                                                   [0.5, 1.0],    # colsample_bytree (float)
+                                                   [0.0, 10.0],   # min_child_weight (int)
+                                                   [0.05, 0.3],   #learning rate (float)
+                                                   [50, 500]]),   # n_estimators (int)   
                          min_value=0.0)
         
         current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -74,13 +73,12 @@ class XGB(AbstractProblem):
     def train(self, x):
         x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size = 0.3, random_state = seed, shuffle = True)
         
-        max_depth, gamma, reg_alpha, reg_lambda, colsample_bytree, min_child_weight, learning_rate, n_estimators = x
+        max_depth, gamma, reg_lambda, colsample_bytree, min_child_weight, learning_rate, n_estimators = x
 
         clf=xgb.XGBRegressor(
                 n_estimators = int(n_estimators), 
                 max_depth = int(max_depth), 
                 gamma = gamma,
-                reg_alpha = reg_alpha,
                 reg_lambda=reg_lambda,
                 min_child_weight=int(min_child_weight),
                 colsample_bytree=colsample_bytree,
