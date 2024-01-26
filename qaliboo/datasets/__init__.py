@@ -16,15 +16,17 @@ _log.setLevel(logging.DEBUG)
 
 class Dataset:
 
-    def __init__(self, csv_file, param_cols, target_col, time_col, reduce_to_unique=False):
+    def __init__(self, csv_file, param_cols, target_col, time_col, Realtime_col, reduce_to_unique=False):
         cols = param_cols + [target_col]
         self._param_cols = param_cols
         self._target_col = target_col
         self._time_col = time_col
+        self._Realtime_col = Realtime_col
         self._reduce_to_unique = reduce_to_unique
         csv_file = os.path.join(os.path.dirname(__file__), csv_file)
         data = pd.read_csv(csv_file, usecols=cols)
         self._datatime = pd.read_csv(csv_file, usecols=[time_col])
+        self._dataRealtime = pd.read_csv(csv_file, usecols=[Realtime_col])
         n_init_rows = len(data)
         unique_data = data[param_cols + [target_col]].groupby(param_cols).agg(np.mean).reset_index()
         n_rows = len(unique_data)
@@ -47,9 +49,14 @@ class Dataset:
     def y(self):
         return self._data[self._target_col]
     
+    # Aggiustare qua perchè time è la variabile del machine learning
     @property
     def time(self):
         return self._datatime[self._time_col]
+    
+    @property
+    def real_time(self):
+        return self._dataRealtime[self._Realtime_col]
 
 
 LiGen = Dataset(
@@ -64,6 +71,7 @@ LiGen = Dataset(
                 'BUFFER_SIZE'],
     target_col='AVG_RMSD^3_TIME',
     time_col ='AVG_RMSD',
+    Realtime_col='TIME',
     reduce_to_unique=False
 )
 ScaledLiGen = Dataset(
@@ -78,6 +86,7 @@ ScaledLiGen = Dataset(
                 'BUFFER_SIZE'],
     target_col='AVG_RMSD^3_TIME',
     time_col ='AVG_RMSD',
+    Realtime_col='TIME',
     reduce_to_unique=False
 )
 LiGenTot = Dataset(
@@ -92,6 +101,7 @@ LiGenTot = Dataset(
                   'BUFFER_SIZE'],
     target_col='RMSD^3*TIME',
     time_col = 'RMSD_0.75',
+    Realtime_col='TIME_TOTAL',
     reduce_to_unique=False
 )
 ScaledLiGenTot = Dataset(
@@ -106,6 +116,7 @@ ScaledLiGenTot = Dataset(
                   'BUFFER_SIZE'],
     target_col='RMSD^3*TIME',
     time_col = 'RMSD_0.75',
+    Realtime_col='TIME_TOTAL',
     reduce_to_unique=False
 )
 
@@ -114,6 +125,7 @@ Query26 = Dataset(
     param_cols=['#vm', 'ram'],
     target_col='cost',
     time_col = 'time',
+    Realtime_col='time',
     reduce_to_unique=False
 )
 ScaledQuery26 = Dataset(
@@ -121,6 +133,7 @@ ScaledQuery26 = Dataset(
     param_cols=['#vm', 'ram'],
     target_col='cost',
     time_col = 'time',
+    Realtime_col = 'time',
     reduce_to_unique=False
 )
 
@@ -129,6 +142,7 @@ StereoMatch = Dataset(
     param_cols=['confidence', 'hypo_step', 'max_arm_length', 'num_threads'],
     target_col='cost',
     time_col = 'exec_time_ms',
+    Realtime_col = 'exec_time_ms',
     reduce_to_unique=False
 )
 
@@ -137,5 +151,6 @@ ScaledStereoMatch = Dataset(
     param_cols=['confidence', 'hypo_step', 'max_arm_length', 'num_threads'],
     target_col='cost',
     time_col = 'exec_time_ms',
+    Realtime_col = 'exec_time_ms',
     reduce_to_unique=False
 )

@@ -37,17 +37,24 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
         #     _log.warning(f'POSSIBLE EVALUATION ERROR: The distance between the point in '
         #                  f'domain and the evaluated point is large')
         min_distance = np.min(distances)
-        if min_distance == 0.0:
-            _log.debug('There is at least one exact match')
+        
+        #if min_distance == 0.0:
+        #    _log.debug('There is at least one exact match')
+        
         mask = distances == min_distance
         if np.sum(mask) == 1:
-            _log.debug('Only one match, return it')
-            values = self._dataset.y[indexes[mask]]
+            #_log.debug('Only one match, return it')
+            my_index = indexes[mask]
+            values = self._dataset.y[my_index]
+            realtime = [self._dataset.real_time[my_index]]
         else:
-            _log.debug('Multiple matches, random pick...')
+            #_log.debug('Multiple matches, random pick...')
             indexes = indexes[mask]
-            values = [self._dataset.y[np.random.choice(indexes)]]
-        return np.array(values)
+            my_index = np.random.choice(indexes)
+            values = [self._dataset.y[my_index]]
+            realtime = self._dataset.real_time[my_index]
+        
+        return np.array(values), my_index, realtime
     
     def evaluate_time(self, x):
         distances, indexes, points = self.find_distances_indexes_closest_points(x)
@@ -56,11 +63,13 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
         
         if np.sum(mask)==1:
             values = self._dataset.time[indexes[mask]]
+
         else:
             indexes = indexes[mask]
             values = [self._dataset.time[np.random.choice(indexes)]]
         
-        return np.array(values) 
+        
+        return np.array(values)
 
 
 

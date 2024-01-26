@@ -20,6 +20,7 @@ class XGBoost(AbstractProblem):
                                                    [0.05, 0.3]]), #learning rate (float)  
                          min_value=0.0)
         
+        self.default_parameters = np.array([[6, 0, 1, 1, 1, 0.3]])
         self.n_estimators=180
         current_directory = os.path.dirname(os.path.abspath(__file__))
         file_path = os.path.join(current_directory, 'data1.csv')
@@ -28,6 +29,11 @@ class XGBoost(AbstractProblem):
         self.y = df['Diagnosis']
         #self.y[self.y == 2] = 0
         #self.y[self.y == 1] = 1
+    
+    @property
+    def init_params(self):
+        return self.default_parameters
+
 
     def train(self, x):
         X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size = 0.3)
