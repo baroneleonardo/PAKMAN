@@ -6,6 +6,7 @@ import argparse
 import os
 import numpy as np
 import numpy.linalg
+import random
 
 from moe.optimal_learning.python import data_containers
 from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimization as cpp_optimization, knowledge_gradient
@@ -19,7 +20,7 @@ from qaliboo import simulated_annealing as SA
 from qaliboo import sga_kg as sga
 from qaliboo.machine_learning_models import ML_model
 from concurrent.futures import ProcessPoolExecutor
-
+from qaliboo import create_csv
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
@@ -158,12 +159,28 @@ result_file = os.path.join(result_folder, 'result_file.json')
 ################################
 ##### Initial samples ##########
 ################################
+
 initial_points_array = domain.sample_points_in_domain(n_initial_points)
+
+'''
 initial_points_value = np.array([objective_func.evaluate(pt)[0] for pt in initial_points_array]).ravel()
+initial_points_index = np.array([objective_func.evaluate(pt, do_not_count=True)[1] for pt in initial_points_array]).ravel()
+initial_points_time = np.array([objective_func.evaluate(pt, do_not_count=True)[2] for pt in initial_points_array]).ravel()
 
-initial_points_index = np.array([objective_func.evaluate(pt)[1] for pt in initial_points_array]).ravel()
-initial_points_time = np.array([objective_func.evaluate(pt)[2] for pt in initial_points_array]).ravel()
-
+print(initial_points_value)
+print(initial_points_index)
+print(initial_points_time)
+'''
+initial_points_value = np.zeros(n_initial_points)
+initial_points_index = np.zeros(n_initial_points)
+initial_points_time = np.zeros(n_initial_points)
+count=0
+for pt in initial_points_array:
+    poi_v, poi_i, poi_t = objective_func.evaluate(pt) 
+    initial_points_value[count]= poi_v
+    initial_points_index[count]=poi_i
+    initial_points_time[count] = np.array(poi_t)
+    count= count+1
 
 # SALVO I MIEI PUNTI INIZIALI
 init = os.path.join(result_folder, 'init.json')
@@ -303,7 +320,7 @@ for s in range(n_iterations):
     alpha = 1
     gamma = 0.7
     num_restarts = 20
-    max_relative_change = 0.9
+    max_relative_change = 0
     initial_temperature = 3
     n_iter_sa = 40   #40
 
@@ -338,7 +355,7 @@ for s in range(n_iterations):
 
 
     seeds = np.random.randint(0, 10000, size=num_restarts)
-    with ProcessPoolExecutor(max_workers=5) as executor:
+    with ProcessPoolExecutor() as executor:
         res = list(executor.map(optimize_point, seeds))
         
 
@@ -352,16 +369,28 @@ for s in range(n_iterations):
     #_log.info("Suggests points:")
     #_log.info(next_points)
 
-
+    '''
     next_points_value = np.array([objective_func.evaluate(pt)[0] for pt in next_points]).ravel()
     
-    next_points_index = np.array([objective_func.evaluate(pt)[1] for pt in next_points]).ravel()
-    next_points_time = np.array([objective_func.evaluate(pt)[2] for pt in next_points]).ravel()
-    
+    next_points_index = np.array([objective_func.evaluate(pt, do_not_count=True)[1] for pt in next_points]).ravel()
+    next_points_time = np.array([objective_func.evaluate(pt, do_not_count=True)[2] for pt in next_points]).ravel()
+    '''
+
+    next_points_value = np.zeros(n_points_per_iteration)
+    next_points_index = np.zeros(n_points_per_iteration)
+    next_points_time = np.zeros(n_points_per_iteration)
+    count=0
+    for pt in next_points:
+        poi_v, poi_i, poi_t = objective_func.evaluate(pt) 
+        next_points_value[count]= poi_v
+        next_points_index[count]=poi_i
+        next_points_time[count] = np.array(poi_t)
+        count= count+1
+
+
+
+
     max_time = max(next_points_time)
-    
-
-
     hist = os.path.join(result_folder, 'hist.json')
     for i in range(n_points_per_iteration):
         h_p.append(
@@ -447,11 +476,13 @@ for s in range(n_iterations):
     with open(result_file, 'w') as f:
         json.dump(results, f, indent=2)
     
-    '''
-    if global_time > 0.0000001:
+    
+    if global_time > 60000:
         _log.info(f'Maximum Time reached at iteration {s}')
         break
-    '''
     
+create_csv.create_csv_init(init, result_folder)
+create_csv.create_csv_history(hist, result_folder)
+create_csv.create_csv_info(result_file, result_folder)
 
 _log.info("\nOptimization finished successfully!")

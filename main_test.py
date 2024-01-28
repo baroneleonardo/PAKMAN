@@ -261,7 +261,7 @@ if known_minimum is not None:
 ###########################
 
 results = []
-result_file = f'./results/SynthFuncSA/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/VincoliAttivi/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
