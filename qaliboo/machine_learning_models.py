@@ -54,8 +54,7 @@ class ML_model:
     # Ratio of how many points of the q-dimension batch are
     # otside the constraints
 
-    def out_ratio(self, X):
-        
+    def out_ratio(self, X):  
         if (self._X_ub is not None) and (self._X_lb is not None):
             pred = self.predict(X)
             out_count = np.sum((pred > self._X_ub) | (pred < self._X_lb))
@@ -89,3 +88,37 @@ class ML_model:
     
     def exponential_penality(self, X, k=2):
         return np.exp(-k * self.out_ratio(X))
+
+    def identity(self, X):
+        if self.out_ratio(X) > 0: return 0
+        else: return 1
+    
+    def check_inside(self, X):
+        if (self._X_ub is not None) and (self._X_lb is not None):
+            pred = self.predict(X)
+            if (pred > self._X_ub) | (pred < self._X_lb):
+                return False
+            else: return True
+        elif self._X_ub is not None:
+            pred = self.predict(X)
+            if(pred > self._X_ub):
+                return False
+            else: return True
+        elif self._X_lb is not None:
+            if(pred < self._X_lb):
+                return False
+            else: return True
+        else:
+            raise ValueError("Upper or lower bound should be provided.")
+
+    def out_count(self, X):  
+        if (self._X_ub is not None) and (self._X_lb is not None):
+            out_count = np.sum((X > self._X_ub) | (X < self._X_lb))
+            return out_count
+        elif self._X_ub is not None:
+            out_count = np.sum(X > self._X_ub)
+            return out_count
+        elif self._X_lb is not None:
+            out_count = np.sum(X < self._X_lb)
+            return out_count
+        else: raise ValueError("Upper or lower bound should be provided.")

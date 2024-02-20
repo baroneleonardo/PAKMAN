@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+from qaliboo import machine_learning_models
 
 def create_csv_init(file1, result_folder):
     dataset_csv_path = '/home/lbarone/QALIBOO/qaliboo/datasets/ligen_synth_table.csv'
@@ -54,4 +55,3 @@ def create_csv_info(file_path, result_folder):
     # Salva il DataFrame in un file CSV
     output_csv_path = f'{result_folder}/info.csv'
     info_df.to_csv(output_csv_path, index=False)
-
