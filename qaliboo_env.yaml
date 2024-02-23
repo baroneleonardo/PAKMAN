@@ -52,6 +52,7 @@ dependencies:
   - six=1.16.0
   - sqlite=3.41.2
   - tbb=2021.8.0
+  - tqdm
   - tk=8.6.12
   - urllib3=1.26.16
   - wheel=0.38.4

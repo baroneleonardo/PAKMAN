@@ -7,7 +7,7 @@ import os
 import numpy as np
 import numpy.linalg
 import random
-from tqdm import tqdm 
+from tqdm import tqdm
 from moe.optimal_learning.python import data_containers
 from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimization as cpp_optimization, knowledge_gradient
 from moe.optimal_learning.python.python_version import optimization as py_optimization
@@ -17,6 +17,7 @@ from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as 
 from examples import  auxiliary
 from qaliboo import sga_kg as sga
 from qaliboo.machine_learning_models import ML_model
+from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 from qaliboo import aux
 logging.basicConfig(level=logging.NOTSET)
@@ -26,7 +27,7 @@ _log.setLevel(logging.DEBUG)
 class ParallelMaliboo:
     def __init__(self, n_initial_points: int = 10, n_iterations: int = 30, batch_size:int = 4,
                  m_domain_discretization: int= 30, objective_func = None, lb: float=None, 
-                 ub: float=None, nm:bool=False, uniform_sample:bool=True, n_restarts:int = 15, save:bool=False):
+                 ub: float=None, nm:bool=False, uniform_sample:bool=True, n_restarts:int = 15):
         """
         Initializes an instance of ParallelMaliboo.
 
@@ -39,9 +40,8 @@ class ParallelMaliboo:
             lb (float): Lower bound of the domain.
             ub (float): Upper bound of the domain.
             nm (bool): True if nascent minima penalization is used.
-            uniform_sample (bool): True if domain is to be uniformly sampled (False if sample from the global optimum).
+            uniform_sample (bool): True if domain is to be uniformly sampled.
             n_restarts (int): Number of restarts for optimization.
-            save (bool): True if the results have to be saved
         """
         self._n_initial_points = n_initial_points
         self._n_iterations = n_iterations
@@ -54,7 +54,6 @@ class ParallelMaliboo:
         self._nm = nm
         self._uniform_sample = uniform_sample
         self._n_restarts=n_restarts
-        self._save=save
         
         self._py_sgd_params_ps = py_optimization.GradientDescentParameters(
             max_num_steps=1000, max_num_restarts=3,
@@ -105,7 +104,7 @@ class ParallelMaliboo:
         )
         self._gp_loglikelihood.train()
 
-        
+        self._save=True
         if self._save:
             self._result_folder = aux.create_result_folder()
             aux.csv_init(self._result_folder,initial_points_index)
@@ -120,36 +119,52 @@ class ParallelMaliboo:
             self.iteration_step(s)
         _log.info("\nOptimization finished successfully")
 
-    def iteration_step(self, s):
+    def iteration_step(self,s):
         '''
         Performs a single optimization iteration.
         '''
-        _log.info(f"{s}th iteration,  "f"q={self._q}")
         init_alg_time = time.time()
+        time1 = time.time()
+        
+        cpp_gaussian_process = self._gp_loglikelihood.models[0]
+        
+        # Sampling of the domain discretization (by or not sampling from the global optima)
+        discrete_pts_list = self.domain_sample(self._uniform_sample,cpp_gaussian_process)
+        
+        # Definition of the acquisition function #TODO: add parallel expected improvement
+        kg = self.acquisition_function(discrete_pts_list, q)
 
-        # Define acquisition function
-        kg = self.acquisition_function(self._q)
         # Multistart optimization of the acquisition function
-        next_points = self.multistart_optimization(kg, self._q)
+        next_points = self.multistart_optimization(kg, q)
+
+        _log.info(f"Acquistion function optimization takes {(time.time()-time1)} seconds")
+        
         # Evaluation objective function 
         next_points_value, next_points_index, next_points_time = self.evaluate_next_points(next_points)
         
+        
         max_time = max(next_points_time)
+        self._min_evaluated = min([self._min_evaluated, np.min(next_points_value)])
+        sampled_points = [data_containers.SamplePoint(pt, next_points_value[num])
+                            for num, pt in enumerate(next_points)]
 
-        # Update the regression model and the gaussian process.
-        target = self.update_model(next_points, next_points_value, next_points_index, s)
-        
-        # Compute the minimum of the posterior
+        # Save the data
+        if self._save:
+            aux.csv_history(self._result_folder,s,next_points_index)
+
+        # Update the ML model
+        if self._use_ml:
+            target = np.array([self._objective_func.evaluate_time(pt) for pt in next_points])
+            self._ml_model.update(next_points, target)
+
+        # Update the Gaussian Process 
+        self.update_gp_loglikelihood(sampled_points)
+
         suggested_minimum = self.find_suggested_minimum()
-        
-        # Compute Global time
         alg_time = time.time() - init_alg_time
-        _log.info(f"Optimization algorithm takes {(alg_time)} seconds")
-        _log.info(f"Evaluate the objective function takes {(max_time)} seconds")
-        
         self._global_time += max_time + alg_time
 
-        self.log_iteration_result(suggested_minimum, target, s, self._q)
+        self.log_iteration_result(suggested_minimum, target)
         if self._save:
             aux.csv_info(s,self._min_evaluated, self._objective_func.evaluation_count,self._global_time,self._result_folder)
     
@@ -167,7 +182,6 @@ class ParallelMaliboo:
                                         gaussian_process_list=self._gp_loglikelihood.models,num_fidelity=0,inner_optimizer=ps_sgd_optimizer,
                                         discrete_pts_list=discrete_pts_list,num_to_sample=q,num_mc_iterations=2**7,points_to_sample=None)
         return kg
-
     def multistart_optimization(self, kg, q):
         '''
         Multistart Optimization.
@@ -222,12 +236,12 @@ class ParallelMaliboo:
          Logs information about the completed iteration.
          '''
          _log.info(f"""
-
+            
             {s} - Iteration finished successfully!
-
-            N. points evaluated: {dimension}
-            Minimum of the posterior: {computed_cost}
-            Minimum evaluated: {self._min_evaluated}
+            
+            N. of points: {dimension}
+            Cost: {computed_cost}
+            Minimum evaluated cost: {self._min_evaluated}
             Target function evaluations: {self._objective_func.evaluation_count}
             Unfeasible points: {self._ml_model.out_count(target)}
             Error: {np.linalg.norm(self._objective_func.min_value - computed_cost)}
@@ -239,17 +253,20 @@ class ParallelMaliboo:
         '''
         Update of the Gaussian Process with the new points sampled.
         '''
+        time1 = time.time()
         self._gp_loglikelihood.add_sampled_points(sampled_points)
         self._gp_loglikelihood.train()
-        return
-    
+        _log.info(f"Retraining the model takes {time.time() - time1} seconds")
+
     def find_suggested_minimum(self):
         '''
         Compute minimum of the posterior distribution.
         '''
+        time1 = time.time()
         suggested_minimum = auxiliary.compute_suggested_minimum(self._domain, self._gp_loglikelihood, self._py_sgd_params_ps)
         _, _, closest_point_in_domain = self._domain.find_distance_index_closest_point(suggested_minimum)
         computed_cost = self._objective_func.evaluate(closest_point_in_domain, do_not_count=True)[0]
+        _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
         return computed_cost
 
     def domain_sample(self, uniform, cpp_gaussian_process):
@@ -285,7 +302,91 @@ class ParallelMaliboo:
                                         (discrete_pts_optima.shape[0] + cpp_gaussian_process.num_sampled, cpp_gaussian_process.dim))
         return eval_pts
 
+  
+
+    # Definisci la tua funzione func_obj per valutare i punti
+    def func_obj(self, point, queue):
+        poi_v, poi_i, poi_t = self._objective_func.evaluate(point)
+        if not isinstance(poi_t, (list, np.ndarray)) or len(poi_t) == 0:
+            _log.info("Error: no time data returned")
+            queue.put(None)
+            return   # o un altro valore appropriato
+        fake_time = np.array(poi_t)[0][0]/self._time_proportion
+        time.sleep(fake_time)
+        queue.put((point, poi_v, np.array(poi_i)))  # Esempio di valutazione, sostituisci con la tua logica
+        return 
     
+    def async_optimization(self, t_restart, n_process):
+        queue = multiprocessing.Queue() # Create a common queue to all process
+        active_process = []
+        results = []
+        assigned_points = {}
+        s = 0 # Number of iteration
+        self._time_proportion = 5 # Constant for proportional time 
+        while True:
+            time1 = time.time()
+            # Avvio di nuovi processi se necessario
+            if len(active_process) < n_process:
+                q = n_process - len(active_process)
+                print(f"q = {q}")
+                # Acquisition function optimization
+                kg = self.acquisition_function(q)
+                points_to_explore = self.multistart_optimization(kg, q)
+                
+                # Deliver points where compute the objective function to the processes
+                for point in points_to_explore:
+                    proc = multiprocessing.Process(target=self.func_obj, args=(point , queue))
+                    proc.start()
+                    active_process.append(proc)
+                    assigned_points[proc] = point
+            
+            # Simulate waiting time
+            for _ in tqdm(range(t_restart), desc="Wait", unit="second"):
+                time.sleep(1)
+            #time.sleep(t_restart)
+          
+            # Controllo del completamento dei processi
+            for proc in active_process:
+                if not proc.is_alive(): # Check the terminated process
+                    res = queue.get()  # Save the result
+                    if res is not None:
+                        results.append(res)
+                    del assigned_points[proc]   # Delete the inactive processes 
+                    active_process.remove(proc) 
+
+            # Update the model with the computed results
+            if results:
+                print(results)
+                #next_points, next_points_value, next_points_index = zip(*results) # QUesto funziona 
+
+                next_points = [[*res[0]] for res in results]         # QUEsto non funziona
+                next_points_value = []
+                next_points_index = []
+                #next_points_value = [ [*res[1]] for res in results]
+                #next_points_index = [ [*res[2]] for res in results]
+                for res in results:
+                    next_points_value.extend(res[1])
+                    next_points_index.extend(res[2])
+                dimension = len(next_points_value)
+                
+                self._objective_func.add_evaluation_count(dimension) # Add evaluation count to the model
+                
+                target = self.update_model(next_points, next_points_value, next_points_index, s)
+
+                
+                suggested_minimum = self.find_suggested_minimum()
+                self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1)
+                
+                self.log_iteration_result(suggested_minimum, target, s, dimension)
+                
+                if self._save:
+                    aux.csv_info(s,self._min_evaluated, self._objective_func.evaluation_count,self._global_time,self._result_folder) # Save the results
+                results = [] # Reset the results 
+                s+=1
+                
+                print("Iteration finished succesfully")
+
+
     def update_model(self, next_points, next_points_value, next_points_index, s):
         '''
         Update the regression model and the gaussian process.
@@ -294,6 +395,9 @@ class ParallelMaliboo:
         sampled_points = [data_containers.SamplePoint(pt, next_points_value[num])
                             for num, pt in enumerate(next_points)]
         # Save the data
+        print(next_points)
+        print(next_points_value)
+        print(next_points_index)
         if self._save:
             aux.csv_history(self._result_folder,s,next_points_index)
 
@@ -306,4 +410,3 @@ class ParallelMaliboo:
         self.update_gp_loglikelihood(sampled_points)
 
         return target
-    

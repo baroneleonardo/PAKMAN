@@ -46,3 +46,7 @@ class AbstractProblem:
         if not do_not_count:
             self._evaluation_count += 1
         return self.evaluate_true(x)
+
+    def add_evaluation_count(self, n):
+        self._evaluation_count += n
+        return
