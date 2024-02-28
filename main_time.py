@@ -17,10 +17,10 @@ from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as 
 from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
 from qaliboo import simulated_annealing as SA
-from qaliboo import sga_kg as sga
+from qaliboo import SGA as sga
 from qaliboo.machine_learning_models import ML_model
 from concurrent.futures import ProcessPoolExecutor
-from qaliboo import create_csv
+from qaliboo import aux
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
@@ -70,41 +70,9 @@ params = parser.parse_args()
 
 objective_func_name = params.problem
 
-if objective_func_name == 'ParabolicMinAtOrigin':
-    objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([0.0, 0.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-5, 5, 0.1),
-                                                np.arange(-5, 5, 0.1))
-elif objective_func_name == 'ParabolicMinAtTwoAndThree':
-    objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([2.0, 3.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-5, 5, 0.1),
-                                                np.arange(-5, 5, 0.1))
-elif objective_func_name == 'Hartmann3':
-    objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([0.114614, 0.555649, 0.852547])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 1, 0.01),
-                                                np.arange(0, 1, 0.01),
-                                                np.arange(0, 1, 0.01))
-elif objective_func_name == 'Branin':
-    objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([3.14, 2.28])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(0, 15, 0.01),
-                                                np.arange(-5, 15, 0.01))
-elif objective_func_name=='Ackley5':
-    objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1),np.arange(-1,1,0.1))
-
-elif objective_func_name == 'Levy4':
-    objective_func = getattr(synthetic_functions, params.problem)()
-    known_minimum = np.array([1.0, 1.0, 1.0, 1.0])
-    domain = finite_domain.CPPFiniteDomain.Grid(np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1),np.arange(-1, 2, 0.1))
-
-else:
-    objective_func = getattr(precomputed_functions, params.problem)
-    known_minimum = objective_func.minimum
-    domain = objective_func
+objective_func = getattr(precomputed_functions, params.problem)
+known_minimum = objective_func.minimum
+domain = objective_func
 
 n_initial_points = params.init
 n_iterations = params.iter
@@ -115,23 +83,14 @@ ub = params.upper_bound
 nm = params.nascent_minima
 
 py_sgd_params_ps = py_optimization.GradientDescentParameters(
-    max_num_steps=1000,
-    max_num_restarts=3,
-    num_steps_averaged=15,
-    gamma=0.7,
-    pre_mult=1.0,
-    max_relative_change=0.02,
-    tolerance=1.0e-10)
+    max_num_steps=1000, max_num_restarts=3,
+    num_steps_averaged=15, gamma=0.7, pre_mult=1.0,
+    max_relative_change=0.02, tolerance=1.0e-10)
 
 cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
-    num_multistarts=5,
-    max_num_steps=6,
-    max_num_restarts=3,
-    num_steps_averaged=3,
-    gamma=0.0,
-    pre_mult=1.0,
-    max_relative_change=0.2,
-    tolerance=1.0e-10)
+    num_multistarts=5, max_num_steps=6, max_num_restarts=3,
+    num_steps_averaged=3, gamma=0.0, pre_mult=1.0,
+    max_relative_change=0.2, tolerance=1.0e-10)
 
 min_evaluated = None
 
@@ -162,15 +121,7 @@ result_file = os.path.join(result_folder, 'result_file.json')
 
 initial_points_array = domain.sample_points_in_domain(n_initial_points)
 
-'''
-initial_points_value = np.array([objective_func.evaluate(pt)[0] for pt in initial_points_array]).ravel()
-initial_points_index = np.array([objective_func.evaluate(pt, do_not_count=True)[1] for pt in initial_points_array]).ravel()
-initial_points_time = np.array([objective_func.evaluate(pt, do_not_count=True)[2] for pt in initial_points_array]).ravel()
 
-print(initial_points_value)
-print(initial_points_index)
-print(initial_points_time)
-'''
 initial_points_value = np.zeros(n_initial_points)
 initial_points_index = np.zeros(n_initial_points)
 initial_points_time = np.zeros(n_initial_points)
@@ -319,10 +270,10 @@ for s in range(n_iterations):
     para_sgd = 100 
     alpha = 1
     gamma = 0.7
-    num_restarts = 20
+    num_restarts = 15
     max_relative_change = 0
     initial_temperature = 3
-    n_iter_sa = 40   #40
+    n_iter_sa = 50   #40
 
     report_point = []
     kg_list = []
@@ -334,9 +285,9 @@ for s in range(n_iterations):
         np.random.seed(seed)
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
         new_point=init_point
-        #new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.01)
+        #new_point = SA.simulated_annealing_ML(domain, kg, ml_model,init_point, n_iter_sa, initial_temperature, 0.01)
         
-        new_point = sga.sga_kg(kg, domain, new_point)
+        new_point = sga.sga_kg_ml(kg, domain, new_point, ml_model)
 
         kg.set_current_point(new_point)
 
@@ -347,8 +298,9 @@ for s in range(n_iterations):
             identity = identity*ml_model.nascent_minima(new_point)
     
         if (ub is not None) or (lb is not None):
-            identity=identity*ml_model.quadratic_penality(new_point)
-            
+            #identity=identity*ml_model.identity(new_point)
+            identity=identity*ml_model.exponential_penality(new_point, 10)
+
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
         return new_point, kg_value
@@ -360,21 +312,13 @@ for s in range(n_iterations):
         
 
     report_point, kg_list = zip(*res)
-
     index = np.argmax(kg_list)
     next_points = report_point[index]
-    
+    print(kg_list)
     
     _log.info(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
     #_log.info("Suggests points:")
     #_log.info(next_points)
-
-    '''
-    next_points_value = np.array([objective_func.evaluate(pt)[0] for pt in next_points]).ravel()
-    
-    next_points_index = np.array([objective_func.evaluate(pt, do_not_count=True)[1] for pt in next_points]).ravel()
-    next_points_time = np.array([objective_func.evaluate(pt, do_not_count=True)[2] for pt in next_points]).ravel()
-    '''
 
     next_points_value = np.zeros(n_points_per_iteration)
     next_points_index = np.zeros(n_points_per_iteration)
@@ -412,8 +356,10 @@ for s in range(n_iterations):
 
     
     # UPDATE OF THE ML MODEL
+
     if use_ml==True:
-        ml_model.update(next_points, np.array([objective_func.evaluate_time(pt) for pt in next_points]))
+        target = np.array([objective_func.evaluate_time(pt) for pt in next_points])
+        ml_model.update(next_points, target)
     
     
     min_evaluated = np.min([min_evaluated, np.min(next_points_value)])
@@ -447,7 +393,8 @@ for s in range(n_iterations):
     _log.info(f"Cost of the minimum evaluated:\n {min_evaluated}")
     _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
     _log.info(f'The target function was evaluated {objective_func.evaluation_count} times')
-
+    _log.info(f'Unfeasable Point:{ml_model.out_count(target)}')
+    
     alg_time = time.time() - init_alg_time 
     error = np.linalg.norm(objective_func.min_value - computed_cost)
     error_ratio = np.abs(error/objective_func.min_value)
@@ -481,8 +428,8 @@ for s in range(n_iterations):
         _log.info(f'Maximum Time reached at iteration {s}')
         break
     
-create_csv.create_csv_init(init, result_folder)
-create_csv.create_csv_history(hist, result_folder)
-create_csv.create_csv_info(result_file, result_folder)
+aux.create_csv_init(init, result_folder)
+aux.create_csv_history(hist, result_folder)
+aux.create_csv_info(result_file, result_folder)
 
 _log.info("\nOptimization finished successfully!")

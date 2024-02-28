@@ -12,7 +12,7 @@
 *.pkl
 # Data files
 *.mat
-
+*.png
 # OSX crap
 *.DS_Store
 

@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from qaliboo import finite_domain
 import xgboost as xgb
 from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier

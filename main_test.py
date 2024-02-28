@@ -19,8 +19,8 @@ from moe.optimal_learning.python.cpp_wrappers import knowledge_gradient_mcmc as 
 from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
 from qaliboo import simulated_annealing as SA
-from qaliboo import sga_kg as sga
-from qaliboo.machine_learning_models import ML_model
+from qaliboo import SGA as sga
+from qaliboo.machine_learning_models import ML_model, ConstraintPenality
 from concurrent.futures import ProcessPoolExecutor
 from examples.RealProblem import xgboostopt 
 from examples.VirtualSensor import VS
@@ -43,21 +43,8 @@ AVAILABLE_PROBLEMS = [
     'Ackley8',
     'Levy4',  # This function implementation is probably wrong
     'Rastrigin5',
-    'Schwefel7',
-    'XGBoost',
-    'RandomForest',
-    'GradientBoosting',
-    'CIFRAR10',
-    'Iris',
-    'RF',
-    'XGB',
-    'Hartmann6',
-    'Ackley5',
-    'Ackley6',
-    'Ackley7',
-    'IrisRF',
-    'IrisGB',
-    'Schwefel5'
+    'Schwefel7','XGBoost','RandomForest','GradientBoosting','CIFRAR10','Iris','RF','XGB','Hartmann6','Ackley5','Ackley6','Ackley7',
+    'IrisRF','IrisGB','Schwefel5','Dejong6','AxisParallel7'
 
 ]
 
@@ -106,9 +93,24 @@ elif objective_func_name=='Ackley8':
 elif objective_func_name=='Ackley5':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0])
+    ground_t = np.array([1,1,1,1,1])
+
 elif objective_func_name=='Ackley6':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0, 0.0])
+elif objective_func_name=='Ackley7':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0])
+
+elif objective_func_name=='Dejong6':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0, 0.0])
+
+elif objective_func_name=='AxisParallel7':
+    objective_func = getattr(synthetic_functions, params.problem)()
+    known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0])
+    ground_t = np.array([1,1,1,1,1,1,1])
+
 elif objective_func_name=='Ackley7':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([0.0, 0.0,0.0, 0.0, 0.0, 0.0, 0.0])
@@ -196,9 +198,12 @@ min_evaluated = None
 initial_points_array = domain.generate_uniform_random_points_in_domain(n_initial_points)
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 
-sum_of_squares = np.sum(initial_points_array ** 2, axis=1)    # Euclidean Norm
-sum_of_points = np.sum(np.abs(initial_points_array), axis=1)  # Manatthan Norm
-inf_norm = np.max(np.abs(initial_points_array), axis=1)       # Infinity Norm
+#norm_2 = np.sqrt(np.sum(initial_points_array ** 2, axis=1))    # Euclidean Norm
+
+#norm_1 = np.sum(np.abs(initial_points_array), axis=1)  # Manatthan Norm
+#inf_norm = np.max(np.abs(initial_points_array), axis=1)       # Infinity Norm
+
+min_norm = np.min(np.abs(initial_points_array), axis=1)
 
 initial_points = [data_containers.SamplePoint(pt,
                                               initial_points_value[num])
@@ -224,12 +229,13 @@ else:
     print("Without ML model")
 
 if use_ml == True:
+    #ml_model = ConstraintPenality(ub, lb)
+    
     ml_model = ML_model(X_data=initial_points_array, 
-                        y_data=inf_norm, 
+                        y_data=min_norm, 
                         X_ub=ub,
                         X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
-
-
+    
 #################################
 ######## GP init. ###############
 #################################
@@ -248,6 +254,7 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     n_hypers=N_RANDOM_WALKERS,
     noisy=True
 )
+
 gp_loglikelihood.train()
 
 ###########################
@@ -348,20 +355,19 @@ for s in range(n_iterations):
         else:
             new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.001)
                 
-        new_point = sga.sga_kg(kg, domain, new_point)
+        new_point = sga.stochastic_gradient(kg, domain, new_point)
 
         kg.set_current_point(new_point)
 
 
         identity = 1
-
+        
         if nm==True:    
             identity = identity*ml_model.nascent_minima(new_point)
-    
+        
         if (ub is not None) or (lb is not None):
-            identity=identity*ml_model.linear_penality(new_point)
-
-
+            identity=identity*ml_model.exponential_penality(new_point, k=7)
+            
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
         return new_point, kg_value
@@ -395,11 +401,12 @@ for s in range(n_iterations):
 
     
     # UPDATE OF THE ML MODEL
-    if use_ml==True:
-        #sum_of_squares = np.sum(next_points** 2, axis=1)         # Euclidian Norm
-        #sum_of_points = np.sum(np.abs(next_points), axis=1)       # Norm one
-        inf_norm = np.max(np.abs(next_points), axis=1)  # Infinity Norm
-        ml_model.update(next_points, inf_norm)
+    if use_ml==True:       
+        #norm_2 = np.sqrt(np.sum(next_points ** 2, axis=1))    # Euclidean Norm
+        #norm_1 = np.sum(np.abs(initial_points_array), axis=1)  # Manatthan Norm
+        #inf_norm = np.max(np.abs(initial_points_array), axis=1)       # Infinity Norm
+        min_norm = np.min(np.abs(initial_points_array), axis=1)
+        ml_model.update(next_points, min_norm)
     
     
     min_evaluated = np.min([min_evaluated, np.min(next_points_value)])
@@ -415,7 +422,7 @@ for s in range(n_iterations):
 
     
     _log.info("\nIteration finished successfully!")
-
+    _log.info(f"\n Minimum in Domain:{objective_func.evaluate(ground_t, do_not_count=True)}")
     ####################
     # Suggested Minimum
     ####################

@@ -27,7 +27,7 @@ class RF(AbstractProblem):
         data = data.dropna(subset = ["T"])
         self.x = data.drop(['NO2(GT)'], axis = 1)
         self.y = pd.DataFrame(data['NO2(GT)'])
-
+        # self.init_point = [] # Metto il punto base dell'algoritmo da li parto e confronto
     def train(self, x):
         x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size = 0.3, random_state = seed, shuffle = True)
         

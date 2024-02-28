@@ -271,3 +271,40 @@ class Schwefel5(AbstractProblem):
             s += -x[i]*np.sin(np.sqrt(np.abs(x[i])))
 
         return s
+    
+
+
+
+class Dejong6(AbstractProblem):
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-5.12,5.12]], 6 , axis=0),
+                         min_value=0) 
+    def evaluate_true(self, x):
+        s=0.0
+        for i in range(6):
+            s += x[i]**2
+        return s
+    
+class AxisParallel7(AbstractProblem):
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-5.12,5.12]], 7 , axis=0),
+                         min_value=0)
+    
+    def evaluate_true(self, x):
+        s=0.0
+        for i in range(7):
+            s += i*x[i]**2
+        return s
+
+
+class Rotated(AbstractProblem):
+    def __init__(self):
+        super().__init__(search_domain=np.repeat([[-5.12,5.12]], 7 , axis=0),
+                         min_value=0)
+    
+    def evaluate_true(self, x):
+        s=0.0
+        for i in range(6):
+            for j in range(i):
+                s += x[j]**2
+        return s

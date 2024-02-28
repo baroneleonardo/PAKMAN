@@ -18,9 +18,6 @@ def create_result_folder():
         os.makedirs(folder_path_now)
 
     result_folder = folder_path_now
-    result_file = os.path.join(result_folder, 'result_file.csv')
-    hist_file = os.path.join(result_folder, 'hist.csv')
-    
     return result_folder
 
 def csv_init(result_folder, dat_indices):
@@ -44,12 +41,14 @@ def csv_history(result_folder, iter_values, dat_indices):
     updated_df = pd.concat([existing_df, selected_rows_df], ignore_index=True)
     updated_df.to_csv(output_csv_path, index=False)
 
-def csv_info(iteration, min_evaluated, evaluation_count, global_time, result_folder):
+def csv_info(iteration, q, min_evaluated, evaluation_count, global_time, unfeasible_points, result_folder):
     # Creare un DataFrame con i nuovi dati
     data = {
         'iteration': [iteration],
+        'points_evaluated':[q],
         'minimum_cost_evaluated': [min_evaluated],
         'n_evaluations': [evaluation_count],
+        'unfeasible_points':[unfeasible_points],
         'optimizer_time': [global_time]
     }
     new_data_df = pd.DataFrame(data)

@@ -16,6 +16,7 @@ RUN apt-get update && \
     liblapack-dev \
     gfortran \
     wget \
+    nano \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
