@@ -44,9 +44,9 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
         mask = distances == min_distance
         if np.sum(mask) == 1:
             #_log.debug('Only one match, return it')
-            my_index = indexes[mask]
+            my_index = indexes[mask][0]
             values = self._dataset.y[my_index]
-            realtime = [self._dataset.real_time[my_index]]
+            realtime = self._dataset.real_time[my_index]
         else:
             #_log.debug('Multiple matches, random pick...')
             indexes = indexes[mask]
@@ -73,9 +73,6 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
 
 
 
-LiGen = _PrecomputedFunction(
-    dataset=datasets.LiGen
-)
 
 Query26 = _PrecomputedFunction(
     dataset=datasets.Query26
@@ -95,10 +92,6 @@ ScaledStereoMatch = _PrecomputedFunction(
 
 LiGenTot = _PrecomputedFunction(
     dataset=datasets.LiGenTot
-)
-
-ScaledLiGen = _PrecomputedFunction(
-    dataset=datasets.ScaledLiGen
 )
 
 ScaledLiGenTot = _PrecomputedFunction(

@@ -4,16 +4,15 @@ from qaliboo import machine_learning_models
 import os
 import datetime
 
-def create_result_folder():
+def create_result_folder(sub_folder):
     main_folder = './results/'
-    sub_folder_time = 'Time/'
     if not os.path.exists(main_folder):
         os.makedirs(main_folder)
-    folder_path_time = os.path.join(main_folder, sub_folder_time)
-    if not os.path.exists(folder_path_time):
-        os.makedirs(folder_path_time)
+    folder_path_sub = os.path.join(main_folder, sub_folder)
+    if not os.path.exists(folder_path_sub):
+        os.makedirs(folder_path_sub)
     now_dir = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
-    folder_path_now = os.path.join(folder_path_time, now_dir)
+    folder_path_now = os.path.join(folder_path_sub, now_dir)
     if not os.path.exists(folder_path_now):
         os.makedirs(folder_path_now)
 

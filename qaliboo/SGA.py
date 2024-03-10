@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 # btw it's the same thing that use multistart function of this file (exept for the speed)
 
 # Basic stocastic Gradient ascent
-def stochastic_gradient(kg, domain, new_point, para_sgd=100, 
+def stochastic_gradient(kg, domain, new_point, para_sgd=60, 
            gamma=0.7, alpha=1.0, max_relative_change=0.5):
     
     n_samples, n_features = new_point.shape
@@ -29,7 +29,7 @@ def stochastic_gradient(kg, domain, new_point, para_sgd=100,
     return new_point             
         
 # Stocastic Gradient Ascent with projection penality 
-def stochastic_gradient_ml(kg, domain, new_point, ml_model, para_sgd=50, gamma=0.7, alpha=1.0, max_relative_change=1):
+def stochastic_gradient_ml(kg, domain, new_point, ml_model, para_sgd=100, gamma=0.7, alpha=1.0, max_relative_change=1):
     n_samples, n_features = new_point.shape
     for j in range(para_sgd):
 

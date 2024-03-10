@@ -103,7 +103,7 @@ class ParallelMaliboo:
 
         
         if self._save:
-            self._result_folder = aux.create_result_folder()
+            self._result_folder = aux.create_result_folder('Async')
             aux.csv_init(self._result_folder,initial_points_index)
             aux.csv_history(self._result_folder,-1,initial_points_index)
     
@@ -112,9 +112,12 @@ class ParallelMaliboo:
         '''
         Syncronous Knoledge Gradient optimization.
         '''
+        self._time_proportion = 5 # Prova
         _log.info("PARALLEL SYNCRONOUS BAYESIAN OPTIMIZATION")
         for s in range(self._n_iterations):
             self.iteration_step(s)
+            if self._objective_func.evaluation_count>1000:
+                break
 
         _log.info("\nOptimization finished successfully")
 
@@ -124,14 +127,14 @@ class ParallelMaliboo:
         '''
         _log.info(f"{s}th iteration,  "f"q={self._q}")
         init_alg_time = time.time()
-
         # Define acquisition function
         kg = self.acquisition_function(self._q)
         # Multistart optimization of the acquisition function
         next_points = self.multistart_optimization(kg, self._q)
         # Evaluation objective function 
-        next_points_value, next_points_index, next_points_time = self.evaluate_next_points(next_points)
-        
+        next_points_value, next_points_index, next_points_time = self.evaluate_next_points(next_points)        # using sequential approach
+        #next_points_value, next_points_index, next_points_time = self.evaluate_parallel_next_points(next_points) # using multiprocessorr
+       
         max_time = max(next_points_time)
 
         # Update the regression model and the gaussian process.
@@ -212,23 +215,57 @@ class ParallelMaliboo:
         return new_point, kg_value  
 
 
+    def _evaluate_point(self, pt):
+        result = self._objective_func.evaluate(pt)
+        if isinstance(result, tuple): 
+            poi_v, poi_i, poi_t = result 
+            return poi_v, poi_i, np.array(poi_t)
+        else:
+            return result, None, None
+    
+    def _wrapper_func(self, pt, queue):
+        result = self._evaluate_point(pt)
+        '''
+        if result[2] is not None:
+            print(f'Waiting time : {result[2]/self._time_proportion}')
+            time.sleep(result[2]/self._time_proportion)
+        '''
+        queue.put(result)
+        return
+    
     def evaluate_next_points(self, next_points):
         '''
-        Evaluate objective function at the next points.
+        Evaluate objective function at the next points in sequential order (just one process).
         '''
         dim = len(next_points)
         next_points_value = np.zeros(dim)
         next_points_index = np.zeros(dim)
         next_points_time = np.zeros(dim)
         for count, pt in enumerate(next_points):
-            result = self._objective_func.evaluate(pt)
-            if isinstance(result, tuple): 
-                poi_v, poi_i, poi_t = result 
-                next_points_value[count] = poi_v
-                next_points_index[count] = poi_i
-                next_points_time[count] = np.array(poi_t)
-            else: next_points_value[count] = result
+            poi_v, poi_i, poi_t = self._evaluate_point(pt)
+            next_points_value[count] = poi_v
+            next_points_index[count] = poi_i
+            next_points_time[count] = poi_t
         return next_points_value, next_points_index, next_points_time
+    
+    def evaluate_parallel_next_points(self, next_points):
+        '''
+        Evaluate objective function at the next points using process in parallel.
+        '''
+        results = []
+        queue = multiprocessing.Queue()
+        processes = []
+        for pt in next_points:
+            process = multiprocessing.Process(target=self._wrapper_func, args=(pt, queue))
+            processes.append(process)
+            process.start()
+        for process in processes:
+            process.join()
+        while not queue.empty():
+            results.append(queue.get())
+        self._objective_func.add_evaluation_count(self._q)
+        next_points_value, next_points_index, next_points_time = zip(*results)
+        return np.array(next_points_value), np.array(next_points_index), np.array(next_points_time)
     
     def update_model(self, next_points, next_points_value, next_points_index, s):
         '''
@@ -322,19 +359,18 @@ class ParallelMaliboo:
         Optimizer time: {self._global_time}
         """)
 
-    # Definisci la tua funzione func_obj per valutare i punti
+    # Definisci la tua funzione func_obj per valutare i punti (Inglobala con l'altra)
     def func_obj(self, point, queue):
         '''
         Fake simulation of the objective function
         '''
-        poi_v, poi_i, poi_t = self._objective_func.evaluate(point)
-        if not isinstance(poi_t, (list, np.ndarray)) or len(poi_t) == 0:
-            _log.info("Error: no time data returned")
-            queue.put(None)
-            return   # o un altro valore appropriato
-        fake_time = np.array(poi_t)[0][0]/self._time_proportion
-        time.sleep(fake_time)
-        queue.put((point, poi_v, np.array(poi_i)))  # Esempio di valutazione, sostituisci con la tua logica
+        result = self._objective_func.evaluate(point)
+        if isinstance(result, tuple):
+            poi_v, poi_i, poi_t = result
+            fake_time = poi_t/self._time_proportion
+            time.sleep(fake_time)
+            queue.put((point, poi_v, poi_i))  
+        else: queue.put((point, poi_v, None))
         return 
     
     def async_optimization(self, t_restart, n_process):
@@ -351,13 +387,13 @@ class ParallelMaliboo:
         results = []
         assigned_points = {}
         s = 0 # Number of iteration
-        self._time_proportion = 5 # Constant for proportional time 
+        self._time_proportion = 5 # Constant for proportional time #5 in Ligen
         while True:
             time1 = time.time()
             # Avvio di nuovi processi se necessario
             if len(active_process) < n_process:
                 q = n_process - len(active_process)
-                print(f"q = {q}")
+                _log.info(f"q = {q}")
                 # Acquisition function optimization
                 kg = self.acquisition_function(q)
                 points_to_explore = self.multistart_optimization(kg, q)
@@ -374,7 +410,6 @@ class ParallelMaliboo:
                 time.sleep(1)
             #time.sleep(t_restart)
           
-            # Controllo del completamento dei processi
             for proc in active_process:
                 if not proc.is_alive(): # Check the terminated process
                     res = queue.get()  # Save the result
@@ -385,14 +420,14 @@ class ParallelMaliboo:
 
             # Update the model with the computed results
             if results:
-                next_points = [[*res[0]] for res in results]         # QUEsto non funziona
+                next_points = [[*res[0]] for res in results]
                 next_points_value = []
                 next_points_index = []
                 for res in results:
-                    next_points_value.extend(res[1])
-                    next_points_index.extend(res[2])
+                    next_points_value.append(res[1])
+                    next_points_index.append(res[2])
+
                 dimension = len(next_points_value)
-                
                 self._objective_func.add_evaluation_count(dimension) # Add evaluation count to the model
                 # Update the model 
                 target = self.update_model(next_points, next_points_value, next_points_index, s)

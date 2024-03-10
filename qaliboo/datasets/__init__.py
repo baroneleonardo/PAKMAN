@@ -8,6 +8,7 @@ import logging
 import pandas as pd
 import numpy as np
 import os
+from typing import List
 
 
 _log = logging.getLogger(__name__)
@@ -16,30 +17,44 @@ _log.setLevel(logging.DEBUG)
 
 class Dataset:
 
-    def __init__(self, csv_file, param_cols, target_col, time_col, Realtime_col, reduce_to_unique=False):
-        cols = param_cols + [target_col]
+    def __init__(self, csv_file: str, param_cols: List[str], target_col:str, 
+                 time_col:str, Realtime_col:str=None, reduce_to_unique:bool=False):
+        """
+        Loads and processes data from a CSV file.
+
+        Args:
+            csv_file (str): Path to the CSV file.
+            param_cols (List[str]): List of parameter column names.
+            target_col (str): Name of the target column.
+            time_col (str): Name of the time column.
+            Realtime_col (str): Name of the real-time column.
+            reduce_to_unique (bool, optional): If True, drops duplicate rows based on parameter and target columns. Defaults to False.
+        """
         self._param_cols = param_cols
         self._target_col = target_col
         self._time_col = time_col
         self._Realtime_col = Realtime_col
         self._reduce_to_unique = reduce_to_unique
+        
         csv_file = os.path.join(os.path.dirname(__file__), csv_file)
-        data = pd.read_csv(csv_file, usecols=cols)
-        self._datatime = pd.read_csv(csv_file, usecols=[time_col])
-        self._dataRealtime = pd.read_csv(csv_file, usecols=[Realtime_col])
-        n_init_rows = len(data)
-        unique_data = data[param_cols + [target_col]].groupby(param_cols).agg(np.mean).reset_index()
-        n_rows = len(unique_data)
-        if n_init_rows > n_rows:
-            logging.info(f'Duplicate data in {csv_file}. '
-                            f'{n_init_rows - n_rows} rows could be dropped '
-                            f'({(n_init_rows - n_rows)/n_init_rows*100:.02f}%). '
-                            f'leaving {n_rows} rows')
+        self._data = pd.read_csv(csv_file)
+        self._datatime = self._data[[time_col]]
+        
+        if self._Realtime_col is not None:
+            self._dataRealtime = self._data[[Realtime_col]]
+        
         if reduce_to_unique:
-            logging.info(f'Dropping {n_init_rows - n_rows} rows')
+            n_init_rows = len(self._data)
+            unique_data = self._data[param_cols + [target_col]].groupby(param_cols).agg(np.mean).reset_index()
+            n_rows = len(unique_data)
+            if n_init_rows > n_rows:
+                logging.info(f'Duplicate data in {csv_file}. '
+                                f'{n_init_rows - n_rows} rows could be dropped '
+                                f'({(n_init_rows - n_rows)/n_init_rows*100:.02f}%). '
+                                f'leaving {n_rows} rows')
+                logging.info(f'Dropping {n_init_rows - n_rows} rows')
             self._data = unique_data
-        else:
-            self._data = data
+       
 
     @property
     def X(self):
@@ -56,39 +71,10 @@ class Dataset:
     
     @property
     def real_time(self):
+        if self._Realtime_col == None: return None
         return self._dataRealtime[self._Realtime_col]
 
 
-LiGen = Dataset(
-    csv_file='ligen.csv',
-    param_cols=['ALIGN_SPLIT',
-                'OPTIMIZE_SPLIT',
-                'OPTIMIZE_REPS',
-                'CUDA_THREADS',
-                'N_RESTART',
-                'CLIPPING',
-                'SIM_THRESH',
-                'BUFFER_SIZE'],
-    target_col='AVG_RMSD^3_TIME',
-    time_col ='AVG_RMSD',
-    Realtime_col='TIME',
-    reduce_to_unique=False
-)
-ScaledLiGen = Dataset(
-    csv_file='scaledLiGen.csv',
-    param_cols=['ALIGN_SPLIT',
-                'OPTIMIZE_SPLIT',
-                'OPTIMIZE_REPS',
-                'CUDA_THREADS',
-                'N_RESTART',
-                'CLIPPING',
-                'SIM_THRESH',
-                'BUFFER_SIZE'],
-    target_col='AVG_RMSD^3_TIME',
-    time_col ='AVG_RMSD',
-    Realtime_col='TIME',
-    reduce_to_unique=False
-)
 LiGenTot = Dataset(
     csv_file='ligen_synth_table.csv',
     param_cols = ['ALIGN_SPLIT',
