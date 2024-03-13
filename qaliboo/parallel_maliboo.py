@@ -15,6 +15,7 @@ from qaliboo import SGA as sga
 from qaliboo.machine_learning_models import ML_model
 import multiprocessing
 from qaliboo import aux
+from qaliboo import simulated_annealing as SA 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
@@ -65,7 +66,7 @@ class ParallelMaliboo:
         self._global_time=0
 
         #initial_points_array = self._domain.sample_points_in_domain(n_initial_points)
-        initial_points_array= self._domain.generate_uniform_random_points_in_domain(n_initial_points)
+        initial_points_array= self._domain.sample_points_in_domain(n_initial_points)
 
         initial_points_value, initial_points_index, initial_points_time = self.evaluate_next_points(initial_points_array)
 
@@ -97,14 +98,14 @@ class ParallelMaliboo:
             chain_length=1000,
             burnin_steps=2000,
             n_hypers=1,
-            noisy=False
+            noisy=True
         )
         self._gp_loglikelihood.train()
 
         
         if self._save:
-            self._result_folder = aux.create_result_folder('Async')
-            aux.csv_init(self._result_folder,initial_points_index)
+            self._result_folder = aux.create_result_folder('LiGen_Async')
+            aux.csv_init(self._result_folder, initial_points_index)
             aux.csv_history(self._result_folder,-1,initial_points_index)
     
     
@@ -198,19 +199,21 @@ class ParallelMaliboo:
         np.random.seed(seed)
         init_point = np.array(self._domain.generate_uniform_random_points_in_domain(q))
         # Stocastic Gradient Ascent
+        
         if self._use_ml:
+            new_point = SA.simulated_annealing_ML(self._domain, kg, self._ml_model, init_point, 40, 3, 0.1)
             new_point = sga.stochastic_gradient_ml(kg, self._domain, init_point, self._ml_model)
-        
-        else: 
+        else:
+            new_point = SA.simulated_annealing(self._domain, kg, init_point, 40, 2, 0.1)
             new_point = sga.stochastic_gradient(kg, self._domain, init_point)
-        
+            
         kg.set_current_point(new_point)
         # Machine Learning Penalization method
         identity = 1
         if self._nm:    
             identity *= self._ml_model.nascent_minima(new_point)
         if self._ub is not None or self._lb is not None:
-            identity*=self._ml_model.exponential_penality(new_point, 4)
+            identity*=self._ml_model.exponential_penality(new_point, 2)
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         return new_point, kg_value  
 
@@ -351,12 +354,12 @@ class ParallelMaliboo:
 
         Points evaluated: {dimension}
         Minimum of the posterior: {computed_cost}
-        Minimum evaluated: {self._min_evaluated}
+        \033[91mMinimum evaluated: {self._min_evaluated}\033[0m
         Objective function evaluations: {self._objective_func.evaluation_count}
-        Unfeasible points: {unfeasible}
+        \033[92mUnfeasible points: {unfeasible}\033[0m
         Error: {np.linalg.norm(self._objective_func.min_value - computed_cost)}
         Error ratio: {np.abs(np.linalg.norm(self._objective_func.min_value - computed_cost) / self._objective_func.min_value)}
-        Optimizer time: {self._global_time}
+        \033[93mOptimizer time: {self._global_time}\033[0m
         """)
 
     # Definisci la tua funzione func_obj per valutare i punti (Inglobala con l'altra)
@@ -388,6 +391,7 @@ class ParallelMaliboo:
         assigned_points = {}
         s = 0 # Number of iteration
         self._time_proportion = 5 # Constant for proportional time #5 in Ligen
+        #self._time_proportion = 250 # COnstant for StereoMatch
         while True:
             time1 = time.time()
             # Avvio di nuovi processi se necessario
@@ -423,13 +427,14 @@ class ParallelMaliboo:
                 next_points = [[*res[0]] for res in results]
                 next_points_value = []
                 next_points_index = []
+
                 for res in results:
                     next_points_value.append(res[1])
                     next_points_index.append(res[2])
 
                 dimension = len(next_points_value)
                 self._objective_func.add_evaluation_count(dimension) # Add evaluation count to the model
-                # Update the model 
+                # Update the model
                 target = self.update_model(next_points, next_points_value, next_points_index, s)
 
                 # Compute the minimum of the posterior distribution
@@ -453,7 +458,7 @@ class ParallelMaliboo:
                 
                 _log.info("Iteration finished succesfully")
         
-            if self._objective_func.evaluation_count >= 1000:
-                _log.info(f"{1000} evaluations reached. Optimization finished succesfully!")
+            if self._objective_func.evaluation_count >= 220:
+                _log.info(f"{220} evaluations reached. Optimization finished succesfully!")
                 break
     

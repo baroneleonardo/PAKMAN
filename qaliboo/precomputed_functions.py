@@ -51,7 +51,7 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
             #_log.debug('Multiple matches, random pick...')
             indexes = indexes[mask]
             my_index = np.random.choice(indexes)
-            values = [self._dataset.y[my_index]]
+            values = self._dataset.y[my_index]
             realtime = self._dataset.real_time[my_index]
         
         return np.array(values), my_index, realtime

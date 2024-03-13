@@ -4,6 +4,8 @@ from qaliboo import machine_learning_models
 import os
 import datetime
 
+dat = '/home/lbarone/QALIBOO/qaliboo/datasets/ligen_synth_table.csv'
+#dat = '/home/lbarone/QALIBOO/qaliboo/datasets/stereomatch.csv'
 def create_result_folder(sub_folder):
     main_folder = './results/'
     if not os.path.exists(main_folder):
@@ -20,7 +22,7 @@ def create_result_folder(sub_folder):
     return result_folder
 
 def csv_init(result_folder, dat_indices):
-    dataset_csv_path = '/home/lbarone/QALIBOO/qaliboo/datasets/ligen_synth_table.csv'
+    dataset_csv_path = dat
     df = pd.read_csv(dataset_csv_path)
     new_df = pd.DataFrame({'dat_index': dat_indices})
     new_df = df.iloc[dat_indices, :]
@@ -28,7 +30,7 @@ def csv_init(result_folder, dat_indices):
     new_df.to_csv(output_csv_path, index=False)
 
 def csv_history(result_folder, iter_values, dat_indices):
-    dataset_csv_path = '/home/lbarone/QALIBOO/qaliboo/datasets/ligen_synth_table.csv'
+    dataset_csv_path = dat
     df = pd.read_csv(dataset_csv_path)
     output_csv_path = os.path.join(result_folder, 'history.csv')
     if os.path.exists(output_csv_path):

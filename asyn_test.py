@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
 
-AVAILABLE_PROBLEMS = ['Query26','LiGen','StereoMatch','LiGenTot','ScaledLiGen','ScaledLiGenTot','ScaledStereoMatch','ScaledQuery26','Rastrigin9']
+AVAILABLE_PROBLEMS = ['Query26','LiGen','StereoMatch','LiGenTot','ScaledLiGen','ScaledLiGenTot','ScaledStereoMatch','ScaledQuery26']
 
 parser = argparse.ArgumentParser(prog='QALIBOO: Simplified finite domain q-KG',
                                  description='QALIBOO: Simplified finite domain q-KG',
@@ -49,7 +49,10 @@ Baop = PM(n_initial_points=n_initial_points,
            lb=lb, 
            ub=ub, 
            nm=nm,
+           uniform_sample=True,
            save=True)
 
-Baop.async_optimization(60,n_points_per_iteration)
+# 60 for LiGen (in teoria per 5)
+# 36 for StereoMatch (in teoria per 250)
+Baop.async_optimization(60,n_points_per_iteration) # Cambia il time
 #Baop.sync_optimization()
