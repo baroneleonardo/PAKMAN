@@ -42,7 +42,7 @@ def csv_history(result_folder, iter_values, dat_indices):
     updated_df = pd.concat([existing_df, selected_rows_df], ignore_index=True)
     updated_df.to_csv(output_csv_path, index=False)
 
-def csv_info(iteration, q, min_evaluated, evaluation_count, global_time, unfeasible_points, result_folder):
+def csv_info(iteration, q, min_evaluated, evaluation_count, global_time, unfeasible_points, mape, result_folder):
     # Creare un DataFrame con i nuovi dati
     data = {
         'iteration': [iteration],
@@ -50,7 +50,8 @@ def csv_info(iteration, q, min_evaluated, evaluation_count, global_time, unfeasi
         'minimum_cost_evaluated': [min_evaluated],
         'n_evaluations': [evaluation_count],
         'unfeasible_points':[unfeasible_points],
-        'optimizer_time': [global_time]
+        'optimizer_time': [global_time],
+        'mape': [mape]
     }
     new_data_df = pd.DataFrame(data)
 
@@ -68,6 +69,40 @@ def csv_info(iteration, q, min_evaluated, evaluation_count, global_time, unfeasi
 
     # Salva il DataFrame aggiornato come file CSV
     updated_df.to_csv(output_csv_path, index=False)
+
+
+def csv_result_XGB(iteration, q, min_evaluated, evaluation_count, global_time, unfeasible_points, best_point, result_file):
+    # Creare un DataFrame con i nuovi dati
+    data = {
+        'iteration': [iteration],
+        'points_evaluated':[q],
+        'minimum_cost_evaluated': [min_evaluated],
+        'n_evaluations': [evaluation_count],
+        'unfeasible_points':[unfeasible_points],
+        'optimizer_time': [global_time],
+        'best point': [best_point]
+    }
+    new_data_df = pd.DataFrame(data)
+
+    # Percorso del file CSV
+    # Se il file CSV esiste già, leggi i dati esistenti
+    if os.path.exists(result_file):
+        existing_df = pd.read_csv(result_file)
+    else:
+        existing_df = pd.DataFrame()  # Se il file non esiste, crea un DataFrame vuoto
+
+    # Concatena i dati esistenti con i nuovi dati
+    updated_df = pd.concat([existing_df, new_data_df], ignore_index=True)
+
+    # Salva il DataFrame aggiornato come file CSV
+    updated_df.to_csv(result_file, index=False)
+
+
+
+
+
+
+
 
 def create_csv_init(file1, result_folder):
     dataset_csv_path = '/home/lbarone/QALIBOO/qaliboo/datasets/ligen_synth_table.csv'

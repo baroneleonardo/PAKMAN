@@ -16,6 +16,8 @@ from qaliboo.machine_learning_models import ML_model
 import multiprocessing
 from qaliboo import aux
 from qaliboo import simulated_annealing as SA 
+from sklearn.metrics import mean_absolute_percentage_error as mape
+
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
@@ -65,7 +67,7 @@ class ParallelMaliboo:
 
         self._global_time=0
 
-        #initial_points_array = self._domain.sample_points_in_domain(n_initial_points)
+        #initial_points_array = self._domain.generate_uniform_random_points_in_domain(n_initial_points)
         initial_points_array= self._domain.sample_points_in_domain(n_initial_points)
 
         initial_points_value, initial_points_index, initial_points_time = self.evaluate_next_points(initial_points_array)
@@ -113,7 +115,7 @@ class ParallelMaliboo:
         '''
         Syncronous Knoledge Gradient optimization.
         '''
-        self._time_proportion = 5 # Prova
+        self._time_proportion = 250 # Prova
         _log.info("PARALLEL SYNCRONOUS BAYESIAN OPTIMIZATION")
         for s in range(self._n_iterations):
             self.iteration_step(s)
@@ -139,7 +141,7 @@ class ParallelMaliboo:
         max_time = max(next_points_time)
 
         # Update the regression model and the gaussian process.
-        target = self.update_model(next_points, next_points_value, next_points_index, s)
+        target, mape_value = self.update_model(next_points, next_points_value, next_points_index, s)
         
         # Compute the minimum of the posterior
         suggested_minimum = self.find_suggested_minimum()
@@ -159,22 +161,27 @@ class ParallelMaliboo:
 
         if self._save:
             aux.csv_info(s,self._q, self._min_evaluated, self._objective_func.evaluation_count,
-                         self._global_time, unfeasible_points, self._result_folder)
+                         self._global_time, unfeasible_points, mape_value, self._result_folder)
     
-    def acquisition_function(self, q):
+    def acquisition_function(self, q, points_being_sampled=None):
         '''
         Definition of the acquisition function.
         '''
         cpp_gaussian_process = self._gp_loglikelihood.models[0]
         # Sampling of the domain discretization (by or not sampling from the global optima)
         discrete_pts_list = self.domain_sample(self._uniform_sample,cpp_gaussian_process)
-        
         ps_evaluator = knowledge_gradient.PosteriorMean(self._gp_loglikelihood.models[0], 0)
         ps_sgd_optimizer = cpp_optimization.GradientDescentOptimizer(self._domain,ps_evaluator,self._cpp_sgd_params_ps)        
+        
         kg = KG.KnowledgeGradientMCMC(gaussian_process_mcmc=self._gp_loglikelihood._gaussian_process_mcmc,
-                                        gaussian_process_list=self._gp_loglikelihood.models,num_fidelity=0,
-                                        inner_optimizer=ps_sgd_optimizer,discrete_pts_list=discrete_pts_list,
-                                        num_to_sample=q,num_mc_iterations=2**7,points_to_sample=None)
+                                        gaussian_process_list=self._gp_loglikelihood.models,
+                                        num_fidelity=0,
+                                        inner_optimizer=ps_sgd_optimizer,
+                                        discrete_pts_list=discrete_pts_list,
+                                        num_to_sample=q,
+                                        num_mc_iterations=2**7,
+                                        points_being_sampled=points_being_sampled,
+                                        points_to_sample=None)
         return kg
 
     def multistart_optimization(self, kg, q):
@@ -213,7 +220,7 @@ class ParallelMaliboo:
         if self._nm:    
             identity *= self._ml_model.nascent_minima(new_point)
         if self._ub is not None or self._lb is not None:
-            identity*=self._ml_model.exponential_penality(new_point, 2)
+            identity*=self._ml_model.exponential_penality(new_point, 10)
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         return new_point, kg_value  
 
@@ -284,13 +291,19 @@ class ParallelMaliboo:
         # Update the ML model
         if self._use_ml:
             target = np.array([self._objective_func.evaluate_time(pt) for pt in next_points])
+            # Compute the Mean Absolute Percentage Error (MAPE) 
+            predictions = self._ml_model.predict(next_points)
+            mape_value = mape(target, predictions)
             self._ml_model.update(next_points, target)
-        else: target=None
+        else: 
+            target = None
+            mape_value = 0
+
 
         # Update the Gaussian Process 
         self.update_gp_loglikelihood(sampled_points)
 
-        return target
+        return target, mape_value
 
 
     def update_gp_loglikelihood(self, sampled_points):
@@ -344,7 +357,7 @@ class ParallelMaliboo:
         return eval_pts
 
     
-    def log_iteration_result(self, computed_cost, s, dimension, unfeasible):
+    def log_iteration_result(self, computed_cost, s, dimension, unfeasible, map_value=0):
         '''
         Logs information about the completed iteration.
         '''
@@ -360,6 +373,7 @@ class ParallelMaliboo:
         Error: {np.linalg.norm(self._objective_func.min_value - computed_cost)}
         Error ratio: {np.abs(np.linalg.norm(self._objective_func.min_value - computed_cost) / self._objective_func.min_value)}
         \033[93mOptimizer time: {self._global_time}\033[0m
+        MAPE: {map_value}
         """)
 
     # Definisci la tua funzione func_obj per valutare i punti (Inglobala con l'altra)
@@ -378,7 +392,7 @@ class ParallelMaliboo:
     
     def async_optimization(self, t_restart, n_process):
         '''
-        Asyncronous Knoledge Gradient optimization.
+        Asyncronous Optimization.
 
             Args.
             t_restarts: waiting time before compute a new optimization (iter).
@@ -389,17 +403,19 @@ class ParallelMaliboo:
         active_process = []
         results = []
         assigned_points = {}
+        points_in_process = None
         s = 0 # Number of iteration
         self._time_proportion = 5 # Constant for proportional time #5 in Ligen
         #self._time_proportion = 250 # COnstant for StereoMatch
         while True:
+            
             time1 = time.time()
             # Avvio di nuovi processi se necessario
             if len(active_process) < n_process:
                 q = n_process - len(active_process)
                 _log.info(f"q = {q}")
                 # Acquisition function optimization
-                kg = self.acquisition_function(q)
+                kg = self.acquisition_function(q, points_in_process)
                 points_to_explore = self.multistart_optimization(kg, q)
                 
                 # Deliver points where compute the objective function to the processes
@@ -421,7 +437,10 @@ class ParallelMaliboo:
                         results.append(res)
                     del assigned_points[proc]   # Delete the inactive processes 
                     active_process.remove(proc) 
-
+            
+            # Get the points that are still in process
+            points_in_process = [assigned_points[proc] for proc in active_process]
+            
             # Update the model with the computed results
             if results:
                 next_points = [[*res[0]] for res in results]
@@ -435,30 +454,33 @@ class ParallelMaliboo:
                 dimension = len(next_points_value)
                 self._objective_func.add_evaluation_count(dimension) # Add evaluation count to the model
                 # Update the model
-                target = self.update_model(next_points, next_points_value, next_points_index, s)
+                target, mape_value = self.update_model(next_points, next_points_value, next_points_index, s)
 
                 # Compute the minimum of the posterior distribution
                 suggested_minimum = self.find_suggested_minimum()
 
-                self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1)
+                #self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1) # real time
+                self._global_time += 60 + t_restart*(self._time_proportion)
                 
+
                 # Compute unfeasible points
                 if self._use_ml: unfeasible_points = self._ml_model.out_count(target)
                 else: unfeasible_points = 0
 
                 # Logging the results of the iteration 
-                self.log_iteration_result(suggested_minimum, s, dimension, unfeasible_points)
+                self.log_iteration_result(suggested_minimum, s, dimension, unfeasible_points, mape_value)
                 
                 # Save teh results
                 if self._save:
                     aux.csv_info(s,dimension, self._min_evaluated, self._objective_func.evaluation_count,
-                                self._global_time, unfeasible_points, self._result_folder)
+                                self._global_time, unfeasible_points, mape_value, self._result_folder) # add mape
                 results = [] # Reset the results 
                 s+=1  
                 
                 _log.info("Iteration finished succesfully")
         
-            if self._objective_func.evaluation_count >= 220:
-                _log.info(f"{220} evaluations reached. Optimization finished succesfully!")
+
+            if self._global_time > 70000:
+                _log.info(f"Global time reached. Optimization finished succesfully!")
                 break
     

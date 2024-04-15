@@ -62,14 +62,16 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
         mask = distances == min_distance
         
         if np.sum(mask)==1:
-            values = self._dataset.time[indexes[mask]]
+            my_index = indexes[mask][0]
+            values = self._dataset.time[my_index]
+            #values = self._dataset.time[indexes[mask]]
 
         else:
             indexes = indexes[mask]
-            values = [self._dataset.time[np.random.choice(indexes)]]
-        
-        
-        return np.array(values)
+            my_index = np.random.choice(indexes)
+            values = self._dataset.time[my_index]
+
+        return values
 
 
 

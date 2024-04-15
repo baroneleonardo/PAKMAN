@@ -20,11 +20,11 @@ from examples import bayesian_optimization, auxiliary, synthetic_functions
 from qaliboo import precomputed_functions, finite_domain
 from qaliboo import simulated_annealing as SA
 from qaliboo import SGA as sga
-from qaliboo.machine_learning_models import ML_model, ConstraintPenality
+from qaliboo.machine_learning_models import ML_model
 from concurrent.futures import ProcessPoolExecutor
 from examples.RealProblem import xgboostopt 
 from examples.VirtualSensor import VS
-
+from qaliboo import aux
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
@@ -44,7 +44,7 @@ AVAILABLE_PROBLEMS = [
     'Levy4',  # This function implementation is probably wrong
     'Rastrigin5',
     'Schwefel7','XGBoost','RandomForest','GradientBoosting','CIFRAR10','Iris','RF','XGB','Hartmann6','Ackley5','Ackley6','Ackley7',
-    'IrisRF','IrisGB','Schwefel5','Dejong6','AxisParallel7'
+    'IrisRF','IrisGB','Schwefel5','Dejong6','AxisParallel7','XGBoostBinary','XGBoostRegressor'
 
 ]
 
@@ -129,7 +129,10 @@ elif objective_func_name == 'Schwefel5':
     objective_func = getattr(synthetic_functions, params.problem)()
     known_minimum = np.array([420.9687,420.9687,420.9687,420.9687,420.9687])
 
-elif objective_func_name == 'XGBoost':
+elif objective_func_name == 'XGBoostRegressor':
+    objective_func = getattr(xgboostopt, params.problem)()
+    known_minimum = None
+elif objective_func_name == 'XGBoostBinary':
     objective_func = getattr(xgboostopt, params.problem)()
     known_minimum = None
 elif objective_func_name == 'RandomForest':
@@ -195,15 +198,8 @@ min_evaluated = None
 ################################
 ##### Initial samples ##########
 ################################
-initial_points_array = domain.generate_uniform_random_points_in_domain(n_initial_points)
+initial_points_array = objective_func.init_point
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
-
-#norm_2 = np.sqrt(np.sum(initial_points_array ** 2, axis=1))    # Euclidean Norm
-
-#norm_1 = np.sum(np.abs(initial_points_array), axis=1)  # Manatthan Norm
-#inf_norm = np.max(np.abs(initial_points_array), axis=1)       # Infinity Norm
-
-min_norm = np.min(np.abs(initial_points_array), axis=1)
 
 initial_points = [data_containers.SamplePoint(pt,
                                               initial_points_value[num])
@@ -212,9 +208,9 @@ initial_points = [data_containers.SamplePoint(pt,
 initial_data = data_containers.HistoricalData(dim=objective_func.dim)
 initial_data.append_sample_points(initial_points)
 
-min_evaluated = np.min(initial_points_value)
-
-
+min_index = np.argmin(initial_points_value)
+best_point = initial_points_array[min_index]
+min_evaluated = initial_points_value[min_index]
 #################################
 ###### ML model init.############
 #################################
@@ -232,7 +228,7 @@ if use_ml == True:
     #ml_model = ConstraintPenality(ub, lb)
     
     ml_model = ML_model(X_data=initial_points_array, 
-                        y_data=min_norm, 
+                        y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
                         X_ub=ub,
                         X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
     
@@ -268,8 +264,8 @@ if known_minimum is not None:
 ###########################
 
 results = []
-result_file = f'./results/VincoliAttivi/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
-
+result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
+time0 = time.time()
 # Algorithm 1.2: Main Stage: For `s` to `N`
 for s in range(n_iterations):
     _log.info(f"{s}th iteration, "
@@ -283,7 +279,7 @@ for s in range(n_iterations):
     #### Def. of the space A #########
     ##################################
     discrete_pts_list = []
-    glb_opt_smpl = True    # Set to true if you want a dynamic space
+    glb_opt_smpl = False    # Set to true if you want a dynamic space
     # X(1:n) + z(1:q) + sample from the global optima of the posterior
     
     if glb_opt_smpl == True:
@@ -353,7 +349,7 @@ for s in range(n_iterations):
         if use_SA == False:
             new_point=init_point
         else:
-            new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.001)
+            new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.1)
                 
         new_point = sga.stochastic_gradient(kg, domain, new_point)
 
@@ -363,7 +359,7 @@ for s in range(n_iterations):
         identity = 1
         
         if nm==True:    
-            identity = identity*ml_model.nascent_minima(new_point)
+            identity = identity/ml_model.nascent_minima(new_point)
         
         if (ub is not None) or (lb is not None):
             identity=identity*ml_model.exponential_penality(new_point, k=7)
@@ -399,17 +395,19 @@ for s in range(n_iterations):
                                               next_points_value[num])
                   for num, pt in enumerate(next_points)]
 
+    min_index = np.argmin(next_points_value)
+    min_point = next_points[min_index]
+    min_value = next_points_value[min_index][0]
+
+    if min_value < min_evaluated:
+        min_evaluated = np.array(min_value)
+        best_point = np.array(min_point)
     
     # UPDATE OF THE ML MODEL
-    if use_ml==True:       
-        #norm_2 = np.sqrt(np.sum(next_points ** 2, axis=1))    # Euclidean Norm
-        #norm_1 = np.sum(np.abs(initial_points_array), axis=1)  # Manatthan Norm
-        #inf_norm = np.max(np.abs(initial_points_array), axis=1)       # Infinity Norm
-        min_norm = np.min(np.abs(initial_points_array), axis=1)
-        ml_model.update(next_points, min_norm)
+    if use_ml==True:
+        target = np.array([objective_func.evaluate_time(pt) for pt in next_points])
+        ml_model.update(next_points, target)
     
-    
-    min_evaluated = np.min([min_evaluated, np.min(next_points_value)])
     time1 = time.time()
 
     # UPDATE OF THE GP
@@ -419,10 +417,9 @@ for s in range(n_iterations):
     gp_loglikelihood.train()
     _log.info(f"Retraining the model takes {time.time() - time1} seconds")
     time1 = time.time()
-
+    global_time = time.time() - time0
     
     _log.info("\nIteration finished successfully!")
-    _log.info(f"\n Minimum in Domain:{objective_func.evaluate(ground_t, do_not_count=True)}")
     ####################
     # Suggested Minimum
     ####################
@@ -439,14 +436,18 @@ for s in range(n_iterations):
     _log.info(f"Which has a cost of:\n {computed_cost}")
     _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
     _log.info(f'The target function was evaluated {objective_func.evaluation_count} times')
-
+    print(target)
+    unfeasible_point = ml_model.out_count(target)
+    _log.info(f'Unfeasible points: {unfeasible_point}')
     
     error = np.linalg.norm(objective_func.min_value - computed_cost)
     error_ratio = np.abs(error/objective_func.min_value)
     _log.info(f'Error: {error}')
     _log.info(f'Error ratio: {error_ratio}')
     _log.info(f'Squared error: {np.square(error)}')
-    
+    aux.csv_result_XGB(s, n_points_per_iteration, min_evaluated, objective_func.evaluation_count,global_time, 
+                       unfeasible_point, best_point, result_file)
+    '''
     results.append(
         dict(
             iteration=s,
@@ -466,6 +467,7 @@ for s in range(n_iterations):
 
     with open(result_file, 'w') as f:
         json.dump(results, f, indent=2)
+    '''
     '''
     if error < 0.0000001:
         _log.info(f'Error is small enough. Exiting cycle at iteration {s}')

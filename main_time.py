@@ -100,6 +100,7 @@ h_p = []
 i_p = []
 global_time=0
 
+'''
 main_folder = './results/'
 sub_folder_time = 'Time/'
 if not os.path.exists(main_folder):
@@ -114,6 +115,10 @@ if not os.path.exists(folder_path_now):
 
 result_folder = folder_path_now
 result_file = os.path.join(result_folder, 'result_file.json')
+'''
+
+result_folder = aux.create_result_folder('StereoMatch_Sync')
+
 
 ################################
 ##### Initial samples ##########
@@ -133,6 +138,8 @@ for pt in initial_points_array:
     initial_points_time[count] = np.array(poi_t)
     count= count+1
 
+
+'''
 # SALVO I MIEI PUNTI INIZIALI
 init = os.path.join(result_folder, 'init.json')
 for i in range(n_initial_points):
@@ -153,6 +160,11 @@ for i in range(n_initial_points):
     
 with open(init, 'w') as f:
     json.dump(i_p, f, indent=2)
+'''
+
+aux.csv_init(result_folder,initial_points_index)
+aux.csv_history(result_folder,-1,initial_points_index)
+
 
 initial_points = [data_containers.SamplePoint(pt,
                                               initial_points_value[num])
@@ -192,7 +204,7 @@ gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
     chain_length=1000,
     burnin_steps=2000,
     n_hypers=N_RANDOM_WALKERS,
-    noisy=False
+    noisy=True
 )
 gp_loglikelihood.train()
 
@@ -272,7 +284,7 @@ for s in range(n_iterations):
     gamma = 0.7
     num_restarts = 15
     max_relative_change = 0
-    initial_temperature = 3
+    initial_temperature = 2
     n_iter_sa = 50   #40
 
     report_point = []
@@ -286,21 +298,23 @@ for s in range(n_iterations):
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
         new_point=init_point
         #new_point = SA.simulated_annealing_ML(domain, kg, ml_model,init_point, n_iter_sa, initial_temperature, 0.01)
+        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.01)
         
-        new_point = sga.sga_kg_ml(kg, domain, new_point, ml_model)
+        new_point = sga.stochastic_gradient(kg, domain, new_point)
 
         kg.set_current_point(new_point)
 
 
         identity = 1
 
+        '''
         if nm==True:    
             identity = identity*ml_model.nascent_minima(new_point)
     
         if (ub is not None) or (lb is not None):
             #identity=identity*ml_model.identity(new_point)
             identity=identity*ml_model.exponential_penality(new_point, 10)
-
+        '''
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
         return new_point, kg_value
@@ -314,7 +328,6 @@ for s in range(n_iterations):
     report_point, kg_list = zip(*res)
     index = np.argmax(kg_list)
     next_points = report_point[index]
-    print(kg_list)
     
     _log.info(f"Knowledge Gradient update takes {(time.time()-time1)} seconds")
     #_log.info("Suggests points:")
@@ -335,6 +348,7 @@ for s in range(n_iterations):
 
 
     max_time = max(next_points_time)
+    '''
     hist = os.path.join(result_folder, 'hist.json')
     for i in range(n_points_per_iteration):
         h_p.append(
@@ -347,9 +361,9 @@ for s in range(n_iterations):
     
     with open(hist, 'w') as f:
         json.dump(h_p, f, indent=2) 
-       
-
-
+    '''   
+    aux.csv_history(result_folder,s,next_points_index)
+    
     sampled_points = [data_containers.SamplePoint(pt,
                                               next_points_value[num])
                   for num, pt in enumerate(next_points)]
@@ -400,9 +414,14 @@ for s in range(n_iterations):
     error_ratio = np.abs(error/objective_func.min_value)
     _log.info(f'Error: {error}')
     _log.info(f'Error ratio: {error_ratio}')
-    
-    global_time = global_time + max_time + alg_time
+    if use_ml: unfeasible_points = ml_model.out_count(target)
+    else: unfeasible_points = 0
+    global_time = global_time + max_time + 60
     _log.info(f'Optimizer Time: {global_time}')
+
+    aux.csv_info(s,n_points_per_iteration, min_evaluated, objective_func.evaluation_count,
+                global_time, unfeasible_points, result_folder)
+    '''
     results.append(
         dict(
             iteration=s,
@@ -424,12 +443,8 @@ for s in range(n_iterations):
         json.dump(results, f, indent=2)
     
     
-    if global_time > 60000:
-        _log.info(f'Maximum Time reached at iteration {s}')
-        break
-    
 aux.create_csv_init(init, result_folder)
 aux.create_csv_history(hist, result_folder)
 aux.create_csv_info(result_file, result_folder)
-
+'''
 _log.info("\nOptimization finished successfully!")

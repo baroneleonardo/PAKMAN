@@ -54,5 +54,5 @@ Baop = PM(n_initial_points=n_initial_points,
 
 # 60 for LiGen (in teoria per 5)
 # 36 for StereoMatch (in teoria per 250)
-Baop.async_optimization(60,n_points_per_iteration) # Cambia il time
+Baop.async_optimization(60, n_points_per_iteration) # Cambia il time
 #Baop.sync_optimization()
