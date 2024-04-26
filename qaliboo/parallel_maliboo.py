@@ -106,7 +106,7 @@ class ParallelMaliboo:
 
         
         if self._save:
-            self._result_folder = aux.create_result_folder('LiGen_Async')
+            self._result_folder = aux.create_result_folder('StereoMatch_Async')
             aux.csv_init(self._result_folder, initial_points_index)
             aux.csv_history(self._result_folder,-1,initial_points_index)
     
@@ -115,7 +115,6 @@ class ParallelMaliboo:
         '''
         Syncronous Knoledge Gradient optimization.
         '''
-        self._time_proportion = 250 # Prova
         _log.info("PARALLEL SYNCRONOUS BAYESIAN OPTIMIZATION")
         for s in range(self._n_iterations):
             self.iteration_step(s)
@@ -405,7 +404,10 @@ class ParallelMaliboo:
         assigned_points = {}
         points_in_process = None
         s = 0 # Number of iteration
-        self._time_proportion = 5 # Constant for proportional time #5 in Ligen
+        self._time_proportion = 250 # Constant for proportional time #5 in Ligen
+        #self._time_proportion = 5 # Constant for Ligen
+        #self._time_proportion = 
+        time0 = time.time()
         #self._time_proportion = 250 # COnstant for StereoMatch
         while True:
             
@@ -426,9 +428,10 @@ class ParallelMaliboo:
                     assigned_points[proc] = point
             
             # Simulate waiting time
-            for _ in tqdm(range(t_restart), desc="Wait", unit="second"):
-                time.sleep(1)
-            #time.sleep(t_restart)
+            if t_restart > 0:
+                for _ in tqdm(range(t_restart), desc="Wait", unit="second"):
+                    time.sleep(1)
+                #time.sleep(t_restart)
           
             for proc in active_process:
                 if not proc.is_alive(): # Check the terminated process
@@ -460,8 +463,11 @@ class ParallelMaliboo:
                 suggested_minimum = self.find_suggested_minimum()
 
                 #self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1) # real time
-                self._global_time += 60 + t_restart*(self._time_proportion)
-                
+                if t_restart > 0:
+                    self._global_time += 60 + t_restart*(self._time_proportion)
+                    #self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1) # real time
+                else:
+                    self._global_time = (time.time() - time0)*self._time_proportion 
 
                 # Compute unfeasible points
                 if self._use_ml: unfeasible_points = self._ml_model.out_count(target)
@@ -480,7 +486,7 @@ class ParallelMaliboo:
                 _log.info("Iteration finished succesfully")
         
 
-            if self._global_time > 70000:
+            if self._global_time > 300000:
                 _log.info(f"Global time reached. Optimization finished succesfully!")
                 break
     

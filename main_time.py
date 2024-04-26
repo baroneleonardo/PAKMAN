@@ -7,7 +7,7 @@ import os
 import numpy as np
 import numpy.linalg
 import random
-
+from sklearn.metrics import mean_absolute_percentage_error as mape
 from moe.optimal_learning.python import data_containers
 from moe.optimal_learning.python.cpp_wrappers import log_likelihood_mcmc, optimization as cpp_optimization, knowledge_gradient
 from moe.optimal_learning.python.python_version import optimization as py_optimization
@@ -117,7 +117,7 @@ result_folder = folder_path_now
 result_file = os.path.join(result_folder, 'result_file.json')
 '''
 
-result_folder = aux.create_result_folder('StereoMatch_Sync')
+result_folder = aux.create_result_folder('Query26')
 
 
 ################################
@@ -307,14 +307,13 @@ for s in range(n_iterations):
 
         identity = 1
 
-        '''
         if nm==True:    
             identity = identity*ml_model.nascent_minima(new_point)
     
         if (ub is not None) or (lb is not None):
             #identity=identity*ml_model.identity(new_point)
-            identity=identity*ml_model.exponential_penality(new_point, 10)
-        '''
+            identity=identity*ml_model.exponential_penality(new_point, 7)
+
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
         return new_point, kg_value
@@ -373,6 +372,8 @@ for s in range(n_iterations):
 
     if use_ml==True:
         target = np.array([objective_func.evaluate_time(pt) for pt in next_points])
+        predictions = ml_model.predict(next_points)
+        mape_value = mape(target, predictions)
         ml_model.update(next_points, target)
     
     
@@ -419,8 +420,12 @@ for s in range(n_iterations):
     global_time = global_time + max_time + 60
     _log.info(f'Optimizer Time: {global_time}')
 
+    aux.save_execution_time([next_points_time], result_folder)
     aux.csv_info(s,n_points_per_iteration, min_evaluated, objective_func.evaluation_count,
-                global_time, unfeasible_points, result_folder)
+                global_time, unfeasible_points, mape_value, result_folder)
+    if global_time > 70000:
+        break
+
     '''
     results.append(
         dict(
