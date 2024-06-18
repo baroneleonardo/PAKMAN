@@ -3,11 +3,12 @@ import argparse
 from qaliboo import precomputed_functions
 from qaliboo.parallel_maliboo import ParallelMaliboo as PM
 import multiprocessing
+import numpy as np
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
 
-AVAILABLE_PROBLEMS = ['Query26','LiGen','StereoMatch','LiGenTot','ScaledLiGen','ScaledLiGenTot','ScaledStereoMatch','ScaledQuery26']
+AVAILABLE_PROBLEMS = ['Query26','LiGen','StereoMatch','LiGenTot','ScaledLiGen','ScaledLiGenTot','ScaledStereoMatch','ScaledQuery26', 'ScaledStereoMatch10']
 
 parser = argparse.ArgumentParser(prog='QALIBOO: Simplified finite domain q-KG',
                                  description='QALIBOO: Simplified finite domain q-KG',
@@ -24,7 +25,7 @@ parser.add_argument('--nascent_minima', '-nm', help='Nascent Minima term (ML mod
 params = parser.parse_args()
 
 objective_func_name = params.problem
-
+np.random.seed(np.random.randint(1, 1000)) 
 objective_func = getattr(precomputed_functions, params.problem)
 known_minimum = objective_func.minimum
 domain = objective_func
@@ -45,7 +46,8 @@ Baop = PM(n_initial_points=n_initial_points,
            batch_size=n_points_per_iteration, 
            m_domain_discretization=m_domain_discretization_sample_size,
            objective_func=objective_func,
-           domain=objective_func, 
+           domain=objective_func,
+           objective_func_name=objective_func_name, 
            lb=lb, 
            ub=ub, 
            nm=nm,
@@ -54,5 +56,6 @@ Baop = PM(n_initial_points=n_initial_points,
 
 # 60 for LiGen (in teoria per 5)
 # 36 for StereoMatch (in teoria per 250)
-Baop.async_optimization(60, n_points_per_iteration) # Cambia il time
+# 33 for StereoMatch10 (in teoria per 3)
+Baop.async_optimization(10, n_points_per_iteration) # Cambia il time
 #Baop.sync_optimization()

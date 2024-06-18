@@ -23,12 +23,24 @@ class XGBoostRegressor(AbstractProblem):
                                                          
                          min_value=0.0)
         
+        
         current_directory = os.path.dirname(os.path.abspath(__file__))
+        
         file_path = os.path.join(current_directory, 'Features_Variant_1.csv')
         df = pd.read_csv(file_path, header=None)
         df.sample(n=5)
         self.X, self.y = df.loc[:,:52].values, df.loc[:,53].values
+        
         self._init_point = [[6, 50, 1, 1, 1, 0.3, 1]]
+        
+        #file_path = os.path.join(current_directory, 'data_dausare.csv')
+        #data = pd.read_csv(file_path)
+        #data = data.set_index('Datetime')
+        #data = data.dropna(subset = ["NO2(GT)"])
+        #data = data.dropna(subset = ["T"])
+        #self.X = data.drop(['NO2(GT)'], axis = 1)
+        #self.y = pd.DataFrame(data['NO2(GT)'])
+
 
     @property
     def init_point(self):
@@ -91,11 +103,14 @@ class XGBoostBinary(AbstractProblem):
                          min_value=0.0)
         
         current_directory = os.path.dirname(os.path.abspath(__file__))
+        
         file_path = os.path.join(current_directory, 'blood.csv')
         df = pd.read_csv(file_path, header=0)
         df.drop(columns=['id'], inplace=True)
         self.X  = df.drop('Class', axis=1)
         self.y = df['Class'] - 1
+        
+
         self._init_point = [[6, 50, 1, 1, 1, 0.3, 1]]
 
     @property

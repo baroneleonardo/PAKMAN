@@ -25,7 +25,15 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
                          search_domain=domain_bounds,
                          min_value=np.min(dataset.y))
         self._dataset = dataset
+        self.lower_bounds = m
+        self.upper_bounds = M
 
+    @property
+    def lower_bound(self):
+        return self.lower_bounds
+    @property
+    def upper_bound(self):
+        return self.upper_bounds
     @property
     def minimum(self):
         ix = np.argmin(self._dataset.y)
@@ -98,4 +106,8 @@ LiGenTot = _PrecomputedFunction(
 
 ScaledLiGenTot = _PrecomputedFunction(
     dataset=datasets.ScaledLiGenTot
+)
+
+ScaledStereoMatch10 = _PrecomputedFunction(
+    dataset=datasets.ScaledStereoMatch10
 )

@@ -21,6 +21,7 @@ from qaliboo import SGA as sga
 from qaliboo.machine_learning_models import ML_model
 from concurrent.futures import ProcessPoolExecutor
 from qaliboo import aux
+from tqdm import tqdm
 
 logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
@@ -48,9 +49,12 @@ AVAILABLE_PROBLEMS = [
     'ScaledLiGenTot',
     'ScaledStereoMatch',
     'ScaledQuery26',
-    'Rastrigin9'
+    'Rastrigin9',
+    'ScaledStereoMatch10'
 ]
 
+# Set random seed 
+np.random.seed(np.random.randint(0, 10000))
 ###########################
 # Script parameters
 ###########################
@@ -99,6 +103,7 @@ results=[]
 h_p = []
 i_p = []
 global_time=0
+dat = aux.define_dat(objective_func_name)
 
 '''
 main_folder = './results/'
@@ -116,8 +121,9 @@ if not os.path.exists(folder_path_now):
 result_folder = folder_path_now
 result_file = os.path.join(result_folder, 'result_file.json')
 '''
-
-result_folder = aux.create_result_folder('Query26')
+if nm == True: word = 'NM'
+else: word = 'NoNM'
+result_folder = aux.create_result_folder(f'Query26_Sync_{word}')
 
 
 ################################
@@ -162,8 +168,8 @@ with open(init, 'w') as f:
     json.dump(i_p, f, indent=2)
 '''
 
-aux.csv_init(result_folder,initial_points_index)
-aux.csv_history(result_folder,-1,initial_points_index)
+aux.csv_init(result_folder,initial_points_index, dat)
+aux.csv_history(result_folder,-1,initial_points_index, dat)
 
 
 initial_points = [data_containers.SamplePoint(pt,
@@ -291,28 +297,41 @@ for s in range(n_iterations):
     kg_list = []
     
     
-    
+    if objective_func.evaluation_count - n_initial_points < 50:
+            error = 1.5 - 0.01*(objective_func.evaluation_count - n_initial_points)
+            #print(error)
+    else:
+        error = 1
+
+
+
     def optimize_point(seed):
 
         np.random.seed(seed)
         init_point = np.array(domain.generate_uniform_random_points_in_domain(n_points_per_iteration))
         new_point=init_point
         #new_point = SA.simulated_annealing_ML(domain, kg, ml_model,init_point, n_iter_sa, initial_temperature, 0.01)
-        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.01)
+        new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.001)
         
         new_point = sga.stochastic_gradient(kg, domain, new_point)
 
         kg.set_current_point(new_point)
-
-
+        '''
+        if objective_func.evaluation_count - n_initial_points < 50:
+            error = 1.5 - 0.01*(objective_func.evaluation_count - n_initial_points)
+            print(error)
+        else:
+            error = 1
+        '''
+        error = 1
         identity = 1
 
         if nm==True:    
-            identity = identity*ml_model.nascent_minima(new_point)
+            identity = identity*ml_model.nascent_minima(new_point, error)
     
         if (ub is not None) or (lb is not None):
             #identity=identity*ml_model.identity(new_point)
-            identity=identity*ml_model.exponential_penality(new_point, 7)
+            identity=identity*ml_model.exponential_penality(new_point, 7, error)
 
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
@@ -361,7 +380,7 @@ for s in range(n_iterations):
     with open(hist, 'w') as f:
         json.dump(h_p, f, indent=2) 
     '''   
-    aux.csv_history(result_folder,s,next_points_index)
+    aux.csv_history(result_folder,s,next_points_index, dat)
     
     sampled_points = [data_containers.SamplePoint(pt,
                                               next_points_value[num])
@@ -408,48 +427,65 @@ for s in range(n_iterations):
     _log.info(f"Cost of the minimum evaluated:\n {min_evaluated}")
     _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
     _log.info(f'The target function was evaluated {objective_func.evaluation_count} times')
-    _log.info(f'Unfeasable Point:{ml_model.out_count(target)}')
+    #_log.info(f'Unfeasable Point:{ml_model.out_count(target)}')
     
     alg_time = time.time() - init_alg_time 
-    error = np.linalg.norm(objective_func.min_value - computed_cost)
-    error_ratio = np.abs(error/objective_func.min_value)
-    _log.info(f'Error: {error}')
-    _log.info(f'Error ratio: {error_ratio}')
+    #error = np.linalg.norm(objective_func.min_value - computed_cost)
+    #error_ratio = np.abs(error/objective_func.min_value)
+    #_log.info(f'Error: {error}')
+    #_log.info(f'Error ratio: {error_ratio}')
+    '''
     if use_ml: unfeasible_points = ml_model.out_count(target)
     else: unfeasible_points = 0
-    global_time = global_time + max_time + 60
+    '''
+    unfeasible_points = 0
+    global_time = global_time + max_time + 25
     _log.info(f'Optimizer Time: {global_time}')
 
-    aux.save_execution_time([next_points_time], result_folder)
-    aux.csv_info(s,n_points_per_iteration, min_evaluated, objective_func.evaluation_count,
-                global_time, unfeasible_points, mape_value, result_folder)
-    if global_time > 70000:
-        break
+    #aux.save_execution_time([next_points_time], result_folder)
+    aux.csv_info(s,n_points_per_iteration, objective_func.evaluation_count,
+                global_time, unfeasible_points, mape_value, result_folder, error)
 
-    '''
-    results.append(
-        dict(
-            iteration=s,
-            n_initial_points=n_initial_points,
-            q=n_points_per_iteration,
-            target=objective_func_name,
-            minimum_cost_evaluated = min_evaluated.tolist(),
-            suggested_minimum_in_domain=closest_point_in_domain.tolist(),
-            computed_cost=float(computed_cost),
-            n_evaluations=objective_func.evaluation_count,
-            error=error,
-            error_ratio=error_ratio,
-            optimizer_time=global_time
-        )
-    )
-
-
-    with open(result_file, 'w') as f:
-        json.dump(results, f, indent=2)
-    
-    
-aux.create_csv_init(init, result_folder)
-aux.create_csv_history(hist, result_folder)
-aux.create_csv_info(result_file, result_folder)
-'''
 _log.info("\nOptimization finished successfully!")
+
+
+
+'''
+    def make_plot():
+        
+        knowledge_gradient_values = []
+        PAKMAN_values = []
+        num_points = 200
+        x_values = np.linspace(domain.lower_bound[0], domain.upper_bound[0], num_points)
+        
+        y_values = np.linspace(domain.lower_bound[1], domain.upper_bound[1], num_points)
+        total_iterations = num_points * num_points
+        progress_bar = tqdm(total=total_iterations, desc="Progress")
+        
+        for x in x_values:
+            for y in y_values:
+
+                point = np.array([x, y])
+                
+                kg.set_current_point(point)
+                knowledge_gradient = kg.compute_knowledge_gradient_mcmc()
+                knowledge_gradient_values.append(knowledge_gradient)
+                
+
+                identity = ml_model.nascent_minima(point.reshape(1, -1))
+                PAKMAN_values.append(knowledge_gradient*identity)
+                progress_bar.update(1)
+
+
+        knowledge_gradient_values = np.array(knowledge_gradient_values).reshape((num_points, num_points))
+        PAKMAN_values = np.array(PAKMAN_values).reshape((num_points, num_points))
+        X, Y = np.meshgrid(x_values, y_values)
+
+        data = np.column_stack((X.flatten(), Y.flatten(), knowledge_gradient_values.flatten()))
+        np.savetxt('knowledge_gradient.csv', data, delimiter=',', header='X,Y,Knowledge Gradient', comments='')
+        data = np.column_stack((X.flatten(), Y.flatten(), PAKMAN_values.flatten()))
+        np.savetxt('PAKMAN.csv', data, delimiter=',', header='X,Y,PAKMAN', comments='')
+
+
+
+'''

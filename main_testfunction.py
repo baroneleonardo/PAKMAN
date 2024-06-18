@@ -3,7 +3,6 @@ import logging
 import time
 import json
 import argparse
-
 import numpy as np
 import numpy.linalg
 
@@ -193,19 +192,16 @@ cpp_sgd_params_ps = cpp_optimization.GradientDescentParameters(
     max_relative_change=0.2,
     tolerance=1.0e-10)
 
-min_evaluated = None
+min_evaluated = np.inf
 
 ################################
 ##### Initial samples ##########
 ################################
 print(objective_func_name)
 
-if objective_func_name =='XGBoostRegressor'or objective_func_name=='XGBoostBinary':
-    initial_points_array = objective_func.init_point
 
-else:
-    initial_points_array = domain.generate_uniform_random_points_in_domain(n_initial_points)
-    results=[]
+initial_points_array = domain.generate_uniform_random_points_in_domain(n_initial_points)
+results=[]
 
 initial_points_value = np.array([objective_func.evaluate(pt) for pt in initial_points_array])
 
@@ -216,10 +212,6 @@ initial_points = [data_containers.SamplePoint(pt,
 initial_data = data_containers.HistoricalData(dim=objective_func.dim)
 initial_data.append_sample_points(initial_points)
 
-min_index = np.argmin(initial_points_value)
-best_point = initial_points_array[min_index]
-min_evaluated = initial_points_value[min_index]
-min_target = objective_func.evaluate_time(best_point)
 #################################
 ###### ML model init.############
 #################################
@@ -228,27 +220,55 @@ use_ml = False
 if (ub is not None) or (lb is not None) or (nm is not False):
     use_ml = True
 
+use_ml = False
 if(use_ml==True):
     print("You have selected an acquisition function with ML integrated")
 else:
     print("Without ML model")
 
-if use_ml == True:
-    #ml_model = ConstraintPenality(ub, lb)
-    if objective_func_name=='XGBoostRegressor' or objective_func_name=='XGBoostBinary':
-        ml_model = ML_model(X_data=initial_points_array, 
-                            y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
-                            X_ub=ub,
-                            X_lb=0.8) # Set this value if you are intrested in I(T(X) < X_ub)
-    else:
-        norm = np.linalg.norm(initial_points_array, axis=1)
-        ml_model = ML_model(X_data=initial_points_array, 
-                            y_data=norm, 
-                            X_ub=ub,
-                            X_lb=2.4) #2.4 per Hartmann?
+
+norm = np.linalg.norm(initial_points_array, axis=1)
+ml_model = ML_model(X_data=initial_points_array, 
+                    y_data=norm, 
+                    X_ub=ub,
+                    X_lb= lb) #1.4 per Hartmann?
 #################################
 ######## GP init. ###############
 #################################
+
+# Min of initial points in domain (lb and ub):
+for i in range(len(initial_points_array)):
+    pt = initial_points_array[i]
+    if lb is not None and ub is not None:
+        norm = np.linalg.norm(pt)
+        if norm > lb and norm < ub and initial_points_value[i] < min_evaluated:
+            min_evaluated = initial_points_value[i]
+    else:
+        if lb is not None:
+            norm = np.linalg.norm(pt)
+            if norm > lb and initial_points_value[i] < min_evaluated:
+                min_evaluated = initial_points_value[i]
+        elif ub is not None:
+            norm = np.linalg.norm(pt)
+            if norm < ub and initial_points_value[i] < min_evaluated:
+                min_evaluated = initial_points_value[i]
+        else:
+            if initial_points_value[i] < min_evaluated:
+                min_evaluated = initial_points_value[i]
+
+
+
+           
+
+
+
+
+'''
+min_index = np.argmin(initial_points_value)
+best_point = initial_points_array[min_index]
+min_evaluated = initial_points_value[min_index]
+min_target = objective_func.evaluate_time(best_point)
+'''
 
 n_prior_hyperparameters = 1 + objective_func.dim + objective_func.n_observations
 n_prior_noises = objective_func.n_observations
@@ -277,10 +297,7 @@ if known_minimum is not None:
 ####### Main cycle ########
 ###########################
 
-if objective_func_name=='XGBoostRegressor' or objective_func_name=='XGBoostBinary':
-    result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
-else:
-    result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
+result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
 
 time0 = time.time()
 # Algorithm 1.2: Main Stage: For `s` to `N`
@@ -366,7 +383,7 @@ for s in range(n_iterations):
         if use_SA == False:
             new_point=init_point
         else:
-            new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.1)
+            new_point = SA.simulated_annealing(domain, kg, init_point, n_iter_sa, initial_temperature, 0.01)
                 
         new_point = sga.stochastic_gradient(kg, domain, new_point)
 
@@ -374,13 +391,13 @@ for s in range(n_iterations):
 
 
         identity = 1
-        
-        if nm==True:    
-            identity = identity*ml_model.nascent_minima_binary(new_point)
-        
-        if (ub is not None) or (lb is not None):
-            identity=identity*ml_model.exponential_penality(new_point, k=4)
+        if use_ml==True:
+            if nm==True:    
+                identity = identity*ml_model.nascent_minima_binary(new_point)
             
+            if (ub is not None) or (lb is not None):
+                identity=identity*ml_model.exponential_penality(new_point, k=4)
+                
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         
         return new_point, kg_value
@@ -411,30 +428,41 @@ for s in range(n_iterations):
     sampled_points = [data_containers.SamplePoint(pt,
                                               next_points_value[num])
                   for num, pt in enumerate(next_points)]
-    if objective_func_name=='XGBoostRegressor' or objective_func_name=='XGBoostBinary':
-        min_index = np.argmin(next_points_value)
-        min_point = next_points[min_index]
-        min_value = next_points_value[min_index][0]
+    
+    
+    # Compute the minimum as before:
 
-        if min_value < min_evaluated:
-            min_evaluated = np.array(min_value)
-            best_point = np.array(min_point)
-            min_target = objective_func.evaluate_time(min_point)[0]
-    else:
-        min_value = np.min(next_points_value)
-        
-        if min_value < min_evaluated:
-            min_evaluated = np.array(min_value)
+    for i in range(len(next_points)):
+        pt = next_points[i]
+        if lb is not None and ub is not None:
+            norm = np.linalg.norm(pt)
+            if norm > lb and norm < ub and next_points_value[i] < min_evaluated:
+                min_evaluated = next_points_value[i]
+        else:
+            if lb is not None:
+                norm = np.linalg.norm(pt)
+                if norm > lb and next_points_value[i] < min_evaluated:
+                    min_evaluated = next_points_value[i]
+            elif ub is not None:
+                norm = np.linalg.norm(pt)
+                if norm < ub and next_points_value[i] < min_evaluated:
+                    min_evaluated = next_points_value[i]
+            else:
+                if next_points_value[i] < min_evaluated:
+                    min_evaluated = next_points_value[i]
+    
 
+    '''
+    min_value = np.min(next_points_value)
+    if min_value < min_evaluated:
+        min_evaluated = np.array(min_value)
+    '''
 
     # UPDATE OF THE ML MODEL
+    
+    norm = np.linalg.norm(next_points, axis=1)
+    target = norm
     if use_ml==True:
-        if objective_func_name=='XGBoostRegressor' or objective_func_name=='XGBoostBinary':
-            target = np.array([objective_func.evaluate_time(pt) for pt in next_points])
-        else:
-            norm = np.linalg.norm(next_points, axis=1)
-            target = norm
-
         ml_model.update(next_points, target)
     
     time1 = time.time()
@@ -465,7 +493,7 @@ for s in range(n_iterations):
     _log.info(f"Which has a cost of:\n {computed_cost}")
     _log.info(f"Finding the suggested minimum takes {time.time() - time1} seconds")
     _log.info(f'The target function was evaluated {objective_func.evaluation_count} times')
-    
+    print(target)
     unfeasible_point = ml_model.out_count(target)
     _log.info(f'Unfeasible points: {unfeasible_point}')
     
@@ -474,33 +502,36 @@ for s in range(n_iterations):
     _log.info(f'Error: {error}')
     _log.info(f'Error ratio: {error_ratio}')
     _log.info(f'Squared error: {np.square(error)}')
-    target = target.tolist()
-    print(target)
-    if objective_func_name=='XGBoostRegressor' or objective_func_name=='XGBoostBinary':
-        aux.csv_result_XGB(s, n_points_per_iteration, min_evaluated[0], objective_func.evaluation_count,global_time, 
-                       unfeasible_point, target, result_file)
-    else:
-        results.append(
-            dict(
-                iteration=s,
-                n_initial_points=n_initial_points,
-                q=n_points_per_iteration,
-                m=m_domain_discretization_sample_size,
-                target=objective_func_name,
-                minimum_evaluated = min_evaluated.tolist(),
-                suggested_minimum=suggested_minimum.tolist(),
-                #known_minimum=known_minimum.tolist(),
-                n_evaluations=objective_func.evaluation_count,
-                error=error,
-                error_ratio=error_ratio,
-                unfeasible_point = unfeasible_point.tolist(),
-            )
+    
+    aux.csv_testfunction(s, n_points_per_iteration, objective_func_name, min_evaluated, objective_func.evaluation_count, unfeasible_point, result_file)
+    
+
+    
+    
+    
+    '''
+    results.append(
+        dict(
+            iteration=s,
+            n_initial_points=n_initial_points,
+            q=n_points_per_iteration,
+            m=m_domain_discretization_sample_size,
+            target=objective_func_name,
+            minimum_evaluated = min_evaluated.tolist(),
+            suggested_minimum=suggested_minimum.tolist(),
+            #known_minimum=known_minimum.tolist(),
+            n_evaluations=objective_func.evaluation_count,
+            error=error,
+            error_ratio=error_ratio,
+            unfeasible_point = unfeasible_point.tolist(),
         )
+    )
 
 
-        with open(result_file, 'w') as f:
-            json.dump(results, f, indent=2)
+    with open(result_file, 'w') as f:
+        json.dump(results, f, indent=2)
         '''
+    '''
     if error < 0.0000001:
         _log.info(f'Error is small enough. Exiting cycle at iteration {s}')
         break

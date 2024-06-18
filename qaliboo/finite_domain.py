@@ -182,6 +182,8 @@ class CPPFiniteDomain(_AbstractFiniteDomain):
         :rtype: array of float64 with shape (num_points, dim)
 
         """
+        # Set random seed variable
+        np.random.seed(np.random.randint(0, 1000000))
         # TODO(GH-56): Allow users to pass in a random source.
         return geometry_utils.generate_latin_hypercube_points(
             num_points,

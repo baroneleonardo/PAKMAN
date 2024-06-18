@@ -73,6 +73,10 @@ class Dataset:
     def real_time(self):
         if self._Realtime_col == None: return None
         return self._dataRealtime[self._Realtime_col]
+    
+    @property
+    def folder(self):
+        return os.path.dirname(__file__)
 
 
 LiGenTot = Dataset(
@@ -138,5 +142,14 @@ ScaledStereoMatch = Dataset(
     target_col='cost',
     time_col = 'exec_time_ms',
     Realtime_col = 'exec_time_ms',
+    reduce_to_unique=False
+)
+
+ScaledStereoMatch10 = Dataset(
+    csv_file='scaledstereomatch10.csv',
+    param_cols=['confidence', 'hypo_step', 'max_arm_length', 'num_threads'],
+    target_col='cost',
+    time_col = 'exec_time_s',
+    Realtime_col = 'exec_time_s',
     reduce_to_unique=False
 )

@@ -24,7 +24,7 @@ _log.setLevel(logging.DEBUG)
 
 class ParallelMaliboo:
     def __init__(self, n_initial_points: int = 10, n_iterations: int = 30, batch_size:int = 4,
-                 m_domain_discretization: int= 30, objective_func = None, domain=None, lb: float=None, 
+                 m_domain_discretization: int= 30, objective_func = None, domain=None, objective_func_name=None, lb: float=None, 
                  ub: float=None, nm:bool=False, uniform_sample:bool=True, n_restarts:int = 15, save:bool=False):
         """
         Initializes an instance of ParallelMaliboo.
@@ -54,6 +54,7 @@ class ParallelMaliboo:
         self._uniform_sample = uniform_sample
         self._n_restarts=n_restarts
         self._save=save
+        self._dat = aux.define_dat(objective_func_name)
         
         self._py_sgd_params_ps = py_optimization.GradientDescentParameters(
             max_num_steps=1000, max_num_restarts=3,
@@ -106,9 +107,11 @@ class ParallelMaliboo:
 
         
         if self._save:
-            self._result_folder = aux.create_result_folder('StereoMatch_Async')
-            aux.csv_init(self._result_folder, initial_points_index)
-            aux.csv_history(self._result_folder,-1,initial_points_index)
+            if self._nm: word = 'NM'
+            else: word = 'NoNM'
+            self._result_folder = aux.create_result_folder(f'Query26_async_{self._ub}_{word}')
+            aux.csv_init(self._result_folder, initial_points_index, self._dat)
+            aux.csv_history(self._result_folder,-1,initial_points_index, self._dat)
     
     
     def sync_optimization(self):
@@ -205,7 +208,11 @@ class ParallelMaliboo:
         np.random.seed(seed)
         init_point = np.array(self._domain.generate_uniform_random_points_in_domain(q))
         # Stocastic Gradient Ascent
-        
+        if self._objective_func.evaluation_count - self._n_initial_points > 50:
+            self._error = 1.0
+        else:
+            self._error = 1.5 - 0.01*(self._objective_func.evaluation_count - self._n_initial_points)
+
         if self._use_ml:
             new_point = SA.simulated_annealing_ML(self._domain, kg, self._ml_model, init_point, 40, 3, 0.1)
             new_point = sga.stochastic_gradient_ml(kg, self._domain, init_point, self._ml_model)
@@ -219,7 +226,7 @@ class ParallelMaliboo:
         if self._nm:    
             identity *= self._ml_model.nascent_minima(new_point)
         if self._ub is not None or self._lb is not None:
-            identity*=self._ml_model.exponential_penality(new_point, 10)
+            identity*=self._ml_model.exponential_penality(new_point, 7, self._error)
         kg_value = kg.compute_knowledge_gradient_mcmc()*identity 
         return new_point, kg_value  
 
@@ -285,7 +292,7 @@ class ParallelMaliboo:
                             for num, pt in enumerate(next_points)]
         # Save the data
         if self._save:
-            aux.csv_history(self._result_folder,s,next_points_index)
+            aux.csv_history(self._result_folder,s,next_points_index, self._dat)
 
         # Update the ML model
         if self._use_ml:
@@ -404,9 +411,10 @@ class ParallelMaliboo:
         assigned_points = {}
         points_in_process = None
         s = 0 # Number of iteration
-        self._time_proportion = 250 # Constant for proportional time #5 in Ligen
+        
+        self._time_proportion = 40000 # Constant for proportional time #5 in Ligen
         #self._time_proportion = 5 # Constant for Ligen
-        #self._time_proportion = 
+        #self._time_proportion = 3
         time0 = time.time()
         #self._time_proportion = 250 # COnstant for StereoMatch
         while True:
@@ -464,7 +472,7 @@ class ParallelMaliboo:
 
                 #self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1) # real time
                 if t_restart > 0:
-                    self._global_time += 60 + t_restart*(self._time_proportion)
+                    self._global_time += 10 + t_restart*(self._time_proportion)
                     #self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1) # real time
                 else:
                     self._global_time = (time.time() - time0)*self._time_proportion 
@@ -478,15 +486,15 @@ class ParallelMaliboo:
                 
                 # Save teh results
                 if self._save:
-                    aux.csv_info(s,dimension, self._min_evaluated, self._objective_func.evaluation_count,
-                                self._global_time, unfeasible_points, mape_value, self._result_folder) # add mape
+                    aux.csv_info(s,dimension, self._objective_func.evaluation_count,
+                                self._global_time, unfeasible_points, mape_value, self._result_folder, self._error) # add mape
                 results = [] # Reset the results 
                 s+=1  
                 
                 _log.info("Iteration finished succesfully")
         
 
-            if self._global_time > 300000:
+            if self._global_time >= 5000000:
                 _log.info(f"Global time reached. Optimization finished succesfully!")
                 break
     

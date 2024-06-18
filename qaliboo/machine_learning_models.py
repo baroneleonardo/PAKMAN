@@ -55,12 +55,14 @@ class ML_model:
         self._y_data = np.concatenate([self._y_data, y_new], axis=0)
 
         self.model.fit(self._X_data, self._y_data)
-
-    def nascent_minima(self, X, k=2):
+    def nascent_minima_binary(self, X, k=2):
+        return np.exp(-k*np.linalg.norm(1-self.predict(X))/self._const)
+    
+    def nascent_minima(self, X, k=2, error=1):
         '''
         Compute the nascent minima penalization.
         '''
-        return np.exp(-k*np.linalg.norm(self.predict(X))/self._const)
+        return np.exp(-k*np.linalg.norm(self.predict(X)*error)/self._const)
     
     def out_count(self, X): 
         '''
@@ -74,32 +76,32 @@ class ML_model:
             return np.sum(X < self._X_lb)
         else: raise ValueError("Upper or lower bound should be provided.")
 
-    def out_pred_ratio(self, X):  
+    def out_pred_ratio(self, X, error=1):  
         '''
         Compute the ratio of predictions outside the bounds.
         '''
-        pred  = self.predict(X)
+        pred  = self.predict(X)*error
         total_points = len(pred)
         out = self.out_count(pred)
         return out / total_points if total_points != 0 else 0.0
 
-    def linear_penality(self, X):
+    def linear_penality(self, X, error=1):
         '''
         Coompute the linear penality.
         '''
-        return 1 - self.out_pred_ratio(X)
+        return 1 - self.out_pred_ratio(X, error) 
     
-    def quadratic_penality(self, X):
+    def quadratic_penality(self, X, error=1):
         '''
         Compute the quadratic penality.
         '''
-        return self.linear_penality(X)**2
+        return self.linear_penality(X, error)**2
     
-    def exponential_penality(self, X, k=2):
+    def exponential_penality(self, X, k=2, error=1):
         '''
         Compute the exponential penality.
         '''
-        return np.exp(-k * self.out_pred_ratio(X))
+        return np.exp(-k * self.out_pred_ratio(X, error))
 
     def identity(self, X):
         '''
