@@ -62,6 +62,7 @@ parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)'
 parser.add_argument('--upper_bound', '-ub', help='Upper Bound (ML model)', type=float, default=None)
 parser.add_argument('--lower_bound', '-lb', help='Lower Bound (ML model)', type=float, default=None)
 parser.add_argument('--nascent_minima', '-nm', help='Nascent Minima term (ML model)', type=bool, default=False)
+parser.add_argument('--unf_lb', '-lbb', help='Upper Bound (Unfeasible)', type=float, default=None)
 params = parser.parse_args()
 
 objective_func_name = params.problem
@@ -167,6 +168,12 @@ m_domain_discretization_sample_size = params.sample_size
 lb = params.lower_bound
 ub = params.upper_bound
 nm = params.nascent_minima
+if params.unf_lb is not None:
+    unf_lb = params.unf_lb
+elif params.ub is not None:
+    unf_lb = params.ub
+else:
+    unf_lb = None
 cpp_domain = cppTensorProductDomain([ClosedInterval(objective_func.search_domain[i, 0], objective_func.search_domain[i, 1])
                                                   for i in range(objective_func.search_domain.shape[0])])
 
@@ -231,7 +238,7 @@ norm = np.linalg.norm(initial_points_array, axis=1)
 ml_model = ML_model(X_data=initial_points_array, 
                     y_data=norm, 
                     X_ub=ub,
-                    X_lb= lb) #1.4 per Hartmann?
+                    X_lb=unf_lb) #1.4 per Hartmann?
 #################################
 ######## GP init. ###############
 #################################
@@ -296,8 +303,12 @@ if known_minimum is not None:
 ###########################
 ####### Main cycle ########
 ###########################
-
-result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
+if lb is not None and nm:
+    result_file = f'./results/{objective_func_name}/{unf_lb}/{lb}_NM_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
+elif lb is not None:
+    result_file = f'./results/{objective_func_name}/{unf_lb}/{lb}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
+elif nm:
+    result_file = f'./results/{objective_func_name}/NM/NM_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
 
 time0 = time.time()
 # Algorithm 1.2: Main Stage: For `s` to `N`
@@ -424,7 +435,14 @@ for s in range(n_iterations):
     # > ...
     
     next_points_value = np.array([objective_func.evaluate(pt) for pt in next_points])
+    norm = np.linalg.norm(next_points, axis=1)
+    target = norm
     
+    '''
+    for i in range(len(next_points)):
+        if norm[i] < unf_lb:
+            next_point_value[i] = 100000000000
+    '''
     sampled_points = [data_containers.SamplePoint(pt,
                                               next_points_value[num])
                   for num, pt in enumerate(next_points)]
@@ -460,8 +478,7 @@ for s in range(n_iterations):
 
     # UPDATE OF THE ML MODEL
     
-    norm = np.linalg.norm(next_points, axis=1)
-    target = norm
+    
     if use_ml==True:
         ml_model.update(next_points, target)
     
