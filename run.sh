@@ -32,16 +32,61 @@
 for i in {1..5}
 do
     echo -e "\e[31mNumber of iteration: $i\e[0m"
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 195000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 205000 
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 225000
+    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 185000
+    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 185000
+    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 195000
+    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 195000
+    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 205000
+    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 205000
+    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 225000
+    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 225000
+    echo -e "\e[31mNumber of iteration: $i\e[0m"
+    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 185000
     python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 185000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 195000 -nm True
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 205000 -nm True
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 225000 -nm True
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 185000 -nm True
-     
+    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 195000
+    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 195000
+    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 205000
+    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 205000
+    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 225000
+    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 225000     
 done
+
+
+#for i in {1..5}
+#do
+#    echo -e "\e[31mNumber of iteration: $i\e[0m"
+#    python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 80 -ub 140 -nm True
+#    python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 80 -ub 140
+#    python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 80 -ub 200
+#    python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 80 -ub 125 
+#    python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 80 -ub 110
+#    python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 80 -ub 125 -nm True
+#    python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 80 -ub 110 -nm True
+#    python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 80 -ub 200 -nm True
+#done
+#for i in {1..5}
+#do
+#    echo -e "\e[31mNumber of iteration: $i\e[0m"
+#    sleep 60
+#    python main_time.py -p ScaledStereoMatch10 -i 5 -q 4 -n 30 -ub 110
+#    sleep 60
+#    python main_time.py -p ScaledStereoMatch10 -i 5 -q 4 -n 30 -ub 200
+#    sleep 60
+#    python main_time.py -p ScaledStereoMatch10 -i 5 -q 4 -n 30 -ub 140 -nm True
+#    sleep 60
+#   python main_time.py -p ScaledStereoMatch10 -i 5 -q 4 -n 30 -ub 125 -nm True
+#    sleep 60
+#    python main_time.py -p ScaledStereoMatch10 -i 5 -q 4 -n 30 -ub 110 -nm True
+#    sleep 60
+#    python main_time.py -p ScaledStereoMatch10 -i 5 -q 4 -n 30 -ub 200 -nm True
+#    sleep 60
+#    python main_time.py -p ScaledStereoMatch10 -i 5 -q 4 -n 30 -ub 140
+#    sleep 60
+#    python main_time.py -p ScaledStereoMatch10 -i 5 -q 4 -n 30 -ub 125 
+    # wait for 2 minutes
+#    sleep 60 
+#done
+# 140, 125, 110 + 200
 #constraints = 1000 * np.array((185, 195, 205, 215, 225))
 
 #for i in {1..4}

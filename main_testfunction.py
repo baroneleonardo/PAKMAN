@@ -227,7 +227,6 @@ use_ml = False
 if (ub is not None) or (lb is not None) or (nm is not False):
     use_ml = True
 
-use_ml = False
 if(use_ml==True):
     print("You have selected an acquisition function with ML integrated")
 else:
@@ -303,6 +302,7 @@ if known_minimum is not None:
 ###########################
 ####### Main cycle ########
 ###########################
+
 if lb is not None and nm:
     result_file = f'./results/{objective_func_name}/{unf_lb}/{lb}_NM_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
 elif lb is not None:

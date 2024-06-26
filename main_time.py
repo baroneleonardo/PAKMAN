@@ -68,6 +68,7 @@ parser.add_argument('--iter', '-n', help='Number of iterations', type=int, defau
 parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
 parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=30)
 parser.add_argument('--upper_bound', '-ub', help='Upper Bound (ML model)', type=float, default=None)
+parser.add_argument('--domain_upper_bound', '-dub', help='Domain Upper Bound', type=float, default=None)
 parser.add_argument('--lower_bound', '-lb', help='Lower Bound (ML model)', type=float, default=None)
 parser.add_argument('--nascent_minima', '-nm', help='Nascent Minima term (ML model)', type=bool, default=False)
 params = parser.parse_args()
@@ -85,6 +86,7 @@ m_domain_discretization_sample_size = params.sample_size
 lb = params.lower_bound
 ub = params.upper_bound
 nm = params.nascent_minima
+dub = params.domain_upper_bound
 
 py_sgd_params_ps = py_optimization.GradientDescentParameters(
     max_num_steps=1000, max_num_restarts=3,
@@ -121,10 +123,6 @@ if not os.path.exists(folder_path_now):
 result_folder = folder_path_now
 result_file = os.path.join(result_folder, 'result_file.json')
 '''
-if nm == True: word = 'NM'
-else: word = 'NoNM'
-result_folder = aux.create_result_folder(f'Query26_Sync_{word}')
-
 
 ################################
 ##### Initial samples ##########
@@ -168,6 +166,27 @@ with open(init, 'w') as f:
     json.dump(i_p, f, indent=2)
 '''
 
+use_ml = False
+if (ub is not None) or (lb is not None) or (nm is not False):
+    use_ml = True
+
+if(use_ml==True):
+    print("You have selected an acquisition function with ML integrated")
+else:
+    print("Without ML model")
+
+if use_ml == True:
+    if dub is None: dub = ub
+    ml_model = ML_model(X_data=initial_points_array, 
+                        y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
+                        X_ub=dub,
+                        X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
+
+if nm == True: word = 'a3'
+else: word = 'a2'
+result_folder = aux.create_result_folder(f'Query_sync_{dub/1000}_{word}')
+
+
 aux.csv_init(result_folder,initial_points_index, dat)
 aux.csv_history(result_folder,-1,initial_points_index, dat)
 
@@ -181,20 +200,6 @@ initial_data.append_sample_points(initial_points)
 min_evaluated = np.min(initial_points_value)
 
 
-use_ml = False
-if (ub is not None) or (lb is not None) or (nm is not False):
-    use_ml = True
-
-if(use_ml==True):
-    print("You have selected an acquisition function with ML integrated")
-else:
-    print("Without ML model")
-
-if use_ml == True:
-    ml_model = ML_model(X_data=initial_points_array, 
-                        y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
-                        X_ub=ub,
-                        X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
 
 
 

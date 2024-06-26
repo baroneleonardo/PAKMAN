@@ -20,6 +20,7 @@ parser.add_argument('--iter', '-n', help='Number of iterations', type=int, defau
 parser.add_argument('--points', '-q', help='Points per iteration (the `q` parameter)', type=int, default=7)
 parser.add_argument('--sample_size', '-m', help='GP sample size (`M` parameter)', type=int, default=30)
 parser.add_argument('--upper_bound', '-ub', help='Upper Bound (ML model)', type=float, default=None)
+parser.add_argument('--domain_upper_bound', '-dub', help='Domain Upper Bound', type=float, default=None)
 parser.add_argument('--lower_bound', '-lb', help='Lower Bound (ML model)', type=float, default=None)
 parser.add_argument('--nascent_minima', '-nm', help='Nascent Minima term (ML model)', type=bool, default=False)
 params = parser.parse_args()
@@ -37,7 +38,7 @@ m_domain_discretization_sample_size = params.sample_size
 lb = params.lower_bound
 ub = params.upper_bound
 nm = params.nascent_minima
-
+dub = params.domain_upper_bound
 num_processors = multiprocessing.cpu_count()
 print("Maximum number of available process", num_processors)
 
@@ -49,7 +50,8 @@ Baop = PM(n_initial_points=n_initial_points,
            domain=objective_func,
            objective_func_name=objective_func_name, 
            lb=lb, 
-           ub=ub, 
+           ub=ub,
+           dub=dub, 
            nm=nm,
            uniform_sample=True,
            save=True)

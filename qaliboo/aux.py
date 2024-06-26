@@ -10,7 +10,7 @@ import datetime
 def define_dat(problem):
     if problem == 'ScaledLiGenTot':
         dat = '/home/lbarone/QALIBOO/qaliboo/datasets/ligen_synth_table.csv'
-    elif problem == 'ScaledStereoMatch':
+    elif problem == 'ScaledStereoMatch10':
         dat = '/home/lbarone/QALIBOO/qaliboo/datasets/stereomatch10.csv'
     elif problem == 'ScaledQuery26':
         dat = '/home/lbarone/QALIBOO/qaliboo/datasets/query26_vm_ram.csv'

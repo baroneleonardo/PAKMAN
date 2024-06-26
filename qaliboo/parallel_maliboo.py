@@ -25,7 +25,7 @@ _log.setLevel(logging.DEBUG)
 class ParallelMaliboo:
     def __init__(self, n_initial_points: int = 10, n_iterations: int = 30, batch_size:int = 4,
                  m_domain_discretization: int= 30, objective_func = None, domain=None, objective_func_name=None, lb: float=None, 
-                 ub: float=None, nm:bool=False, uniform_sample:bool=True, n_restarts:int = 15, save:bool=False):
+                 ub: float=None, dub:float=None, nm:bool=False, uniform_sample:bool=True, n_restarts:int = 15, save:bool=False):
         """
         Initializes an instance of ParallelMaliboo.
 
@@ -55,6 +55,7 @@ class ParallelMaliboo:
         self._n_restarts=n_restarts
         self._save=save
         self._dat = aux.define_dat(objective_func_name)
+        self._dub = dub
         
         self._py_sgd_params_ps = py_optimization.GradientDescentParameters(
             max_num_steps=1000, max_num_restarts=3,
@@ -87,11 +88,14 @@ class ParallelMaliboo:
         if (ub is not None) or (lb is not None) or (nm is not False):
             self._use_ml = True
             _log.info("You have selected an acquisition function with ML integrated")
+            if dub is None: dub = ub
             self._ml_model = ML_model(X_data=initial_points_array, 
                         y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
-                        X_ub=ub,
+                        X_ub=dub,
                         X_lb=lb) 
-        else: _log.info("Without ML model")
+        else: 
+            _log.info("Without ML model")
+            
 
         # Initialize the Gaussian Process
         self._gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
@@ -109,7 +113,7 @@ class ParallelMaliboo:
         if self._save:
             if self._nm: word = 'NM'
             else: word = 'NoNM'
-            self._result_folder = aux.create_result_folder(f'Query26_async_{self._ub}_{word}')
+            self._result_folder = aux.create_result_folder(f'Query_async_{dub/1000}_{word}')
             aux.csv_init(self._result_folder, initial_points_index, self._dat)
             aux.csv_history(self._result_folder,-1,initial_points_index, self._dat)
     
@@ -212,6 +216,7 @@ class ParallelMaliboo:
             self._error = 1.0
         else:
             self._error = 1.5 - 0.01*(self._objective_func.evaluation_count - self._n_initial_points)
+            self._error = 1.0
 
         if self._use_ml:
             new_point = SA.simulated_annealing_ML(self._domain, kg, self._ml_model, init_point, 40, 3, 0.1)
@@ -412,9 +417,9 @@ class ParallelMaliboo:
         points_in_process = None
         s = 0 # Number of iteration
         
-        self._time_proportion = 40000 # Constant for proportional time #5 in Ligen
+        #self._time_proportion = 40000 # Constant for proportional time #5 in Ligen
         #self._time_proportion = 5 # Constant for Ligen
-        #self._time_proportion = 3
+        self._time_proportion = 50000
         time0 = time.time()
         #self._time_proportion = 250 # COnstant for StereoMatch
         while True:
