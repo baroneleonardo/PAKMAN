@@ -9,11 +9,11 @@ import datetime
 
 def define_dat(problem):
     if problem == 'ScaledLiGenTot':
-        dat = '/home/lbarone/QALIBOO/qaliboo/datasets/ligen_synth_table.csv'
+        dat = '/home/lbarone/PAKMAN/qaliboo/datasets/ligen_synth_table.csv'
     elif problem == 'ScaledStereoMatch10':
-        dat = '/home/lbarone/QALIBOO/qaliboo/datasets/stereomatch10.csv'
+        dat = '/home/lbarone/PAKMAN/qaliboo/datasets/stereomatch10.csv'
     elif problem == 'ScaledQuery26':
-        dat = '/home/lbarone/QALIBOO/qaliboo/datasets/query26_vm_ram.csv'
+        dat = '/home/lbarone/PAKMAN/qaliboo/datasets/query26_vm_ram.csv'
     return dat
 
 def create_result_folder(sub_folder):
