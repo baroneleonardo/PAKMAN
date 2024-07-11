@@ -8,12 +8,16 @@ import datetime
 #dat = '/home/lbarone/QALIBOO/qaliboo/datasets/stereomatch10.csv'
 
 def define_dat(problem):
+    current_dir = os.path.dirname(__file__)
+    datasets_dir = os.path.join(current_dir, 'datasets')
     if problem == 'ScaledLiGenTot':
-        dat = '/home/lbarone/PAKMAN/qaliboo/datasets/ligen_synth_table.csv'
+        dat = os.path.join(datasets_dir, 'ligen_synth_table.csv')
     elif problem == 'ScaledStereoMatch10':
-        dat = '/home/lbarone/PAKMAN/qaliboo/datasets/stereomatch10.csv'
+        dat = os.path.join(datasets_dir, 'stereomatch10.csv')
     elif problem == 'ScaledQuery26':
-        dat = '/home/lbarone/PAKMAN/qaliboo/datasets/query26_vm_ram.csv'
+        dat = os.path.join(datasets_dir, 'query26_vm_ram.csv')
+    else:
+        raise ValueError("Problem: {}".format(problem))
     return dat
 
 def create_result_folder(sub_folder):
@@ -90,7 +94,7 @@ def csv_result_XGB(iteration, q, min_evaluated, evaluation_count, global_time, u
         'n_evaluations': [evaluation_count],
         'unfeasible_points':[unfeasible_points],
         'optimizer_time': [global_time],
-        'best target': best_point
+        'best target': [best_point]
     }
     new_data_df = pd.DataFrame(data)
 

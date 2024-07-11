@@ -5,7 +5,7 @@
 #python main_time.py -p ScaledLiGenTot -i 40 -q 10 -n 100 -ub 2.1
 #python main_time.py -p ScaledLiGenTot -i 40 -q 10 -n 100 -ub 2.1
 
-#python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1  # Questo per execution time
+python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1  # Questo per execution time
 
 #python asyn_test.py -p ScaledLiGenTot -i 40 -q 10 -n 200 -ub 2.1
 #python asyn_test.py -p ScaledLiGenTot -i 40 -q 10 -n 200 -ub 2.1
@@ -24,32 +24,40 @@
 #    python main_test.py -p XGBoostBinary -q 4 -n 30 -lb 0.33
 #    python main_test.py -p XGBoostRegressor -q 4 -n 30 -lb 0.5
 
+#for i in {1..5}
+#do
+#    python main_test.py -p XGBoostBinary -q 4 -n 30 -lb 0.6
+#    python main_test.py -p XGBoostBinary -q 4 -n 30 -lb 0.5
+#    python main_test.py -p XGBoostBinary -q 4 -n 30 -lb 0.7
+#done
+
+
 
 # Syncronous simulations
 #python asyn_test.py -p ScaledStereoMatch -i 5 -q 4 -n 1000 -ub 20000
 # python asyn_test.py -p ScaledStereoMatch10 -i 5 -q 4 -n 1000 -ub 155 -nm True
 #    python main_time.py -p ScaledStereoMatch10 -i 3 -q 4 -n 30 -ub 155 -nm True<
-for i in {1..5}
-do
-    echo -e "\e[31mNumber of iteration: $i\e[0m"
-    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 185000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 185000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 195000
-    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 195000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 205000
-    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 205000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 225000
-    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 225000
-    echo -e "\e[31mNumber of iteration: $i\e[0m"
-    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 185000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 185000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 195000
-    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 195000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 205000
-    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 205000
-    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 225000
-    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 225000     
-done
+#for i in {1..5}
+#do
+#    echo -e "\e[31mNumber of iteration: $i\e[0m"
+#    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 185000
+#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 185000
+#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 195000
+#    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 195000
+#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 205000
+#    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 205000
+#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 225000
+#    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 225000
+#    echo -e "\e[31mNumber of iteration: $i\e[0m"
+#    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 185000
+#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 185000
+#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 195000
+#    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 195000
+#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 205000
+#    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 205000
+#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -ub 225000
+#    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -ub 225000     
+#done
 
 
 #for i in {1..5}

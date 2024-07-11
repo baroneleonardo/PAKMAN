@@ -184,7 +184,7 @@ if use_ml == True:
 
 if nm == True: word = 'a3'
 else: word = 'a2'
-result_folder = aux.create_result_folder(f'Query_sync_{dub/1000}_{word}')
+result_folder = aux.create_result_folder(f'results')
 
 
 aux.csv_init(result_folder,initial_points_index, dat)
@@ -387,9 +387,7 @@ for s in range(n_iterations):
     '''   
     aux.csv_history(result_folder,s,next_points_index, dat)
     
-    sampled_points = [data_containers.SamplePoint(pt,
-                                              next_points_value[num])
-                  for num, pt in enumerate(next_points)]
+
 
     
     # UPDATE OF THE ML MODEL
@@ -407,6 +405,10 @@ for s in range(n_iterations):
     # UPDATE OF THE GP
     # > re-train the hyperparameters of the GP by MLE
     # > and update the posterior distribution of f
+
+    sampled_points = [data_containers.SamplePoint(pt,
+                                              next_points_value[num])
+                  for num, pt in enumerate(next_points)]
     gp_loglikelihood.add_sampled_points(sampled_points)
     gp_loglikelihood.train()
     _log.info(f"Retraining the model takes {time.time() - time1} seconds")

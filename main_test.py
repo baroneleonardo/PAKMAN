@@ -168,6 +168,7 @@ m_domain_discretization_sample_size = params.sample_size
 lb = params.lower_bound
 ub = params.upper_bound
 nm = params.nascent_minima
+
 cpp_domain = cppTensorProductDomain([ClosedInterval(objective_func.search_domain[i, 0], objective_func.search_domain[i, 1])
                                                   for i in range(objective_func.search_domain.shape[0])])
 
@@ -239,7 +240,7 @@ if use_ml == True:
         ml_model = ML_model(X_data=initial_points_array, 
                             y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
                             X_ub=ub,
-                            X_lb=0.8) # Set this value if you are intrested in I(T(X) < X_ub)
+                            X_lb=lb) # Set this value if you are intrested in I(T(X) < X_ub)
     else:
         norm = np.linalg.norm(initial_points_array, axis=1)
         ml_model = ML_model(X_data=initial_points_array, 
@@ -278,7 +279,8 @@ if known_minimum is not None:
 ###########################
 
 if objective_func_name=='XGBoostRegressor' or objective_func_name=='XGBoostBinary':
-    result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
+    result_file = f'./results/{objective_func_name}_{lb}/{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.csv'
+
 else:
     result_file = f'./results/{objective_func_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H%M")}.json'
 
@@ -430,7 +432,7 @@ for s in range(n_iterations):
     # UPDATE OF THE ML MODEL
     if use_ml==True:
         if objective_func_name=='XGBoostRegressor' or objective_func_name=='XGBoostBinary':
-            target = np.array([objective_func.evaluate_time(pt) for pt in next_points])
+            target = np.array([objective_func.evaluate_time(pt) + 0.15 for pt in next_points])
         else:
             norm = np.linalg.norm(next_points, axis=1)
             target = norm
@@ -474,10 +476,23 @@ for s in range(n_iterations):
     _log.info(f'Error: {error}')
     _log.info(f'Error ratio: {error_ratio}')
     _log.info(f'Squared error: {np.square(error)}')
-    target = target.tolist()
+    # Trasform target in a list of points
+    for i in range(len(target)):
+        target[i] = target[i].tolist()[0]
+
+    target = [t[0] for t in target]
     print(target)
     if objective_func_name=='XGBoostRegressor' or objective_func_name=='XGBoostBinary':
-        aux.csv_result_XGB(s, n_points_per_iteration, min_evaluated[0], objective_func.evaluation_count,global_time, 
+        print('-----------------------------------------------')
+        print(s)
+        print(n_points_per_iteration)
+        print(min_evaluated)
+        print(objective_func.evaluation_count)
+        print(global_time)
+        print(unfeasible_point)
+        print(target)
+        print(result_file)
+        aux.csv_result_XGB(s, n_points_per_iteration, min_evaluated, objective_func.evaluation_count,global_time, 
                        unfeasible_point, target, result_file)
     else:
         results.append(

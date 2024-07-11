@@ -477,8 +477,7 @@ class ParallelMaliboo:
 
                 #self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1) # real time
                 if t_restart > 0:
-                    self._global_time += 10 + t_restart*(self._time_proportion)
-                    #self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1) # real time
+                    self._global_time += time.time() - time1 + t_restart*(self._time_proportion-1) # real time
                 else:
                     self._global_time = (time.time() - time0)*self._time_proportion 
 
