@@ -27,8 +27,8 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH="/opt/conda/bin:$PATH"
 RUN conda install -c conda-forge boost=1.74 python=3.8
 
-RUN git clone https://github.com/baroneleonardo/QALIBOO /QALIBOO
-WORKDIR /QALIBOO
+RUN git clone https://github.com/baroneleonardo/PAKMAN /PAKMAN
+WORKDIR /PAKMAN
 
 COPY qaliboo_env.yaml .
 RUN conda env create -f qaliboo_env.yaml --name qaliboo
