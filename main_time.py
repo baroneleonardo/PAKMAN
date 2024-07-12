@@ -128,7 +128,10 @@ result_file = os.path.join(result_folder, 'result_file.json')
 ##### Initial samples ##########
 ################################
 
-initial_points_array = domain.sample_points_in_domain(n_initial_points)
+#initial_points_array = domain.sample_points_in_domain(n_initial_points)
+
+initial_points_array = domain.generate_uniform_random_points_in_domain(n_initial_points)
+
 
 
 initial_points_value = np.zeros(n_initial_points)
