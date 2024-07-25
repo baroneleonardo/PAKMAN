@@ -41,5 +41,5 @@ ENV MOE_CMAKE_OPTS="-D MOE_PYTHON_INCLUDE_DIR=/opt/conda/envs/qaliboo/include/py
 
 RUN python setup.py build_ext
 
-CMD ["python", "asyn_test.py", "--help"]
+CMD ["bash"]
 
