@@ -56,6 +56,8 @@ class PAKMAN:
         self._save=save
         self._dat = aux.define_dat(objective_func_name)
         self._dub = dub
+
+        # TODO ub,lb e create_folder
         
         self._py_sgd_params_ps = py_optimization.GradientDescentParameters(
             max_num_steps=1000, max_num_restarts=3,

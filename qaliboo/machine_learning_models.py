@@ -23,7 +23,7 @@ class ML_model:
         if self._type=='ridge':
             self.model = Ridge()
         elif self._type=='lasso':
-            self.model==Lasso()
+            self.model = Lasso()
         else:
             raise KeyError('Select a valid Machine Learning Model')
         

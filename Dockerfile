@@ -17,6 +17,7 @@ RUN apt-get update && \
     gfortran \
     wget \
     nano \
+    libarchive-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
