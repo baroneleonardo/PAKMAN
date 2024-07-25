@@ -38,6 +38,9 @@ class _PrecomputedFunction(finite_domain.CPPFiniteDomain, abstract_problem.Abstr
     def minimum(self):
         ix = np.argmin(self._dataset.y)
         return self._dataset.X.loc[ix].values
+    @ property
+    def dataset(self):
+        return self._dataset
 
     def evaluate_true(self, x):
         distances, indexes, points = self.find_distances_indexes_closest_points(x)

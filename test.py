@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
 
-
+'''
 ScaledQuery26 = Dataset(
     csv_file='scaledQuery26.csv',
     param_cols=['#vm', 'ram'],
@@ -18,7 +18,6 @@ ScaledQuery26 = Dataset(
     Realtime_col = 'time',
     reduce_to_unique=False
 )
-
 '''
 Query26 = Dataset(
     csv_file='query26_vm_ram.csv',
@@ -27,13 +26,15 @@ Query26 = Dataset(
     time_col = 'time',  # TODO change  the name of this variable
     Realtime_col='time',
     reduce_to_unique=False
-)'''
-Query26 = _PrecomputedFunction(dataset=ScaledQuery26) #Query26 = _PrecomputedFunction(dataset=Query26)
+)
+#Query26 = _PrecomputedFunction(dataset=ScaledQuery26) 
+Query26 = _PrecomputedFunction(dataset=Query26)
 
 known_minimum = Query26.minimum
 domain = Query26
 objective_func = Query26
-objective_func_name = 'ScaledQuery26'
+#objective_func_name = 'ScaledQuery26'
+objective_func_name = None
 n_initial_points = 3
 n_iterations = 60
 batch_size = 2

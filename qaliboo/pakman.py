@@ -54,7 +54,10 @@ class PAKMAN:
         self._uniform_sample = uniform_sample
         self._n_restarts=n_restarts
         self._save=save
-        self._dat = aux.define_dat(objective_func_name)
+        if objective_func_name is None:
+            self._dat = objective_func.dataset.csv_file
+        else: 
+            self._dat = aux.define_dat(objective_func_name)
         self._dub = dub
 
         # TODO ub,lb e create_folder

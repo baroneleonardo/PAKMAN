@@ -36,8 +36,8 @@ class Dataset:
         self._Realtime_col = Realtime_col
         self._reduce_to_unique = reduce_to_unique
         
-        csv_file = os.path.join(os.path.dirname(__file__), csv_file)
-        self._data = pd.read_csv(csv_file)
+        self._csv_file = os.path.join(os.path.dirname(__file__), csv_file)
+        self._data = pd.read_csv(self._csv_file)
         self._datatime = self._data[[time_col]]
         
         if self._Realtime_col is not None:
@@ -48,7 +48,7 @@ class Dataset:
             unique_data = self._data[param_cols + [target_col]].groupby(param_cols).agg(np.mean).reset_index()
             n_rows = len(unique_data)
             if n_init_rows > n_rows:
-                logging.info(f'Duplicate data in {csv_file}. '
+                logging.info(f'Duplicate data in {self._csv_file}. '
                                 f'{n_init_rows - n_rows} rows could be dropped '
                                 f'({(n_init_rows - n_rows)/n_init_rows*100:.02f}%). '
                                 f'leaving {n_rows} rows')
@@ -77,6 +77,10 @@ class Dataset:
     @property
     def folder(self):
         return os.path.dirname(__file__)
+    
+    @property
+    def csv_file(self):
+        return self._csv_file
 
 
 LiGenTot = Dataset(
