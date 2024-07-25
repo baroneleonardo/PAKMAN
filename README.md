@@ -1,5 +1,5 @@
 # PAKMAN
-PAKMAN (PArallel Knowledge with MAchiNe learning) is an optimization library that integrates parallel Bayesian Optimization (BO) with machine learning (ML) models. This combination is designed to efficiently tackle complex optimization problems, especially those involving constraints and high-dimensional spaces. PAKMAN leverages new acquisition functions and both synchronous and asynchronous execution strategies to achieve faster convergence and superior performance.
+PAKMAN (PArallel Knowledge with MAchiNe learning) is an optimization library that integrates parallel Bayesian Optimization (BO) with machine learning (ML) models. This combination is designed to efficiently tackle complex optimization problems, especially those involving constraints and high-dimensional spaces. PAKMAN leverages new acquisition functions and both synchronous and asynchronous execution strategies and a new timout hybrrid approach.
 
 ## Step-by-Step Installation with Conda virtual environment
 We only tested an installation based on Anaconda/Miniconda 
