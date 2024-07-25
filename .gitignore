@@ -58,5 +58,5 @@ build
 
 build_log.txt
 
-# Upload file in qaliboo/datasets
-datasets/*
+# Upload file in qaliboo/datasets also if they are csv
+!qaliboo/datasets/*.csv
