@@ -57,3 +57,6 @@ build
 .ipynb_checkpoints
 
 build_log.txt
+
+# Upload file in qaliboo/datasets
+datasets/*
