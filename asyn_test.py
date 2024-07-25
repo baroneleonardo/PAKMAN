@@ -34,24 +34,22 @@ domain = objective_func
 n_initial_points = params.init
 n_iterations = params.iter
 n_points_per_iteration = params.points
-m_domain_discretization_sample_size = params.sample_size
+#m_domain_discretization_sample_size = params.sample_size
 lb = params.lower_bound
 ub = params.upper_bound
 nm = params.nascent_minima
-dub = params.domain_upper_bound
+#dub = params.domain_upper_bound
 num_processors = multiprocessing.cpu_count()
 print("Maximum number of available process", num_processors)
 
 Baop = PAKMAN(n_initial_points=n_initial_points, 
            n_iterations=n_iterations, 
            batch_size=n_points_per_iteration, 
-           m_domain_discretization=m_domain_discretization_sample_size,
            objective_func=objective_func,
            domain=objective_func,
            objective_func_name=objective_func_name, 
            lb=lb, 
            ub=ub,
-           dub=dub, 
            nm=nm,
            uniform_sample=True,
            save=True)

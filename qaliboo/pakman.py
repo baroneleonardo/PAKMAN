@@ -91,7 +91,10 @@ class PAKMAN:
         if (ub is not None) or (lb is not None) or (nm is not False):
             self._use_ml = True
             _log.info("You have selected an acquisition function with ML integrated")
-            if dub is None: dub = ub
+            
+            if dub is None: 
+                dub = ub
+            
             self._ml_model = ML_model(X_data=initial_points_array, 
                         y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
                         X_ub=dub,
@@ -204,7 +207,7 @@ class PAKMAN:
         next_points = report_point[index]
         return next_points
     
-    def optimize_point(self, seed, kg, q):
+    def optimize_point(self, kg, q):
         '''
         Gradient Ascent + Machine Learning Optimization.
         ''' 
@@ -399,7 +402,7 @@ class PAKMAN:
         else: queue.put((point, poi_v, None))
         return 
     
-    def async_optimization(self, t_restart, n_process):
+    def async_optimization(self, t_restart, n_process, time_proportion=1):
         '''
         Asyncronous Optimization.
 
@@ -417,7 +420,8 @@ class PAKMAN:
         
         #self._time_proportion = 40000 # Constant for proportional time #5 in Ligen
         #self._time_proportion = 5 # Constant for Ligen
-        self._time_proportion = 50000
+        self._time_proportion = time_proportion
+        #self._time_proportion = 50000
         time0 = time.time()
         #self._time_proportion = 250 # COnstant for StereoMatch
         while True:
