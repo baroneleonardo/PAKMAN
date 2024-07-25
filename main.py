@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, send_file
-from qaliboo.parallel_maliboo import ParallelMaliboo as PM
+from qaliboo.pakman import PAKMAN 
 from qaliboo.aux import stringa_per_stringa
 from qaliboo.precomputed_functions import ScaledLiGenTot
 

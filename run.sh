@@ -5,10 +5,10 @@
 #python main_time.py -p ScaledLiGenTot -i 10 -q 10 -n 100 -ub 2.1
 #python main_time.py -p ScaledLiGenTot -i 10 -q 10 -n 100 -ub 2.1
 
-python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1
-python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1
-python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1  # Questo per execution time
-
+#python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1
+#python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1
+#python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1  # Questo per execution time
+python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 185000
 #python asyn_test.py -p ScaledLiGenTot -i 10 -q 10 -n 200 -ub 2.1
 #python asyn_test.py -p ScaledLiGenTot -i 10 -q 10 -n 200 -ub 2.1
 #python asyn_test.py -p ScaledLiGenTot -i 10 -q 10 -n 200 -ub 2.1
@@ -32,7 +32,7 @@ python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1  # Questo per ex
 #do
 #    echo -e "\e[31mNumber of iteration: $i\e[0m"
 #    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 185000
-#    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 185000
+#    
 #    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 195000
 #    python main_time.py -p ScaledQuery26 -i 3 -q 2 -n 20 -nm True -ub 195000
 #    python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 205000

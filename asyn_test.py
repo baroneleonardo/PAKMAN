@@ -1,7 +1,7 @@
 import logging
 import argparse
 from qaliboo import precomputed_functions
-from qaliboo.parallel_maliboo import ParallelMaliboo as PM
+from qaliboo.pakman import PAKMAN
 import multiprocessing
 import numpy as np
 logging.basicConfig(level=logging.NOTSET)
@@ -42,7 +42,7 @@ dub = params.domain_upper_bound
 num_processors = multiprocessing.cpu_count()
 print("Maximum number of available process", num_processors)
 
-Baop = PM(n_initial_points=n_initial_points, 
+Baop = PAKMAN(n_initial_points=n_initial_points, 
            n_iterations=n_iterations, 
            batch_size=n_points_per_iteration, 
            m_domain_discretization=m_domain_discretization_sample_size,
@@ -59,5 +59,5 @@ Baop = PM(n_initial_points=n_initial_points,
 # 60 for LiGen (in teoria per 5)
 # 36 for StereoMatch (in teoria per 250)
 # 33 for StereoMatch10 (in teoria per 3)
-Baop.async_optimization(10, n_points_per_iteration) # Cambia il time
-#Baop.sync_optimization()
+#Baop.async_optimization(10, n_points_per_iteration) # Cambia il time
+Baop.sync_optimization()

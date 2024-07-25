@@ -22,12 +22,12 @@ logging.basicConfig(level=logging.NOTSET)
 _log = logging.getLogger(__name__)
 _log.setLevel(logging.DEBUG)
 
-class ParallelMaliboo:
+class PAKMAN:
     def __init__(self, n_initial_points: int = 10, n_iterations: int = 30, batch_size:int = 4,
                  m_domain_discretization: int= 30, objective_func = None, domain=None, objective_func_name=None, lb: float=None, 
                  ub: float=None, dub:float=None, nm:bool=False, uniform_sample:bool=True, n_restarts:int = 15, save:bool=False):
         """
-        Initializes an instance of ParallelMaliboo.
+        Initializes an instance of PAKMAN.
 
         Args:
             n_initial_points (int): Number of initial points.
@@ -94,10 +94,7 @@ class ParallelMaliboo:
                         y_data=np.array([objective_func.evaluate_time(pt) for pt in initial_points_array]), 
                         X_ub=dub,
                         X_lb=lb) 
-        else: 
-            _log.info("Without ML model")
             
-
         # Initialize the Gaussian Process
         self._gp_loglikelihood = log_likelihood_mcmc.GaussianProcessLogLikelihoodMCMC(
             historical_data=initial_data,
@@ -164,11 +161,11 @@ class ParallelMaliboo:
         if self._use_ml: unfeasible_points = self._ml_model.out_count(target)
         else: unfeasible_points = 0
 
-        self.log_iteration_result(suggested_minimum, s, self._q, unfeasible_points)
+        self.log_iteration_result(suggested_minimum, s, self._q, unfeasible_points, mape_value)
 
         if self._save:
-            aux.csv_info(s,self._q, self._min_evaluated, self._objective_func.evaluation_count,
-                         self._global_time, unfeasible_points, mape_value, self._result_folder)
+            aux.csv_info(s, self._q, self._objective_func.evaluation_count,
+                         self._global_time, unfeasible_points, mape_value, self._result_folder, self._error)
     
     def acquisition_function(self, q, points_being_sampled=None):
         '''
@@ -195,11 +192,10 @@ class ParallelMaliboo:
         '''
         Multistart Optimization.
         '''
-        seeds = np.random.randint(0, 10000, size=self._n_restarts)
         report_point=[]
         kg_list = []
         for i in range(self._n_restarts):
-            new_point, kg_value = self.optimize_point(seeds[i], kg, q)
+            new_point, kg_value = self.optimize_point(kg, q)
             report_point.append(new_point)
             kg_list.append(kg_value)
         index = np.argmax(kg_list)
@@ -210,7 +206,6 @@ class ParallelMaliboo:
         '''
         Gradient Ascent + Machine Learning Optimization.
         ''' 
-        np.random.seed(seed)
         init_point = np.array(self._domain.generate_uniform_random_points_in_domain(q))
         # Stocastic Gradient Ascent
         if self._objective_func.evaluation_count - self._n_initial_points > 50:
