@@ -8,7 +8,7 @@
 #python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1
 #python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1
 #python main_time.py -p ScaledLiGenTot -i 10 -q 7 -n 100 -ub 2.1  # Questo per execution time
-python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 185000
+python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 185000 -t 1000
 #python asyn_test.py -p ScaledLiGenTot -i 10 -q 10 -n 200 -ub 2.1
 #python asyn_test.py -p ScaledLiGenTot -i 10 -q 10 -n 200 -ub 2.1
 #python asyn_test.py -p ScaledLiGenTot -i 10 -q 10 -n 200 -ub 2.1
@@ -17,7 +17,7 @@ python asyn_test.py -p ScaledQuery26 -i 3 -q 2 -n 50 -nm True -ub 185000
 # Asyncronous symulations
 #for i in {1..5} 
 #do
-#    python main_time.py -p ScaledStereoMatch -i 5 -q 4 -n 30 -ub 20000
+#    python main_time.py -p StereoMatch -i 5 -q 4 -n 30 -ub 20000
 #    python main_time.py -p ScaledStereoMatch -i 5 -q 4 -n 30 -nm True
 #    python main_time.py -p ScaledStereoMatch -i 5 -q 4 -n 30 -ub 20000 -nm True
 # python main_time.py -p      

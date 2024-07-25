@@ -19,6 +19,7 @@ ScaledQuery26 = Dataset(
     reduce_to_unique=False
 )
 '''
+
 Query26 = Dataset(
     csv_file='query26_vm_ram.csv',
     param_cols=['#vm', 'ram'],
@@ -27,6 +28,7 @@ Query26 = Dataset(
     Realtime_col='time',
     reduce_to_unique=False
 )
+
 #Query26 = _PrecomputedFunction(dataset=ScaledQuery26) 
 Query26 = _PrecomputedFunction(dataset=Query26)
 
